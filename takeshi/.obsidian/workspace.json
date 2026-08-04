@@ -11,10 +11,14 @@
             "id": "0a653e7ce7b45640",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "10 Projetos/Sysvar/Contexto do Projeto/Arquitetura.md",
+                "mode": "source",
+                "source": true
+              },
               "icon": "lucide-file",
-              "title": "Nova aba"
+              "title": "Arquitetura"
             }
           }
         ]
@@ -181,8 +185,9 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "d27e6d8f494df13c",
+  "active": "0a653e7ce7b45640",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas.md",
     "10 Projetos/Sysvar/Sysvar.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio.md",
@@ -193,7 +198,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Visão Geral.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
     "10 Projetos/Sysvar/Contexto do Projeto",
     "10 Projetos/Sysvar",
     "10 Projetos/Webfoto/Contexto do Projeto/Workflows.md",
