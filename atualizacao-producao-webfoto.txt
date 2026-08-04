@@ -1,0 +1,94 @@
+PRODUCAO WEBFOTO - ROTEIRO DE ATUALIZACAO
+
+POWERSHELL LOCAL - WINDOWS
+
+1. Entrar no projeto local:
+cd C:\webfoto
+
+2. Verificar se nao ha alteracoes pendentes:
+git status --short
+
+3. Validar backend:
+node --check .\server\server.js
+
+4. Buildar frontend:
+ng build
+
+5. Limpar pasta temporaria do frontend no Ubuntu:
+ssh fmurashima@192.168.15.57 "rm -rf /home/fmurashima/webfoto-dist/*"
+
+6. Copiar frontend buildado para o Ubuntu:
+scp -r C:\webfoto\dist\webfoto\browser\* fmurashima@192.168.15.57:/home/fmurashima/webfoto-dist/
+
+7. Copiar backend atualizado para o Ubuntu:
+scp C:\webfoto\server\server.js fmurashima@192.168.15.57:/home/fmurashima/webfoto-backend/server.js
+
+8. Copiar package.json do backend para o Ubuntu:
+scp C:\webfoto\server\package.json fmurashima@192.168.15.57:/home/fmurashima/webfoto-backend/package.json
+
+9. Criar pasta de migrations no Ubuntu:
+ssh fmurashima@192.168.15.57 "mkdir -p /home/fmurashima/webfoto-backend/migrations"
+
+10. Copiar migration para o Ubuntu:
+scp C:\webfoto\server\migrations\2026-07-26_zip_prepared_flow.sql fmurashima@192.168.15.57:/home/fmurashima/webfoto-backend/migrations/2026-07-26_zip_prepared_flow.sql
+
+11. Entrar no servidor:
+ssh fmurashima@192.168.15.57
+
+
+SERVIDOR UBUNTU
+
+1. Entrar na pasta do backend:
+cd /home/fmurashima/webfoto-backend
+
+2. Atualizar frontend dentro do container webfoto:
+tar -C /home/fmurashima/webfoto-dist -cf /tmp/webfoto-dist.tar .
+docker cp /tmp/webfoto-dist.tar webfoto:/tmp/webfoto-dist.tar
+docker exec webfoto sh -c 'rm -rf /usr/share/nginx/html/* && tar -C /usr/share/nginx/html -xf /tmp/webfoto-dist.tar && chmod -R 755 /usr/share/nginx/html && find /usr/share/nginx/html -type f -exec chmod 644 {} \;'
+docker restart webfoto
+
+3. Buildar imagem nova da API:
+docker build -f Dockerfile -t webfoto-api .
+
+4. Remover container antigo da API:
+docker rm -f webfoto-api
+
+5. Subir container novo da API:
+docker run -d \
+  --name webfoto-api \
+  --restart unless-stopped \
+  --network infra \
+  -e MYSQL_HOST=mysql \
+  -e MYSQL_USER=root \
+  -e MYSQL_PASSWORD='ftju7439' \
+  -e MYSQL_DATABASE=webfoto \
+  -e TOKEN_SECRET='maymurashima_token_2026_trocar_depois' \
+  -e ADMIN_LOGIN=admin \
+  -e ADMIN_PASSWORD='WebFoto@2026#Admin!7' \
+  -e MAX_PHOTO_SIZE=62914560 \
+  -e UPLOAD_CHUNK_SIZE=20971520 \
+  -e MAX_ZIP_UPLOAD_SIZE=21474836480 \
+  -e MAX_UPLOAD_CHUNKS=2000 \
+  -e UPLOAD_TEMP_RETENTION_HOURS=48 \
+  -v webfoto_uploads:/app/uploads \
+  -v webfoto_zips:/app/zips \
+  -v webfoto_upload_temp:/app/upload-temp \
+  webfoto-api
+
+6. Testar API dentro do container:
+docker exec webfoto-api wget -qO- http://127.0.0.1:3000/api/health
+
+7. Testar API pela rede Docker a partir do container do site:
+docker exec webfoto wget -qO- http://webfoto-api:3000/api/health
+
+8. Testar API publica:
+curl -I https://www.maymurashima.com.br/api/health
+
+9. Testar frontend publico:
+curl -I https://www.maymurashima.com.br/area-fotos
+
+10. Conferir arquivos JS/CSS publicados:
+curl -s https://www.maymurashima.com.br/ | grep -Eo 'main-[A-Z0-9]+\.js|styles-[A-Z0-9]+\.css' | sort -u
+
+11. Ver logs da API:
+docker logs --tail 80 webfoto-api
