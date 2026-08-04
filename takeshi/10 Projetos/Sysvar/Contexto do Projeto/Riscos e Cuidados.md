@@ -1,59 +1,358 @@
 ---
-type: reference
-status: active
-project: Sysvar
-source: "C:/SysvarProjeto"
-created: 2026-08-03
-updated: 2026-08-03
+
+type: reference  
+status: active  
+project: Sysvar  
+source: "C:/SysvarProjeto"  
+created: 2026-08-03  
+updated: 2026-08-04  
 tags:
-  - sysvar
-  - contexto
-  - riscos
+
+- sysvar
+    
+- riscos
+    
+- arquitetura
+    
+
 ---
 
 # Riscos e Cuidados
 
-## Segurança e dados sensíveis
+## Objetivo
 
-- Não ler nem duplicar `.env` em notas do Obsidian.
-- Permissões por módulo/campo são parte sensível do sistema.
-- Mudanças de autenticação podem quebrar frontend, guards, API e isolamento multiempresa.
+Este documento reúne os principais riscos técnicos e funcionais identificados durante o desenvolvimento do SISVAR.
 
-## Multiempresa e estabelecimentos
+Ele serve como guia para evitar regressões, falhas de segurança e inconsistências entre módulos.
 
-- Sempre verificar empresa, loja e compatibilidade operacional antes de listar, criar ou alterar dados.
-- O conceito funcional de estabelecimento ainda precisa formalização transversal em várias telas/endpoints.
-- Filtros por loja podem não equivaler ao conceito de unidade operacional.
+Sempre que uma nova arquitetura ou regra importante for criada, este documento deverá ser revisado.
 
-## Acoplamento entre domínios
+---
 
-- PDV, fiscal, estoque, financeiro e contábil têm efeitos encadeados.
-- Distribuição toca estoque, fiscal, pedidos, trânsito e recebimento.
-- Produção toca ficha técnica, consumo de insumos, estoque e produto acabado.
-- Financeiro e dashboard dependem da consistência dos lançamentos gerados por outros domínios.
+# Multiempresa
 
-## Migrações e banco
+## Isolamento de dados
 
-- Projeto usa Django migrations e MySQL.
-- Antes de criar migration, validar modelo de negócio, dados existentes e efeitos em serializers/viewsets.
-- Backups existem no projeto, mas não devem ser tratados como fonte viva sem validação.
+Todo registro pertence obrigatoriamente a uma empresa.
 
-## Frontend
+Jamais confiar:
 
-- Rotas têm dados de role/módulo de empresa.
-- Componentes de feature são grandes; mudanças precisam preservar UX existente e contratos de services.
-- PDV/offline e filas locais exigem testes de persistência, reconexão e sincronização.
+- parâmetros enviados pelo frontend;
+    
+- IDs informados pela URL;
+    
+- filtros enviados pelo usuário.
+    
 
-## Produção
+O backend sempre deve validar se o usuário pertence à empresa proprietária dos dados.
 
-- Rodar checks do backend e build do frontend antes de deploy.
-- Não executar migrations ou comandos de carga sem confirmação explícita.
-- Documentar decisões funcionais que mudem módulos, permissões ou estabelecimento.
+---
 
-## Última atualização
+## Consultas
 
-2026-08-03
+Todo queryset deve ser filtrado pela empresa do usuário.
 
-## Limitações do contexto
+A ausência desse filtro pode permitir vazamento de informações entre clientes.
 
-Esta nota é um mapa de risco inicial, não auditoria completa. Para feature de alto impacto, usar `$grill-me` antes do plano.
+---
+
+# Autenticação
+
+Toda autenticação deve passar pelos serviços centrais.
+
+É proibido criar autenticação paralela em qualquer módulo.
+
+Toda validação deve considerar:
+
+- usuário;
+    
+- empresa;
+    
+- contrato;
+    
+- perfil;
+    
+- módulos contratados;
+    
+- sessão;
+    
+- permissões efetivas.
+    
+
+---
+
+# Sessões simultâneas
+
+## Consumo de licença
+
+Licença não é consumida por usuário cadastrado.
+
+Licença é consumida exclusivamente por sessão ativa.
+
+Jamais utilizar quantidade de usuários ativos para controlar licenciamento.
+
+---
+
+## Concorrência
+
+Dois logins simultâneos podem disputar a última vaga disponível.
+
+O controle deve permanecer protegido por transação.
+
+Nunca contar sessões fora da transação responsável pela criação da nova sessão.
+
+---
+
+## Timeout
+
+Sessões abandonadas não podem permanecer ocupando acessos simultâneos indefinidamente.
+
+O timeout deve sempre liberar a licença.
+
+---
+
+## Mesmo dispositivo
+
+Quando o mesmo usuário autenticar novamente utilizando o mesmo dispositivo:
+
+- a sessão anterior deve ser encerrada;
+    
+- o token anterior deve ser revogado;
+    
+- apenas uma sessão deve permanecer ativa.
+    
+
+---
+
+## Tokens
+
+Nunca armazenar tokens em texto puro.
+
+Persistir apenas o hash.
+
+Sempre invalidar tokens revogados.
+
+Nunca aceitar token sem sessão válida.
+
+---
+
+# Permissões
+
+O frontend nunca define permissões.
+
+Menus ocultos não representam segurança.
+
+Toda autorização deve ser novamente validada pelo backend.
+
+---
+
+# Contratos
+
+Toda autenticação depende de contrato válido.
+
+Sempre validar:
+
+- existência;
+    
+- vigência;
+    
+- situação;
+    
+- módulos contratados.
+    
+
+---
+
+# Usuário Master
+
+Cada empresa possui apenas um usuário master.
+
+Antes de excluir ou inativar um master deve existir transferência para outro usuário.
+
+---
+
+# Módulos
+
+Nunca permitir acesso apenas porque existe uma rota no frontend.
+
+O backend deve validar:
+
+- módulo contratado;
+    
+- permissão do usuário;
+    
+- empresa;
+    
+- contrato.
+    
+
+---
+
+# Auditoria
+
+Toda operação crítica deverá gerar auditoria.
+
+Especial atenção para:
+
+- login;
+    
+- logout;
+    
+- encerramento de sessão;
+    
+- alteração de permissões;
+    
+- alteração de contratos;
+    
+- alteração de usuários;
+    
+- exclusões;
+    
+- aprovações;
+    
+- cancelamentos;
+    
+- alterações financeiras;
+    
+- alterações fiscais.
+    
+
+---
+
+# Banco de Dados
+
+Toda alteração estrutural deve possuir migration.
+
+Nunca alterar banco manualmente em produção.
+
+---
+
+# Performance
+
+Evitar:
+
+- consultas sem índices;
+    
+- N+1 queries;
+    
+- joins desnecessários;
+    
+- atualização excessiva de sessão.
+    
+
+Heartbeat deve atualizar a última atividade apenas quando necessário.
+
+---
+
+# Frontend
+
+O frontend é responsável apenas por:
+
+- interface;
+    
+- experiência do usuário;
+    
+- navegação;
+    
+- validações simples.
+    
+
+Toda regra crítica pertence ao backend.
+
+---
+
+# Segurança
+
+Nunca confiar em:
+
+- JavaScript;
+    
+- LocalStorage;
+    
+- SessionStorage;
+    
+- parâmetros enviados pelo navegador.
+    
+
+Tudo deve ser validado novamente no servidor.
+
+---
+
+# Integração entre módulos
+
+Uma alteração em um módulo pode afetar:
+
+- financeiro;
+    
+- estoque;
+    
+- fiscal;
+    
+- auditoria;
+    
+- dashboards;
+    
+- relatórios.
+    
+
+Toda alteração relevante deve ser testada de forma integrada.
+
+---
+
+# Documentação
+
+Nenhuma funcionalidade será considerada concluída sem:
+
+- implementação;
+    
+- testes;
+    
+- revisão técnica;
+    
+- atualização do Obsidian;
+    
+- versionamento da documentação.
+    
+
+A documentação deve refletir exatamente o comportamento implementado.
+
+---
+
+# Situação atual
+
+Riscos mitigados:
+
+- isolamento multiempresa;
+    
+- autenticação centralizada;
+    
+- permissões efetivas;
+    
+- contratos;
+    
+- módulos contratados;
+    
+- licenciamento por sessões simultâneas;
+    
+- heartbeat;
+    
+- timeout;
+    
+- encerramento administrativo de sessões.
+    
+
+Próximo risco a ser tratado:
+
+Implementação da auditoria central para garantir rastreabilidade completa das operações críticas.
+
+---
+
+# Notas relacionadas
+
+- [[10 Projetos/Sysvar/Sysvar|Sysvar]]
+    
+- [[10 Projetos/Sysvar/Contexto do Projeto/Arquitetura|Arquitetura]]
+    
+- [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio|Modelo de Domínio]]
+    
+- [[10 Projetos/Sysvar/Contexto do Projeto/Workflows|Workflows]]
