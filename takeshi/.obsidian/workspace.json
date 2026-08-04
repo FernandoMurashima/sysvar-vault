@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "44789b1fd7fa8aa9",
+        "id": "43f09c7d9a97731f",
         "type": "tabs",
         "children": [
           {
-            "id": "06563cb356e35ec0",
+            "id": "eba1f0f8a9f2bf73",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -76,7 +76,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 485.5
   },
   "right": {
     "id": "0574bf7236bdcc9a",
@@ -181,19 +181,19 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "06563cb356e35ec0",
+  "active": "eba1f0f8a9f2bf73",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Visão Geral.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Arquitetura.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
-    "10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas.md",
     "10 Projetos/Sysvar/Sysvar.md",
     "10 Projetos/Sysvar/Decisões tecnicas/ADR-001 - Licenciamento por Sessões Simultâneas.md.md",
     "10 Projetos/Sysvar/Decisões Técnicas",
     "10 Projetos/Sysvar/Decisões tecnicas",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Visão Geral.md",
     "10 Projetos/Sysvar/Contexto do Projeto",
     "10 Projetos/Sysvar",
     "10 Projetos/Webfoto/Contexto do Projeto/Workflows.md",

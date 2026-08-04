@@ -2,195 +2,215 @@
 type: adr
 status: approved
 project: Sysvar
+adr: 001
 created: 2026-08-04
 updated: 2026-08-04
 tags:
   - sysvar
+  - adr
   - arquitetura
   - licenciamento
   - autenticação
-  - sessões
 ---
 
 # ADR-001 - Licenciamento por Sessões Simultâneas
 
 ## Status
 
-Aprovado e em implementação.
+Aprovada.
 
-## Contexto
+Implementada.
 
-O SISVAR é comercializado por quantidade de licenças contratadas por empresa.
+Validada em ambiente de desenvolvimento.
 
-Inicialmente, o sistema foi implementado considerando que cada usuário ativo cadastrado consumiria uma licença.
+---
 
-Essa regra foi descartada.
+# Contexto
 
-Uma empresa pode possuir vários usuários cadastrados e várias lojas, sem que todos estejam utilizando o sistema simultaneamente.
+Durante o desenvolvimento do SISVAR foi discutido qual deveria ser o modelo de licenciamento da plataforma.
 
-O controle comercial deve considerar quantos acessos estão ocorrendo ao mesmo tempo.
+A primeira proposta consistia em limitar a quantidade de usuários ativos cadastrados por empresa.
 
-## Decisão
+Após análise funcional e comercial concluiu-se que esse modelo não representa corretamente o uso do sistema.
 
-A licença do SISVAR será controlada por sessão simultânea ativa.
+Uma empresa pode possuir dezenas de usuários cadastrados e apenas alguns deles utilizarem o sistema simultaneamente.
 
-A empresa poderá possuir qualquer quantidade de usuários cadastrados.
+O objetivo comercial do SISVAR é limitar o uso simultâneo da plataforma, e não o número de cadastros.
 
-O limite contratado define quantas sessões podem permanecer ativas simultaneamente.
+---
 
-Exemplo:
+# Decisão
 
-- Empresa com 20 usuários cadastrados.
-- Empresa com 5 lojas.
-- Empresa com 3 licenças contratadas.
-- No máximo 3 sessões simultâneas ativas.
-- O quarto login simultâneo deverá ser bloqueado.
+O SISVAR utilizará licenciamento baseado em sessões simultâneas.
 
-## Regras
+O consumo da licença ocorre exclusivamente quando existe uma sessão autenticada e ativa.
 
-- Usuário apenas cadastrado não consome licença.
-- Usuário ativo sem sessão aberta não consome licença.
-- Usuário inativo não pode iniciar sessão.
-- Cada navegador, computador, dispositivo ou instalação ativa consome uma licença.
-- O mesmo usuário em dois dispositivos consome duas licenças.
-- Várias abas do mesmo navegador utilizam a mesma sessão.
-- Quantidade de lojas não consome licença diretamente.
-- Superusuário interno do SISVAR não consome licença da empresa.
-- Sessão encerrada não consome licença.
-- Sessão expirada não consome licença.
-- Logout libera imediatamente a licença.
-- Timeout por inatividade libera a licença.
-- Encerramento administrativo libera a licença.
+Usuários cadastrados não consomem licença.
 
-## Controle de concorrência
+Usuários ativos não consomem licença.
 
-A abertura de sessão deve ser protegida por transação no backend.
+Somente sessões válidas consomem acesso simultâneo.
 
-Ao tentar iniciar uma sessão:
+---
 
-1. Validar usuário.
-2. Validar empresa.
-3. Validar contrato.
-4. Encerrar sessões expiradas.
-5. Bloquear o contrato durante a contagem.
-6. Contar sessões simultâneas válidas.
-7. Comparar com o limite contratado.
-8. Criar a sessão somente se houver licença disponível.
+# Regras
 
-Dois logins concorrentes não podem ocupar a mesma última licença.
+O sistema deverá obedecer às seguintes regras.
 
-## Identificação de dispositivo
+## Cadastro
 
-O frontend deverá gerar um identificador aleatório e persistente por navegador ou instalação.
+Criar usuários nunca consome licença.
 
-Esse identificador não deverá utilizar fingerprint invasivo.
+Editar usuários nunca consome licença.
 
-O mesmo usuário no mesmo dispositivo poderá substituir ou reutilizar a sessão anterior sem consumir uma licença adicional indevidamente.
+Ativar usuários nunca consome licença.
 
-## Sessão
+Inativar usuários encerra suas sessões.
 
-A implementação deverá manter uma entidade de sessão contendo, no mínimo:
+---
 
-- empresa;
-- usuário;
-- loja ativa;
-- identificador da sessão;
-- identificador do dispositivo;
-- vínculo seguro com o token;
-- IP;
-- user-agent;
-- início;
-- última atividade;
-- encerramento;
-- motivo do encerramento;
-- situação ativa ou inativa.
+## Login
 
-## Token
+Um login válido cria uma nova sessão.
 
-O token deverá estar vinculado a uma sessão específica.
+Cada sessão ocupa uma licença.
 
-O token bruto não deverá ser armazenado em logs ou auditoria.
+O login somente é permitido quando existir vaga disponível no contrato.
 
-Tokens antigos sem sessão vinculada deverão ser invalidados e exigir novo login.
+Caso contrário o backend retorna:
 
-## Heartbeat
+```
+CONCURRENT_SESSION_LIMIT_REACHED
+```
 
-O frontend deverá enviar heartbeat periódico para manter a sessão ativa.
+---
 
-Configuração inicial proposta:
+## Mesmo dispositivo
 
-- Heartbeat a cada 2 minutos.
-- Expiração após 30 minutos sem atividade.
+Quando o mesmo usuário autenticar novamente utilizando o mesmo dispositivo:
 
-Esses valores poderão ser alterados por configuração.
+- a sessão anterior será encerrada;
+- o token anterior será revogado;
+- a nova sessão assumirá o controle.
 
-## Redução do limite
+Esse processo não aumenta a quantidade de acessos simultâneos.
 
-Se a empresa possuir mais sessões abertas do que o novo limite:
+---
 
-- sessões existentes não serão encerradas automaticamente;
-- a empresa ficará acima do limite;
-- novos logins serão bloqueados;
-- o excesso será reduzido por logout, timeout ou encerramento administrativo.
+## Dispositivos diferentes
 
-## Administração
+O mesmo usuário pode utilizar vários dispositivos.
 
-O usuário master da empresa poderá:
+Cada dispositivo mantém sua própria sessão.
 
-- visualizar as sessões da própria empresa;
-- visualizar usuário, loja, dispositivo, IP e última atividade;
-- encerrar sessões da própria empresa.
+Cada sessão consome uma licença.
 
-O master não poderá visualizar sessões de outra empresa.
+---
 
-## Consequências
+## Logout
 
-### Positivas
+Logout encerra imediatamente a sessão.
 
-- Modelo comercial mais flexível.
-- Empresa pode cadastrar todos os seus funcionários.
-- O controle corresponde ao uso real do sistema.
-- Evita cobrança por usuário que raramente utiliza o sistema.
-- Permite utilização em várias lojas respeitando o limite contratado.
+A licença é liberada imediatamente.
 
-### Riscos
+---
 
-- Sessões abandonadas podem ocupar licença.
-- Falta de heartbeat pode causar expiração indevida.
-- Controle concorrente precisa ser transacional.
-- Tokens precisam ser vinculados corretamente às sessões.
-- Encerramento do navegador não garante logout imediato.
+## Timeout
 
-## Mitigações
+Sessões inativas expiram automaticamente.
 
-- Heartbeat periódico.
-- Timeout por inatividade.
-- Limpeza durante login e autenticação.
-- Comando periódico para encerrar sessões expiradas.
-- Tela administrativa de sessões.
-- Encerramento manual pelo master.
-- Testes concorrentes para a última licença.
+A expiração:
 
-## Situação da implementação
+- encerra a sessão;
+- revoga o token;
+- libera a licença.
 
-Em implementação pelo Codex.
+---
 
-A documentação deverá ser atualizada após a conclusão com:
+## Encerramento administrativo
 
-- nomes finais dos models;
-- migration criada;
-- endpoints;
-- autenticação utilizada;
-- frequência final do heartbeat;
-- timeout final;
-- comportamento de tokens antigos;
-- testes executados;
-- limitações restantes.
+O usuário master poderá encerrar sessões da própria empresa.
 
-## Notas relacionadas
+O superusuário poderá encerrar qualquer sessão.
 
-- [[10 Projetos/Sysvar/Sysvar|Sysvar]]
-- [[10 Projetos/Sysvar/Contexto do Projeto/Arquitetura|Arquitetura]]
-- [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio|Modelo de Domínio]]
-- [[10 Projetos/Sysvar/Contexto do Projeto/Workflows|Workflows]]
-- [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados|Riscos e Cuidados]]
+O encerramento revoga o token e libera imediatamente a licença.
+
+---
+
+# Benefícios
+
+O modelo escolhido apresenta as seguintes vantagens.
+
+- representa o uso real da plataforma;
+- elimina cobrança por usuários que nunca utilizam o sistema;
+- permite cadastro de todos os funcionários;
+- simplifica a gestão comercial;
+- melhora a experiência do cliente;
+- reduz problemas de licenciamento.
+
+---
+
+# Impacto na arquitetura
+
+A decisão introduziu os seguintes componentes.
+
+- EmpresaContrato
+- SessaoUsuario
+- SessionToken
+- ConcurrentSessionService
+- DeviceService
+- SessionService
+
+Também foram alterados:
+
+- autenticação;
+- frontend;
+- heartbeat;
+- logout;
+- validação de permissões.
+
+---
+
+# Riscos
+
+Sessões abandonadas.
+
+Mitigação:
+
+- timeout.
+
+Concorrência.
+
+Mitigação:
+
+- transação durante o login.
+
+Tokens reutilizados.
+
+Mitigação:
+
+- revogação e armazenamento apenas do hash.
+
+---
+
+# Resultado
+
+A decisão foi implementada.
+
+Todos os testes planejados foram aprovados.
+
+O modelo passa a fazer parte da arquitetura oficial do SISVAR.
+
+Alterações futuras deverão preservar esta decisão ou gerar uma nova ADR substituindo esta.
+
+---
+
+# Relacionamentos
+
+Relaciona-se diretamente com:
+
+- [[Sysvar]]
+- [[Arquitetura]]
+- [[Modelo de Domínio]]
+- [[Workflows]]
+- [[Riscos e Cuidados]]
