@@ -33,6 +33,16 @@ O Sysvar é um sistema ERP/varejo composto por backend Django REST Framework, fr
 - Frontend: `C:\SysvarProjeto\Frontend\sysvar`
 - Documentação existente: `C:\SysvarProjeto\docs`
 
+## Situação atual
+
+- Autenticação multiempresa: implementada e em validação.
+- Isolamento entre empresas: validado manualmente.
+- Contratos e módulos contratados: implementados.
+- Perfis e permissões: implementados e em validação.
+- Licenciamento por usuário cadastrado: descartado.
+- Licenciamento por sessões simultâneas: em implementação.
+- Auditoria central: próxima etapa.
+
 ## Notas relacionadas
 
 - [[10 Projetos/Sysvar/Contexto do Projeto/Visão Geral|Visão Geral]]
@@ -41,3 +51,5 @@ O Sysvar é um sistema ERP/varejo composto por backend Django REST Framework, fr
 - [[10 Projetos/Sysvar/Contexto do Projeto/Workflows|Workflows]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico|Mapa Técnico]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados|Riscos e Cuidados]]
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas|ADR-001 - Licenciamento por Sessões Simultâneas]]
+

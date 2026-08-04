@@ -50,3 +50,42 @@ tags:
 ## Limitações do contexto
 
 Algumas regras precisam validação funcional com o usuário antes de implementação, especialmente permissões, estabelecimento e divisão modular.
+
+## Contrato e licenciamento
+
+### EmpresaContrato
+
+Representa o contrato comercial da empresa.
+
+Responsabilidades:
+
+- controlar a situação do contrato;
+- controlar datas de vigência;
+- controlar módulos contratados;
+- controlar o limite de sessões simultâneas;
+- controlar versão das permissões.
+
+O limite não representa quantidade de usuários cadastrados.
+
+### Sessão de usuário
+
+Representa uma utilização simultânea do SISVAR.
+
+Responsabilidades:
+
+- identificar empresa;
+- identificar usuário;
+- identificar loja ativa;
+- identificar dispositivo;
+- controlar início;
+- controlar última atividade;
+- controlar encerramento;
+- controlar expiração;
+- vincular token de autenticação;
+- consumir uma licença simultânea enquanto válida.
+
+### Regra de consumo
+
+```text
+Sessão ativa e válida = 1 licença consumida
+Usuário sem sessão = 0 licença consumida

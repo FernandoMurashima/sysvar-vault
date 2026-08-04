@@ -56,3 +56,30 @@ Apps principais:
 ## Limitações do contexto
 
 A arquitetura funcional proposta nos docs ainda não implica movimentação física de código. Respeitar o estado atual antes de refatorar módulos.
+
+## Autenticação e sessões simultâneas
+
+O controle de licenciamento do SISVAR é baseado em sessões simultâneas ativas por empresa.
+
+Usuários cadastrados ou ativos não consomem licença enquanto não houver sessão aberta.
+
+Cada navegador, dispositivo ou instalação ativa corresponde a uma sessão.
+
+O mesmo usuário pode possuir mais de uma sessão, e cada sessão consome uma licença.
+
+A arquitetura deverá possuir:
+
+- contrato da empresa;
+- limite de sessões simultâneas;
+- sessão vinculada ao usuário e à empresa;
+- token vinculado à sessão;
+- identificador de dispositivo;
+- heartbeat;
+- timeout por inatividade;
+- encerramento administrativo;
+- isolamento por empresa;
+- controle transacional de concorrência.
+
+Decisão detalhada:
+
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas|ADR-001 - Licenciamento por Sessões Simultâneas]]
