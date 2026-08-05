@@ -16,6 +16,8 @@ tags:
     
 - segurança
     
+- operacional
+    
 - auditoria
     
 - multiempresa
@@ -29,7 +31,7 @@ tags:
 
 Este documento reúne os principais riscos técnicos, funcionais e arquiteturais do SISVAR.
 
-Ele deve ser utilizado como referência durante:
+Ele deve ser consultado durante:
 
 - novas implementações;
     
@@ -37,30 +39,43 @@ Ele deve ser utilizado como referência durante:
     
 - refatorações;
     
-- revisão de módulos;
+- migrations;
     
-- criação de migrations;
+- revisão de módulos;
     
 - alterações de segurança;
     
+- homologações;
+    
 - integrações;
     
-- homologações.
+- deploys.
     
 
-A existência de uma infraestrutura implementada não elimina o risco de regressão.
+Uma funcionalidade implementada e testada continua sujeita a regressões.
 
-Sempre que uma regra estrutural for alterada, este documento deve ser revisado.
+Toda alteração em regras estruturais deve ser acompanhada de:
+
+- análise de impacto;
+    
+- testes;
+    
+- revisão técnica;
+    
+- homologação;
+    
+- atualização da documentação.
+    
 
 ---
 
-# Regra geral
+# Regra Geral
 
 Nunca considerar uma funcionalidade segura apenas porque funcionou no frontend.
 
-Toda operação relevante deve ser validada no backend.
+Toda operação relevante deve ser validada novamente no backend.
 
-Nunca confiar isoladamente em:
+Não confiar isoladamente em:
 
 - JavaScript;
     
@@ -78,9 +93,13 @@ Nunca confiar isoladamente em:
     
 - campos ocultos;
     
+- botões ocultos;
+    
 - menus ocultos;
     
-- validações do formulário.
+- validações do formulário;
+    
+- informações mantidas no navegador.
     
 
 O backend é a autoridade final.
@@ -89,7 +108,7 @@ O backend é a autoridade final.
 
 # Multiempresa
 
-## Isolamento de dados
+## Isolamento
 
 Todo dado pertencente a um cliente deve possuir empresa identificável.
 
@@ -103,32 +122,38 @@ O backend deve impedir que um usuário de uma empresa consiga:
     
 - excluir dados de outra empresa;
     
-- vincular objetos de outra empresa;
+- utilizar loja de outra empresa;
     
-- usar loja de outra empresa;
+- utilizar perfil de outra empresa;
     
-- usar perfil de outra empresa;
+- utilizar fornecedor de outra empresa;
+    
+- utilizar cliente de outra empresa;
+    
+- utilizar produto de outra empresa;
     
 - consultar sessões de outra empresa;
     
 - consultar auditoria de outra empresa;
     
-- exportar dados de outra empresa.
+- exportar dados de outra empresa;
+    
+- vincular objetos de empresas diferentes.
     
 
-O risco não está apenas no queryset.
+O risco de vazamento não está apenas no queryset.
 
-Também existe risco em:
+Também existe em:
 
 - serializers;
     
-- validações de ForeignKey;
+- actions;
     
-- actions customizadas;
+- services;
     
 - commands;
     
-- serviços;
+- signals;
     
 - imports;
     
@@ -138,92 +163,134 @@ Também existe risco em:
     
 - integrações;
     
-- consultas SQL diretas.
+- SQL manual;
+    
+- ForeignKeys recebidas no payload.
     
 
 ---
 
 ## Querysets
 
-Todo queryset de dados empresariais deve ser filtrado pela empresa do usuário ou por contexto administrativo autorizado.
+Todo queryset de dados empresariais deve ser limitado pela empresa do usuário ou por contexto administrativo global autorizado.
 
-Nunca utilizar:
+Evitar:
 
 ```python
 Model.objects.all()
 ```
 
-em endpoint de usuário cliente sem aplicar isolamento posterior de forma garantida.
+em endpoints de usuário cliente sem aplicação garantida do escopo.
 
-A ausência do filtro pode causar vazamento entre clientes.
+Não confiar que o frontend enviará o filtro correto.
 
 ---
 
-## Objetos enviados no payload
+## Relacionamentos
 
-Mesmo quando o queryset principal está filtrado, o usuário pode tentar enviar IDs de objetos pertencentes a outra empresa.
+Mesmo com queryset filtrado, um usuário pode enviar um ID de outra empresa.
 
-Exemplos:
+Validar sempre:
 
-- loja;
+- empresa do objeto principal;
     
-- fornecedor;
+- empresa da ForeignKey;
     
-- cliente;
+- empresa da loja;
     
-- produto;
+- empresa do perfil;
     
-- perfil;
+- empresa do usuário afetado;
     
-- natureza financeira;
+- empresa do documento;
     
-- conta contábil;
-    
-- forma de pagamento;
-    
-- pedido;
-    
-- sessão.
+- empresa da sessão.
     
 
-Todo relacionamento deve ser validado.
+Não permitir vínculo cruzado.
 
 ---
 
 ## Superusuário
 
-O superusuário possui acesso global, mas esse acesso deve ser explícito.
+O acesso global deve depender de `is_superuser` ou da regra oficial da plataforma.
 
-Não transformar automaticamente usuários `is_staff` em administradores globais do SISVAR.
+Não transformar automaticamente qualquer usuário `is_staff` em administrador global do SISVAR.
 
-As permissões internas do Django não substituem as regras da plataforma.
+Permissões internas do Django não substituem as regras do sistema.
 
 ---
 
 # Multilojas
 
+## Empresa obrigatória
+
+Todo estabelecimento deve possuir empresa.
+
+O campo `Loja.empresa` foi tornado obrigatório após diagnóstico real:
+
+```text
+lojas_sem_empresa = 0
+```
+
+Cuidados futuros:
+
+- nunca voltar a permitir `null=True`;
+    
+- não criar estabelecimento sem empresa em command ou import;
+    
+- não aceitar empresa nula no serializer;
+    
+- não permitir remover a empresa em atualização;
+    
+- não utilizar empresa padrão arbitrária.
+    
+
+---
+
 ## Isolamento por loja
 
-Quando o domínio depende de loja, o backend deve validar:
+Quando o domínio depender de loja, validar:
 
 - se a loja pertence à empresa;
     
-- se o usuário possui acesso à loja;
+- se o usuário possui acesso;
     
-- se o registro pertence à loja;
+- se a loja é permitida;
     
-- se a sessão está vinculada à loja correta;
+- se a loja principal pertence à empresa;
     
-- se a operação aceita contexto sem loja.
+- se a sessão está ligada ao contexto correto;
+    
+- se o objeto pertence à loja;
+    
+- se a operação permite loja nula.
     
 
-Não confiar apenas no filtro visual do frontend.
+Não confiar apenas no seletor visual do frontend.
+
+---
+
+## Loja principal
+
+A loja principal deve estar incluída nas lojas permitidas.
+
+Não permitir:
+
+- loja principal de outra empresa;
+    
+- loja permitida de outra empresa;
+    
+- remoção da loja principal sem ajuste correspondente;
+    
+- definição automática de loja arbitrária.
+    
 
 ---
 
 ## Eventos sem loja
 
-Nem todo evento pertence a uma loja.
+Nem toda operação pertence a uma loja.
 
 Exemplos:
 
@@ -233,20 +300,219 @@ Exemplos:
     
 - permissão;
     
-- configuração da empresa.
+- suspensão da empresa;
+    
+- configuração global.
     
 
-Não inventar uma loja para preencher contexto.
-
-Loja deve permanecer nula quando não se aplica.
+Não inventar loja apenas para preencher auditoria.
 
 ---
 
-## Loja principal
+# Contratos
 
-Não utilizar automaticamente a loja principal do usuário quando a operação possui outra fonte confiável.
+## Validação do contrato
 
-A ordem de resolução deve respeitar o objeto e a sessão.
+Toda autenticação de usuário cliente depende de contrato válido.
+
+Validar:
+
+- existência;
+    
+- status;
+    
+- vigência;
+    
+- empresa;
+    
+- módulos;
+    
+- limite de sessões;
+    
+- usuário master;
+    
+- suspensão;
+    
+- cancelamento.
+    
+
+A validação deve ocorrer:
+
+- no login;
+    
+- no heartbeat;
+    
+- em requisições autenticadas;
+    
+- em operações administrativas sensíveis.
+    
+
+---
+
+## Estados
+
+Estados como:
+
+```text
+PENDENTE
+ATIVO
+SUSPENSO
+VENCIDO
+CANCELADO
+```
+
+possuem significados diferentes.
+
+Não tratar todos como simples booleano ativo/inativo.
+
+Não reutilizar `INADIMPLENTE` como estado operacional.
+
+Inadimplência é motivo de suspensão.
+
+---
+
+# Suspensão Administrativa
+
+## Ação crítica
+
+Suspender uma empresa bloqueia todos os usuários.
+
+Por isso, a operação deve exigir:
+
+- superusuário;
+    
+- motivo;
+    
+- confirmação explícita;
+    
+- transação;
+    
+- bloqueio do contrato;
+    
+- Auditoria obrigatória.
+    
+
+Nunca permitir suspensão por simples edição genérica do status.
+
+---
+
+## Risco de suspensão acidental
+
+Uma suspensão indevida pode paralisar todas as lojas do cliente.
+
+A interface deve informar:
+
+- nome da empresa;
+    
+- status atual;
+    
+- quantidade de sessões ativas;
+    
+- consequência da ação;
+    
+- necessidade de novo login após reativação.
+    
+
+A confirmação deve reduzir o risco de clique acidental.
+
+---
+
+## Atomicidade
+
+A suspensão deve ser totalmente atômica.
+
+Na mesma transação devem ocorrer:
+
+1. alteração do contrato;
+    
+2. gravação do motivo;
+    
+3. encerramento das sessões;
+    
+4. revogação dos tokens;
+    
+5. liberação das vagas;
+    
+6. incremento de `permissions_version`;
+    
+7. Auditoria obrigatória.
+    
+
+Se qualquer etapa falhar, tudo deve sofrer rollback.
+
+Não aceitar estado parcial como:
+
+- contrato suspenso com sessão ativa;
+    
+- contrato ativo com tokens revogados;
+    
+- algumas sessões encerradas e outras não;
+    
+- suspensão sem auditoria.
+    
+
+---
+
+## Bloqueio em vários pontos
+
+Não basta bloquear somente o login.
+
+Contrato suspenso deve ser recusado em:
+
+- autenticação;
+    
+- token;
+    
+- heartbeat;
+    
+- requisição autenticada;
+    
+- criação de sessão;
+    
+- renovação de contexto.
+    
+
+Isso reduz o risco de uma sessão antiga continuar funcionando.
+
+---
+
+## Mensagem pública
+
+Usuário comum deve receber mensagem genérica:
+
+```text
+O acesso da empresa está temporariamente suspenso. Entre em contato com o suporte.
+```
+
+Não expor:
+
+- inadimplência;
+    
+- valores;
+    
+- cobrança;
+    
+- motivo comercial;
+    
+- observações internas.
+    
+
+---
+
+## Reativação
+
+A reativação não deve:
+
+- reabrir sessões antigas;
+    
+- restaurar tokens anteriores;
+    
+- reutilizar sessão revogada;
+    
+- ocultar o histórico da suspensão.
+    
+
+Todo usuário deve realizar novo login.
 
 ---
 
@@ -254,9 +520,7 @@ A ordem de resolução deve respeitar o objeto e a sessão.
 
 ## Serviço central
 
-Toda autenticação deve utilizar o fluxo central existente.
-
-É proibido criar login paralelo em módulos específicos.
+É proibido criar autenticação paralela.
 
 Toda autenticação deve considerar:
 
@@ -266,74 +530,76 @@ Toda autenticação deve considerar:
     
 - empresa;
     
-- situação da empresa;
-    
 - contrato;
     
-- vigência;
+- status;
     
 - perfil;
     
-- módulos contratados;
+- módulos;
     
 - sessão;
     
 - dispositivo;
     
-- limite simultâneo.
+- limite simultâneo;
+    
+- troca obrigatória de senha.
     
 
 ---
 
 ## Tokens
 
-Nunca armazenar token bruto no banco.
+Nunca armazenar token bruto.
 
 Persistir somente hash.
 
-Nunca registrar em auditoria:
+Nunca registrar:
 
 - token;
     
 - hash do token;
     
-- Authorization header;
+- Authorization;
     
 - cookie;
     
 - access token;
     
-- refresh token.
+- refresh token;
+    
+- credencial temporária.
     
 
-Token revogado ou sem sessão válida não pode autenticar.
+Token revogado ou sem sessão ativa não autentica.
 
 ---
 
 ## Credenciais inválidas
 
-Eventos de login negado devem ser auditados sem registrar:
+O evento de login negado não deve armazenar:
 
 - senha;
     
-- payload integral;
+- payload completo;
     
 - token;
     
-- dados sensíveis desnecessários.
+- dados desnecessários.
     
 
-A mensagem ao usuário não deve facilitar enumeração de contas.
+A resposta não deve facilitar enumeração de usuários.
 
 ---
 
-# Sessões simultâneas
+# Sessões Simultâneas
 
 ## Consumo de licença
 
 Licença é consumida por sessão ativa.
 
-Não é consumida por:
+Não por:
 
 - usuário cadastrado;
     
@@ -343,48 +609,48 @@ Não é consumida por:
     
 - loja;
     
+- senha;
+    
 - dispositivo sem login.
     
 
-Nunca voltar ao controle por quantidade de usuários ativos.
+Nunca retornar ao controle por quantidade de usuários ativos.
 
 ---
 
-## Concorrência
-
-Dois logins podem disputar a última vaga.
+## Concorrência da última vaga
 
 A contagem e a criação da sessão devem permanecer na mesma transação.
 
-O contrato deve ser bloqueado quando necessário.
+O contrato deve ser bloqueado.
 
-Nunca fazer:
+Não executar:
 
-1. contar sessões;
+1. contagem;
     
-2. sair da transação;
+2. fim da transação;
     
-3. criar sessão depois.
+3. criação posterior.
     
 
-Isso permite excesso de acessos simultâneos.
+Isso permite ultrapassar o limite.
 
 ---
 
 ## Mesmo dispositivo
 
-Novo login do mesmo usuário e dispositivo deve:
+Novo login do mesmo usuário no mesmo dispositivo deve:
 
-- encerrar a sessão anterior;
+- encerrar sessão anterior;
     
-- revogar o token anterior;
+- revogar token anterior;
     
-- criar ou assumir a nova sessão;
+- criar nova sessão;
     
 - manter apenas uma vaga consumida.
     
 
-Dispositivos diferentes representam sessões independentes.
+Dispositivos diferentes usam sessões independentes.
 
 ---
 
@@ -394,13 +660,13 @@ Sessões abandonadas não podem ocupar vaga indefinidamente.
 
 O timeout deve:
 
-- encerrar a sessão;
+- encerrar sessão;
     
-- revogar o token;
+- revogar token;
+    
+- liberar vaga;
     
 - registrar motivo;
-    
-- liberar a vaga;
     
 - gerar auditoria quando aplicável.
     
@@ -409,9 +675,9 @@ O timeout deve:
 
 ## Heartbeat
 
-O heartbeat não pode ser tratado como única validação da sessão.
+O heartbeat não substitui a validação de cada requisição.
 
-Cada requisição autenticada ainda deve validar:
+Cada chamada autenticada ainda deve validar:
 
 - token;
     
@@ -421,175 +687,222 @@ Cada requisição autenticada ainda deve validar:
     
 - usuário;
     
-- contrato.
+- empresa;
     
-
-Evitar gravação excessiva a cada requisição.
+- contrato;
+    
+- suspensão;
+    
+- troca obrigatória de senha.
+    
 
 ---
 
 ## Redução do limite
 
-Reduzir o limite abaixo das sessões ativas não deve encerrar sessões automaticamente.
+Reduzir o limite abaixo das sessões ativas não encerra sessões automaticamente.
 
 O sistema deve:
 
-- manter sessões existentes;
+- preservar sessões atuais;
     
 - bloquear novos logins;
     
-- liberar acesso gradualmente por logout ou timeout.
+- reduzir o excesso por logout, timeout ou encerramento administrativo.
     
 
-Alterações futuras nessa regra exigem nova ADR.
+Mudança nessa regra exige nova decisão arquitetural.
 
 ---
 
-# Contratos
+# Encerramento de Sessões
 
-## Validação
+## Sessão individual
 
-Toda autenticação de usuário cliente depende de contrato válido.
-
-Validar:
-
-- existência;
-    
-- situação;
-    
-- vigência;
-    
-- módulos;
-    
-- limite de sessões;
-    
-- usuário master.
-    
-
----
-
-## Alterações críticas
-
-São operações críticas:
-
-- criar contrato;
-    
-- alterar status;
-    
-- alterar vigência;
-    
-- alterar limite;
-    
-- alterar plano completo;
-    
-- alterar módulos;
-    
-- transferir master.
-    
-
-Essas operações devem utilizar:
-
-- transação;
-    
-- auditoria obrigatória;
-    
-- atualização da versão das permissões;
-    
-- testes de regressão.
-    
-
----
-
-## Falha de auditoria obrigatória
-
-Quando uma operação crítica depende de auditoria obrigatória, a falha da auditoria deve impedir o commit.
-
-Não utilizar `transaction.on_commit()` esperando desfazer uma transação já confirmada.
-
----
-
-# Módulos contratados
-
-## Frontend e backend
-
-Módulo não contratado deve ser bloqueado em dois níveis:
-
-- frontend;
-    
-- backend.
-    
-
-Não permitir acesso apenas porque a rota existe.
-
----
-
-## Relatórios compostos
-
-Alguns relatórios dependem de mais de um módulo.
-
-Exemplo:
-
-```text
-Relatórios + Financeiro
-```
-
-Não liberar um relatório apenas porque o módulo de Relatórios foi contratado.
-
----
-
-## Chaves estáveis
-
-As chaves dos módulos não devem ser renomeadas sem análise de impacto.
-
-Elas podem estar referenciadas em:
-
-- banco;
-    
-- migrations;
-    
-- backend;
-    
-- frontend;
-    
-- testes;
-    
-- perfis;
-    
-- contratos;
-    
-- documentação.
-    
-
----
-
-# Usuário Master
-
-## Exclusão e inativação
-
-O master não pode ser excluído ou inativado sem transferência prévia.
-
-A transferência deve:
+Encerrar uma sessão deve:
 
 - validar empresa;
     
-- validar novo usuário;
+- validar executor;
     
-- impedir superusuário como master da empresa;
+- revogar token;
     
-- garantir usuário ativo;
+- liberar vaga;
     
-- utilizar transação;
+- registrar motivo;
     
-- gerar auditoria obrigatória.
+- auditar.
     
 
 ---
 
-## Escopo
+## Todas as sessões do usuário
 
-O master administra apenas a própria empresa.
+O encerramento consolidado deve ser transacional.
 
-Ser master não concede acesso global à plataforma.
+A operação deve:
+
+- bloquear usuário;
+    
+- bloquear sessões;
+    
+- encerrar todas;
+    
+- revogar todos os tokens;
+    
+- criar um evento consolidado;
+    
+- confirmar tudo junto.
+    
+
+Se a Auditoria obrigatória falhar:
+
+- nenhuma sessão deve ser encerrada;
+    
+- nenhum token deve ser revogado.
+    
+
+---
+
+## Duplicidade de auditoria
+
+Evitar registrar simultaneamente:
+
+- um evento consolidado;
+    
+- eventos individuais equivalentes;
+    
+- evento do signal;
+    
+- evento da view;
+    
+- evento do service.
+    
+
+A política precisa ser clara.
+
+Para encerramento em massa, o evento principal é:
+
+```text
+USER_SESSIONS_CLOSED
+```
+
+---
+
+# Usuários
+
+## Empresa
+
+Usuário cliente deve pertencer a uma empresa.
+
+Não permitir:
+
+- empresa nula;
+    
+- troca para outra empresa;
+    
+- edição pelo próprio usuário;
+    
+- empresa recebida livremente do frontend.
+    
+
+---
+
+## Perfil principal
+
+Usuário comum deve possuir perfil principal válido.
+
+O perfil deve:
+
+- estar ativo;
+    
+- pertencer à mesma empresa;
+    
+- utilizar módulos permitidos;
+    
+- respeitar dependências.
+    
+
+---
+
+## Tipo funcional
+
+O campo `type` não define permissão efetiva.
+
+Nunca usar tipo funcional para:
+
+- conceder módulo;
+    
+- retirar módulo;
+    
+- sobrescrever perfil;
+    
+- criar override;
+    
+- elevar acesso.
+    
+
+Tipos antigos podem continuar em regras específicas, mas não como autoridade de segurança.
+
+---
+
+## Autoproteção
+
+O usuário não pode:
+
+- aumentar a própria permissão;
+    
+- trocar o próprio perfil;
+    
+- ampliar as próprias lojas;
+    
+- alterar a própria empresa;
+    
+- tornar-se master;
+    
+- alterar campos internos.
+    
+
+---
+
+## Campos protegidos
+
+Usuários clientes não podem alterar:
+
+```text
+is_staff
+is_superuser
+groups
+user_permissions
+empresa
+master
+token
+session_id
+session_token
+```
+
+O backend deve rejeitar explicitamente.
+
+Não apenas ocultar no frontend.
+
+---
+
+## Usuário master
+
+O master não pode ser:
+
+- excluído;
+    
+- inativado;
+    
+- movido de empresa;
+    
+- rebaixado;
+    
+- privado de acesso essencial.
+    
+
+Antes disso, deve ocorrer transferência de administração.
 
 ---
 
@@ -603,71 +916,447 @@ Não criar fallback permissivo.
 
 ---
 
-## Nome do perfil
+## Nomes de perfil
 
-Não conceder acesso com base no nome do perfil.
-
-Exemplos perigosos:
+Não conceder acesso com base no nome:
 
 ```text
 Admin
 Gerente
 Master
+Diretor
 ```
 
-O acesso deve depender da permissão efetiva.
+O acesso depende do cálculo efetivo.
 
 ---
 
 ## Role antiga
 
-Evitar verificações antigas baseadas apenas em:
+Rotas não devem depender exclusivamente de:
 
 ```text
 roles: ['Admin']
+roles: ['Diretor', 'Gerente']
 ```
 
-Quando o recurso já utiliza módulos e permissões efetivas.
+Esse problema já foi corrigido em:
 
-Esse problema já ocorreu na rota de Auditoria e foi corrigido.
+- Auditoria;
+    
+- Estabelecimentos;
+    
+- Perfis;
+    
+- demais rotas do Operacional.
+    
 
-Novas telas devem verificar o padrão atual.
+Não reintroduzir.
 
 ---
 
 ## Perfil padrão
 
-A regra de perfil padrão único por empresa precisa continuar garantida pela aplicação, pois o MySQL pode não aplicar constraints condicionais do Django.
+O MySQL não garante constraint condicional do Django.
 
-Alterações devem utilizar:
+A regra de um perfil padrão por empresa deve continuar garantida por:
 
 - transação;
     
-- bloqueio;
+- `select_for_update`;
     
-- validação;
+- serviço central;
     
-- auditoria obrigatória;
-    
-- testes concorrentes quando necessário.
+- testes concorrentes.
     
 
 ---
 
-## Alteração de permissão
+## Dependências de módulos
 
-Alterar permissão pode afetar vários usuários imediatamente.
+Módulos dependentes devem respeitar `ModuloSistema.dependencias`.
 
-Deve:
+Não permitir:
 
-- incrementar `permissions_version`;
+- módulo dependente em `VIEW` ou `EDIT`;
     
-- gerar auditoria;
+- dependência necessária em `NONE`.
     
-- atualizar o contexto do frontend;
+
+Não inventar dependências no frontend.
+
+A fonte é o catálogo do backend.
+
+---
+
+## Módulos hardcoded
+
+Evitar listas fixas diferentes em:
+
+- usuário;
     
-- impedir vínculo cruzado entre empresas.
+- perfil;
     
+- menu;
+    
+- guard;
+    
+- frontend;
+    
+- backend.
+    
+
+O catálogo deve vir do backend.
+
+A ordenação deve utilizar o cadastro do módulo.
+
+---
+
+## Override
+
+Valores possíveis:
+
+```text
+HERDAR
+NONE
+VIEW
+EDIT
+```
+
+`HERDAR` deve remover o override individual.
+
+Não persistir valor redundante sem necessidade.
+
+---
+
+## Permissão efetiva
+
+A permissão efetiva considera:
+
+- contrato;
+    
+- módulo contratado;
+    
+- perfil;
+    
+- override;
+    
+- master;
+    
+- superusuário;
+    
+- status do usuário;
+    
+- status do contrato.
+    
+
+O frontend exibe.
+
+O backend calcula.
+
+---
+
+# Redefinição de Senha
+
+## Operação administrativa
+
+A redefinição deve ser transacional.
+
+Na mesma operação:
+
+1. senha é alterada;
+    
+2. `deve_trocar_senha` é marcado;
+    
+3. sessões são encerradas;
+    
+4. tokens são revogados;
+    
+5. Auditoria obrigatória é criada.
+    
+
+Se a Auditoria falhar, tudo deve voltar ao estado anterior.
+
+---
+
+## Senhas na Auditoria
+
+Nunca registrar:
+
+- senha atual;
+    
+- senha nova;
+    
+- confirmação;
+    
+- hash;
+    
+- senha temporária.
+    
+
+O sanitizer deve continuar protegendo esses campos.
+
+---
+
+## Exposição da senha
+
+Não:
+
+- retornar senha na API;
+    
+- mostrar senha cadastrada;
+    
+- guardar no navegador;
+    
+- enviar por log;
+    
+- incluir em exception;
+    
+- persistir em metadata.
+    
+
+---
+
+# Troca Obrigatória de Senha
+
+## Bloqueio central
+
+Quando:
+
+```text
+deve_trocar_senha = true
+```
+
+o usuário não deve acessar módulos normais.
+
+O bloqueio precisa ocorrer no backend centralmente.
+
+Não depender apenas do guard Angular.
+
+---
+
+## Endpoints permitidos
+
+Durante a pendência, liberar apenas:
+
+- `/api/me/`;
+    
+- troca de senha;
+    
+- logout;
+    
+- heartbeat necessário.
+    
+
+Qualquer outro endpoint deve retornar:
+
+```text
+PASSWORD_CHANGE_REQUIRED
+```
+
+---
+
+## Bypass por URL
+
+O frontend deve impedir acesso direto a:
+
+```text
+/home
+/config
+/lojas
+/usuarios
+```
+
+mas o backend ainda deve bloquear caso o usuário chame a API manualmente.
+
+---
+
+## Sessão atual
+
+Após a troca:
+
+- sessão atual pode permanecer;
+    
+- demais sessões devem ser encerradas;
+    
+- token atual permanece válido conforme a regra implementada;
+    
+- contexto deve ser recarregado.
+    
+
+Não criar uma sessão adicional e consumir nova licença.
+
+---
+
+## Nova senha
+
+Validar:
+
+- senha atual;
+    
+- confirmação;
+    
+- diferença em relação à atual;
+    
+- validadores do Django;
+    
+- tamanho mínimo;
+    
+- regras de segurança.
+    
+
+---
+
+# Estabelecimentos
+
+## Empresa obrigatória
+
+Não permitir estabelecimento sem empresa.
+
+Isso vale para:
+
+- API;
+    
+- admin;
+    
+- command;
+    
+- import;
+    
+- migration;
+    
+- testes;
+    
+- scripts.
+    
+
+---
+
+## Tipo de unidade
+
+`tipo_unidade` é a fonte principal.
+
+O campo legado `Matriz` não pode contradizer o tipo.
+
+Manter sincronização enquanto existir compatibilidade.
+
+---
+
+## Campos legados
+
+Campos antigos não devem ser removidos sem análise:
+
+```text
+EstoqueNegativo
+Rede
+DataAbertura
+ContaContabil
+DataEnceramento
+Matriz
+```
+
+Antes de remover:
+
+- localizar usos;
+    
+- revisar frontend;
+    
+- revisar API;
+    
+- criar migration;
+    
+- preservar dados;
+    
+- documentar breaking change.
+    
+
+---
+
+## Ciclo de vida
+
+Não usar apenas edição direta de `ativo`.
+
+Ações oficiais:
+
+```text
+Ativar
+Inativar
+Encerrar
+Reabrir
+```
+
+Cada ação possui significado próprio e deve ser auditada.
+
+---
+
+## Inativação
+
+Antes de inativar, verificar:
+
+- sessões;
+    
+- usuários;
+    
+- loja principal;
+    
+- caixas;
+    
+- estoque;
+    
+- documentos;
+    
+- operações pendentes;
+    
+- distribuição;
+    
+- integrações.
+    
+
+Não automatizar transferências sem projeto específico.
+
+---
+
+## Encerramento
+
+Encerrar não pode apagar histórico.
+
+Deve preservar:
+
+- vendas;
+    
+- documentos;
+    
+- estoque histórico;
+    
+- sessões;
+    
+- usuários;
+    
+- Auditoria.
+    
+
+---
+
+## Fiscal
+
+Alterações em:
+
+- série NFC-e;
+    
+- próximo número NFC-e;
+    
+- série NF-e;
+    
+- próximo número NF-e;
+    
+- habilitação de emissão;
+    
+- política de estoque negativo;
+    
+
+devem possuir validação e auditoria.
+
+Numeração inválida pode causar rejeição fiscal.
 
 ---
 
@@ -689,38 +1378,22 @@ AuditService
 
 Não criar:
 
-- outra tabela paralela;
+- tabela paralela;
     
-- outro middleware concorrente;
+- middleware paralelo;
     
-- outro serviço de logs;
+- serviço paralelo;
     
-- gravação direta espalhada.
+- gravações diretas espalhadas.
     
-
----
-
-## Criação de eventos
-
-Novos eventos devem utilizar o `AuditService`.
-
-Não utilizar diretamente:
-
-```python
-AuditLog.objects.create(...)
-```
-
-A criação direta é bloqueada.
 
 ---
 
 ## Imutabilidade
 
-Logs não podem ser alterados ou excluídos por operações comuns.
+Não permitir:
 
-Estão bloqueados:
-
-- `save()` em registro existente;
+- `save()` em log existente;
     
 - `delete()`;
     
@@ -737,61 +1410,15 @@ Estão bloqueados:
 - `get_or_create()`.
     
 
-Não criar atalhos que contornem esses bloqueios.
-
 ---
 
-## Signals
+## Auditoria normal
 
-Signals são auxiliares.
+Eventos comuns podem usar:
 
-Não devem ser usados como única solução para ações de negócio.
-
-Signals não compreendem corretamente operações como:
-
-- aprovar;
-    
-- cancelar;
-    
-- baixar;
-    
-- estornar;
-    
-- faturar;
-    
-- emitir;
-    
-- distribuir;
-    
-- finalizar.
-    
-
-Esses eventos devem ser explícitos.
-
----
-
-## Duplicidade
-
-Uma mesma operação não pode gerar dois eventos equivalentes por combinação de:
-
-- signal;
-    
-- serializer;
-    
-- view;
-    
-- service;
-    
-- wrapper legado.
-    
-
-Sempre verificar contagem exata de eventos nos testes.
-
----
-
-## Auditoria após commit
-
-Eventos comuns de sucesso devem usar `transaction.on_commit()` quando dependerem da confirmação da operação.
+```python
+transaction.on_commit()
+```
 
 Não registrar sucesso antes do commit.
 
@@ -799,28 +1426,28 @@ Não registrar sucesso antes do commit.
 
 ## Auditoria obrigatória
 
-Somente operações realmente críticas devem utilizar modo obrigatório.
+Operações críticas do Operacional incluem:
 
-Uso excessivo pode indisponibilizar operações por falhas secundárias.
-
-Uso insuficiente pode permitir operação crítica sem rastreabilidade.
-
-A classificação deve ser explícita.
-
----
-
-## Acesso negado
-
-Tentativas de acessar outra empresa ou loja devem:
-
-- retornar 403;
+- suspensão;
     
-- gerar um único evento;
+- reativação;
     
-- evitar recursão;
+- transferência de master;
     
-- não revelar dados do recurso solicitado.
+- perfil padrão;
     
+- permissões;
+    
+- redefinição de senha;
+    
+- troca obrigatória;
+    
+- encerramento consolidado de sessões;
+    
+- exclusão administrativa.
+    
+
+Se a Auditoria falhar, a operação deve falhar.
 
 ---
 
@@ -840,121 +1467,96 @@ Nunca registrar:
     
 - chave privada;
     
-- client secret;
-    
 - hash de token;
     
-- XML integral sem necessidade;
+- segredo;
     
-- dados bancários completos.
-    
-
-A sanitização deve continuar recursiva.
-
----
-
-## Snapshots
-
-Snapshots devem utilizar campos reais dos models.
-
-Não depender exclusivamente de ForeignKeys atuais.
-
-Não inventar contexto histórico quando não houver fonte confiável.
-
----
-
-## Logs antigos
-
-O campo legado `changes` ainda existe por compatibilidade.
-
-Novos eventos não devem depender dele.
-
-A remoção futura exige:
-
-- nova migration;
-    
-- verificação do frontend;
-    
-- verificação de exportações;
-    
-- verificação de dados antigos.
+- payload completo de autenticação.
     
 
 ---
 
-## Crescimento da tabela
+## Duplicidade
 
-A tabela de auditoria tende a crescer continuamente.
+Uma ação não pode gerar eventos equivalentes por:
 
-Riscos:
-
-- consultas lentas;
+- signal;
     
-- índices insuficientes;
+- serializer;
     
-- armazenamento elevado;
+- view;
     
-- exportações pesadas;
+- service;
     
-- backups maiores.
+- wrapper legado.
     
 
-Cuidados:
-
-- paginação;
-    
-- filtros por período;
-    
-- índices;
-    
-- limite de exportação;
-    
-- política futura de retenção;
-    
-- monitoramento de tamanho.
-    
+Testes devem conferir contagem exata.
 
 ---
 
-## Retenção
+# Frontend
 
-A retenção automatizada ainda não foi implementada.
+## Permissão visual
 
-Não apagar logs manualmente.
+O frontend deve ocultar ações sem autorização.
 
-Uma política futura deve considerar:
+Exemplos:
 
-- prazo legal;
+- master não vê suspender empresa;
     
-- categorias;
+- usuário comum não vê alterar contrato;
     
-- fiscal;
+- VIEW não vê editar;
     
-- financeiro;
+- NONE não vê menu;
     
-- segurança;
+- usuário com troca pendente não acessa módulos.
     
-- arquivamento;
-    
-- auditoria da própria exclusão.
-    
+
+Mas a segurança final permanece no backend.
 
 ---
 
-## Falha interna da Auditoria
+## Tratamento de 401 e 403
 
-Falhas comuns devem ser registradas no logger.
+401:
 
-Não usar permanentemente:
+- token inválido;
+    
+- sessão expirada;
+    
+- sessão encerrada.
+    
 
-```python
-except Exception:
-    pass
+403:
+
+- sem permissão;
+    
+- contrato suspenso;
+    
+- troca obrigatória;
+    
+- empresa incorreta;
+    
+- loja não permitida.
+    
+
+Não tratar todo 403 como logout automático sem considerar o código retornado.
+
+---
+
+## Paginação
+
+Não carregar milhares de registros e paginar somente no navegador.
+
+Listagens devem utilizar paginação real da API.
+
+Preservar:
+
+```text
+Mostrando X–Y de Z
 ```
-
-Eventos de baixa criticidade podem não derrubar a operação principal.
-
-Eventos obrigatórios devem impedir a operação.
 
 ---
 
@@ -962,21 +1564,21 @@ Eventos obrigatórios devem impedir a operação.
 
 ## Migrations
 
-Toda alteração estrutural precisa de migration.
+Toda mudança estrutural deve possuir migration.
 
-Não alterar o banco manualmente como solução definitiva.
+Não editar migration já aplicada.
 
 ---
 
 ## Data migrations
 
-Utilizar:
+Usar:
 
 ```python
 apps.get_model()
 ```
 
-Não importar models atuais diretamente.
+Não importar model atual diretamente.
 
 Considerar:
 
@@ -986,45 +1588,41 @@ Considerar:
     
 - MySQL;
     
-- reexecução lógica;
+- registros nulos;
     
 - volume;
     
-- memória;
+- ambiguidade;
     
-- dados nulos;
-    
-- reversão.
+- rollback.
     
 
 ---
 
-## Constraints
+## Saneamento
 
-Não confiar em constraints não suportadas pelo MySQL.
+Nunca preencher empresa com valor arbitrário.
 
-Sempre verificar mensagens emitidas pelo Django durante migrations.
+Não usar:
+
+- primeira empresa;
+    
+- empresa mais antiga;
+    
+- empresa do superusuário;
+    
+- empresa padrão inventada.
+    
+
+Quando houver ambiguidade, parar e documentar.
 
 ---
 
-## Exclusões
+## Constraints MySQL
 
-ForeignKeys podem impedir exclusões.
+Não confiar em recursos não suportados.
 
-Não desligar constraints apenas para “resolver” rapidamente.
-
-Analisar:
-
-- dependências;
-    
-- hierarquia;
-    
-- registros filhos;
-    
-- histórico;
-    
-- auditoria.
-    
+Sempre conferir avisos durante migration.
 
 ---
 
@@ -1038,508 +1636,223 @@ Evitar:
     
 - queries globais;
     
-- consultas sem índices;
+- consultas sem índice;
     
-- joins desnecessários;
+- paginação local;
     
-- filtros em JSON para campos frequentes;
+- payloads grandes;
     
-- tabelas inteiras no frontend.
+- filtros frequentes em JSON.
     
 
-Utilizar quando aplicável:
+Utilizar:
 
+- paginação;
+    
+- índices;
+    
 - `select_related`;
     
 - `prefetch_related`;
     
-- paginação;
-    
 - agregações;
     
-- índices compostos.
+- endpoints de indicadores.
     
 
 ---
 
-## Auditoria
+## Indicadores
 
-Não registrar todas as consultas GET indiscriminadamente.
+Indicadores não devem ser calculados apenas sobre a página atual.
 
-Auditar:
+Devem respeitar:
 
-- consultas sensíveis;
-    
-- exportações;
-    
-- acessos negados;
-    
-- operações críticas.
-    
-
----
-
-## Exportação
-
-Toda exportação deve possuir limite.
-
-Não gerar arquivos gigantes em memória sem estratégia.
-
-Registrar:
-
-- filtros;
-    
-- quantidade;
-    
-- limite;
-    
-- usuário;
-    
-- empresa;
-    
-- loja.
-    
-
----
-
-# Frontend
-
-## Autoridade
-
-O frontend é responsável por interface e experiência.
-
-Não deve ser autoridade para:
-
-- permissão;
-    
 - empresa;
     
 - loja;
     
-- contrato;
+- filtros;
     
-- módulos;
+- permissão.
     
-- valores críticos;
-    
-- estoque;
-    
-- financeiro;
-    
-- fiscal.
-    
-
----
-
-## Angular Standalone
-
-Novos componentes devem seguir Angular 17 standalone.
-
-Não introduzir `NgModule` sem decisão arquitetural.
-
----
-
-## Rotas e menus
-
-Rotas e menus devem utilizar permissões efetivas.
-
-Não duplicar regras incompatíveis entre:
-
-- guard;
-    
-- menu;
-    
-- componente;
-    
-- backend.
-    
-
----
-
-## Tratamento de 401 e 403
-
-401:
-
-- sessão inválida;
-    
-- token inválido;
-    
-- sessão expirada;
-    
-- logout local quando aplicável.
-    
-
-403:
-
-- usuário autenticado sem permissão;
-    
-- empresa não autorizada;
-    
-- loja não autorizada;
-    
-- módulo bloqueado.
-    
-
-Não tratar 403 como sessão expirada automaticamente.
-
----
-
-# Segurança
-
-## Mass assignment
-
-Serializers devem impedir alteração de campos críticos.
-
-Usuário cliente não pode alterar:
-
-- `is_staff`;
-    
-- `is_superuser`;
-    
-- grupos internos;
-    
-- permissões internas do Django;
-    
-- empresa;
-    
-- contrato;
-    
-- usuário master;
-    
-- campos de controle da plataforma.
-    
-
----
-
-## Dados pessoais
-
-Expor somente o necessário.
-
-Listagens, logs e exports devem aplicar mascaramento quando necessário.
-
----
-
-## Erros
-
-Não devolver stack trace ou detalhes internos ao frontend.
-
-Registrar detalhes técnicos no logger e retornar mensagem segura.
-
----
-
-# Integração entre Módulos
-
-Uma operação pode afetar vários domínios.
-
-Exemplo:
-
-```text
-Entrada de Nota Fiscal
-→ Compras
-→ Estoque
-→ Fiscal
-→ Financeiro
-→ Contabilidade
-→ Auditoria
-```
-
-Não implementar apenas uma parte sem verificar os efeitos laterais.
-
----
-
-## Serviços de domínio
-
-Cada módulo deve manter suas próprias regras.
-
-Exemplos:
-
-- estoque movimenta saldo;
-    
-- financeiro cria e baixa títulos;
-    
-- fiscal emite documentos;
-    
-- compras controla pedidos;
-    
-- auditoria registra eventos.
-    
-
-Um módulo pode chamar outro serviço, mas não duplicar sua regra.
 
 ---
 
 # Testes
 
-## Testes obrigatórios
+## Testes automatizados
 
-Toda funcionalidade deve ter testes proporcionais ao risco.
+O grupo Operacional possui validação automatizada:
 
-Exemplos:
+```text
+Backend: 50 testes
+Frontend: 33 testes
+```
 
-- isolamento;
-    
-- permissão;
-    
-- transação;
-    
-- rollback;
-    
-- concorrência;
-    
-- migration;
-    
-- frontend;
-    
-- API;
-    
-- regressão.
-    
+Esses testes não eliminam a necessidade de homologação manual.
 
 ---
 
-## Suíte geral
+## Homologação manual
 
-O comando geral precisa descobrir testes reais.
+Ainda deve ser executada para:
 
-Resultado “0 testes” não é aprovação.
+- suspensão;
+    
+- reativação;
+    
+- queda de sessões;
+    
+- bloqueio de token;
+    
+- troca obrigatória de senha;
+    
+- bypass por URL;
+    
+- usuário VIEW;
+    
+- usuário EDIT;
+    
+- ciclo do estabelecimento;
+    
+- matriz Perfil/Override/Efetivo;
+    
+- dependência de módulos;
+    
+- eventos na Auditoria.
+    
+
+Enquanto isso, o status correto é:
+
+```text
+Implementado
+Validado automaticamente
+Homologação manual pendente
+```
 
 ---
 
-## Testes manuais
-
-Testes automatizados não substituem totalmente homologação visual e funcional.
-
-Telas novas devem ser validadas no navegador.
-
----
-
-# Documentação
-
-Nenhuma funcionalidade é considerada concluída sem:
-
-- implementação;
-    
-- testes;
-    
-- revisão técnica;
-    
-- homologação;
-    
-- atualização do Obsidian;
-    
-- commit do código;
-    
-- commit da documentação.
-    
-
-Não documentar como concluído algo apenas planejado.
-
----
-
-# ADRs
-
-Toda decisão arquitetural duradoura deve gerar ADR.
-
-Decisões atuais:
-
-- ADR-001 — Licenciamento por Sessões Simultâneas;
-    
-- ADR-002 — Princípios Arquiteturais do SISVAR;
-    
-- ADR-003 — Auditoria Central do SISVAR.
-    
-
-Mudança relevante em decisão aprovada exige nova ADR.
-
----
-
-# Riscos mitigados atualmente
+# Riscos Mitigados no Operacional
 
 Foram tratados:
 
-- autenticação centralizada;
+- suspensão administrativa;
     
-- isolamento multiempresa;
+- bloqueio imediato do contrato;
     
-- isolamento da Auditoria por empresa;
+- encerramento de sessões;
     
-- isolamento da Auditoria por loja;
+- revogação de tokens;
     
-- contratos;
+- reativação segura;
     
-- módulos contratados;
+- empresa obrigatória em estabelecimentos;
     
-- usuário master;
+- remoção da dependência exclusiva de roles antigas;
     
-- perfis;
+- perfil como base das permissões;
     
-- permissões efetivas;
+- override HERDAR;
     
-- licenciamento por sessões;
+- dependências de módulos;
     
-- concorrência da última vaga;
+- proteção do master;
     
-- heartbeat;
+- transação no encerramento de sessões;
     
-- timeout;
+- transação na redefinição de senha;
     
-- encerramento administrativo;
+- troca obrigatória de senha;
     
-- Auditoria Central;
+- bloqueio central durante troca;
     
-- imutabilidade dos logs;
+- Auditoria dos novos eventos;
     
-- sanitização;
-    
-- snapshots históricos;
-    
-- controle de acesso à Auditoria;
-    
-- exportação controlada;
-    
-- auditoria obrigatória em operações críticas definidas.
+- testes backend e frontend.
     
 
 ---
 
-# Riscos ainda abertos
+# Riscos Ainda Abertos
 
-## Integração da Auditoria com módulos de negócio
+## Homologação manual do Operacional
 
-A infraestrutura está pronta, mas ainda falta revisar detalhadamente eventos específicos de:
-
-- Cadastros;
-    
-- Produtos;
-    
-- Compras;
-    
-- Estoque;
-    
-- Financeiro;
-    
-- Fiscal;
-    
-- Vendas;
-    
-- PDV;
-    
-- Produção;
-    
-- Distribuição;
-    
-- Relatórios.
-    
+A principal pendência do grupo é validar os fluxos reais no navegador.
 
 ---
 
-## Entrada de Nota Fiscal
+## Campos legados de Loja
 
-É uma operação transversal e deve ser projetada antes da implementação.
-
-Riscos:
-
-- duplicidade de entrada;
-    
-- divergência com pedido;
-    
-- estoque incorreto;
-    
-- financeiro duplicado;
-    
-- impostos incorretos;
-    
-- vínculo fiscal incompleto;
-    
-- rollback parcial;
-    
-- auditoria insuficiente.
-    
+Ainda precisam ser revisados em uma fase futura para possível remoção.
 
 ---
 
-## Produção
+## Tipos funcionais antigos
 
-Riscos:
+O campo `type` continua existindo.
 
-- consumo incorreto de matéria-prima;
-    
-- saldo negativo;
-    
-- finalização parcial;
-    
-- custo incorreto;
-    
-- divergência com facção;
-    
-- falta de rastreabilidade.
-    
+Deve ser monitorado para evitar que novas regras voltem a utilizá-lo como permissão.
 
 ---
 
-## Distribuição
+## Automação de suspensão
 
-Riscos:
+Nesta fase, a suspensão é manual.
 
-- alocação acima do estoque;
+Ainda não existe:
+
+- cobrança automática;
     
-- arredondamento incorreto;
+- integração com gateway;
     
-- transferência duplicada;
+- suspensão automática por vencimento;
     
-- origem e destino inconsistentes;
+- aviso prévio;
     
-- faturamento sem recebimento;
+- tolerância configurável.
     
-- diferença por tamanho;
-    
-- falta de auditoria do processo completo.
-    
+
+Esses itens exigem projeto próprio.
 
 ---
 
-## PDV Offline
+## Recuperação pública de senha
 
-Riscos:
+Não foi implementada nesta fase.
 
-- conflito de sincronização;
+Ainda pode ser necessária futuramente:
+
+- recuperação por email;
     
-- venda duplicada;
+- token temporário;
     
-- numeração fiscal;
+- expiração;
     
-- certificado local;
+- proteção contra abuso;
     
-- estoque divergente;
-    
-- preço desatualizado;
-    
-- usuário offline sem permissão atual;
-    
-- sessão e auditoria offline;
-    
-- reconciliação posterior.
+- Auditoria.
     
 
 ---
 
 ## Retenção da Auditoria
 
-Ainda não existe política automatizada.
+Ainda não existe política automatizada de retenção.
 
-Deve ser projetada antes do crescimento de produção.
+A tabela continuará crescendo.
 
 ---
 
 ## Backups
 
-A estratégia de backup MySQL ainda precisa ser formalizada com:
+A estratégia de backup ainda precisa ser formalizada com:
 
 - frequência;
     
 - retenção;
     
-- cópia offsite;
+- cópia externa;
     
 - criptografia;
     
@@ -1552,52 +1865,53 @@ Backup sem teste de restauração não é garantia.
 
 ---
 
-# Próxima prioridade recomendada
+# Próxima Prioridade
 
-O próximo módulo deve ser escolhido considerando impacto transversal.
+Depois da homologação manual do Operacional, a revisão seguirá a barra lateral.
 
-A principal candidata é:
+Próximo grupo:
 
 ```text
-Entrada de Nota Fiscal
+Cadastros
 ```
 
-Antes de implementar, deve ser realizada análise completa de:
+Itens iniciais:
 
-- pedido existente;
+- Clientes;
     
-- entrada avulsa;
+- Fornecedores;
     
-- XML;
+- Funcionários.
     
-- fornecedor;
+
+Cada item deverá ser analisado quanto a:
+
+- isolamento;
     
-- itens;
+- permissões;
     
-- impostos;
+- validações;
     
-- estoque;
+- layout;
     
-- financeiro;
-    
-- fiscal;
-    
-- contabilidade;
+- paginação;
     
 - auditoria;
     
-- cancelamento;
+- integrações;
     
-- estorno;
+- testes;
     
-- duplicidade.
+- riscos funcionais.
     
 
 ---
 
-# Notas relacionadas
+# Notas Relacionadas
 
 - [[10 Projetos/Sysvar/Sysvar|Sysvar]]
+    
+- [[10 Projetos/Sysvar/Contexto do Projeto/Visão Geral|Visão Geral]]
     
 - [[10 Projetos/Sysvar/Contexto do Projeto/Arquitetura|Arquitetura]]
     

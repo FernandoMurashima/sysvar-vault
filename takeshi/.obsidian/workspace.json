@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "526c230f0f8e1b75",
+        "id": "b711956ec2680094",
         "type": "tabs",
         "children": [
           {
-            "id": "a394ebfc3d25e65f",
+            "id": "9e374e0368ace7c1",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -181,14 +181,14 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "a394ebfc3d25e65f",
+  "active": "9e374e0368ace7c1",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Arquitetura.md",
     "10 Projetos/Sysvar/Sysvar.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Visão Geral.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR.md",
