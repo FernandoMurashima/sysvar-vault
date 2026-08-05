@@ -16,6 +16,8 @@ tags:
     
 - arquitetura
     
+- operacional
+    
 - auditoria
     
 - saas
@@ -32,6 +34,10 @@ O SISVAR é um ERP SaaS voltado ao varejo e à indústria de moda.
 O sistema foi projetado para atender empresas com:
 
 - uma ou várias lojas;
+    
+- matriz;
+    
+- fábrica;
     
 - estoque central;
     
@@ -53,24 +59,29 @@ O sistema foi projetado para atender empresas com:
     
 - gestão contábil;
     
-- relatórios e dashboards.
+- relatórios;
+    
+- dashboards;
+    
+- auditoria.
     
 
-A arquitetura suporta múltiplas empresas no mesmo sistema, mantendo os dados completamente isolados.
+A arquitetura suporta várias empresas na mesma plataforma, mantendo os dados isolados por empresa e, quando aplicável, por estabelecimento.
 
 ---
 
-# Objetivo do produto
+# Objetivo do Produto
 
 O objetivo do SISVAR é centralizar as operações de empresas do ramo de moda em uma única plataforma.
 
 O sistema deve permitir acompanhar o fluxo completo:
 
 ```text
-Cadastro
-→ Produto
+Administração
+→ Cadastros
+→ Produtos
 → Compra ou Produção
-→ Entrada no Estoque
+→ Estoque
 → Distribuição
 → Venda
 → Fiscal
@@ -80,11 +91,11 @@ Cadastro
 → Auditoria
 ```
 
-O foco do produto é oferecer controle operacional, financeiro e gerencial sem exigir que o cliente compre ou utilize módulos que não necessita.
+O produto deve oferecer controle operacional, financeiro e gerencial sem obrigar o cliente a contratar módulos que não utiliza.
 
 ---
 
-# Público-alvo
+# Público-Alvo
 
 O SISVAR é direcionado principalmente a:
 
@@ -98,7 +109,7 @@ O SISVAR é direcionado principalmente a:
     
 - empresas com produção própria;
     
-- empresas que utilizam facções;
+- empresas que trabalham com facções;
     
 - empresas que distribuem mercadorias para várias lojas;
     
@@ -117,9 +128,11 @@ A empresa possui:
     
 - módulos contratados;
     
+- usuário master;
+    
 - limite de acessos simultâneos;
     
-- lojas;
+- estabelecimentos;
     
 - usuários;
     
@@ -129,7 +142,7 @@ A empresa possui:
     
 - sessões;
     
-- dados próprios;
+- dados operacionais;
     
 - registros de auditoria.
     
@@ -145,13 +158,15 @@ A contratação pode incluir:
 - quantidade de acessos simultâneos.
     
 
+O licenciamento é baseado em sessões simultâneas, e não na quantidade de usuários cadastrados.
+
 ---
 
 # Multiempresa
 
 O SISVAR opera com múltiplas empresas.
 
-Cada empresa possui isolamento completo dos seus dados.
+Cada empresa possui isolamento dos seus dados.
 
 Um usuário cliente não pode:
 
@@ -161,7 +176,7 @@ Um usuário cliente não pode:
     
 - alterar registros de outra empresa;
     
-- utilizar loja de outra empresa;
+- utilizar estabelecimento de outra empresa;
     
 - utilizar perfil de outra empresa;
     
@@ -169,28 +184,50 @@ Um usuário cliente não pode:
     
 - consultar auditoria de outra empresa;
     
-- exportar dados de outra empresa.
+- exportar dados de outra empresa;
+    
+- criar vínculos entre empresas diferentes.
     
 
 Esse isolamento é validado no backend.
 
+A empresa enviada pelo frontend não é considerada fonte de verdade isoladamente.
+
 ---
 
-# Multilojas
+# Multilojas e Estabelecimentos
 
-Uma empresa pode possuir várias lojas.
+Uma empresa pode possuir vários estabelecimentos.
 
-Cada loja pode possuir:
+Tipos atuais:
 
-- estoque;
+```text
+LOJA
+MATRIZ
+FABRICA
+```
+
+Todo estabelecimento pertence obrigatoriamente a uma empresa.
+
+Antes de tornar o vínculo obrigatório, foi executado o diagnóstico:
+
+```text
+lojas_sem_empresa = 0
+```
+
+Nenhum saneamento foi necessário.
+
+Cada estabelecimento pode possuir:
+
+- usuários vinculados;
     
-- usuários;
+- sessões;
+    
+- estoque;
     
 - caixas;
     
 - vendas;
-    
-- sessões;
     
 - movimentações;
     
@@ -198,20 +235,193 @@ Cada loja pode possuir:
     
 - distribuição;
     
-- auditoria.
+- configurações fiscais;
+    
+- registros de auditoria.
     
 
 Usuários comuns podem ser limitados a determinadas lojas.
 
-O usuário master pode acessar todas as lojas da própria empresa.
+O usuário master pode acessar todos os estabelecimentos da própria empresa.
 
 ---
 
-# Usuários do sistema
+# Grupo Operacional
 
-## Superusuário da plataforma
+O primeiro grupo revisado integralmente foi:
 
-Responsável pela administração global.
+```text
+Operacional
+├── Empresas
+├── Estabelecimento
+├── Usuários
+├── Perfis de acesso
+└── Auditoria
+```
+
+A implementação técnica do grupo foi concluída.
+
+Foram realizados:
+
+- análise do código real;
+    
+- definição das regras;
+    
+- implementação;
+    
+- migrations;
+    
+- testes backend;
+    
+- testes frontend;
+    
+- revisão técnica dos commits;
+    
+- correções de endurecimento;
+    
+- atualização da documentação.
+    
+
+A homologação manual completa no navegador ainda permanece pendente.
+
+---
+
+# Empresas e Contratos
+
+A empresa representa o cliente da plataforma.
+
+O contrato controla:
+
+- situação;
+    
+- vigência;
+    
+- módulos contratados;
+    
+- plano completo;
+    
+- limite simultâneo;
+    
+- usuário master;
+    
+- versão das permissões;
+    
+- suspensão;
+    
+- reativação.
+    
+
+Estados possíveis incluem:
+
+```text
+PENDENTE
+ATIVO
+SUSPENSO
+VENCIDO
+CANCELADO
+```
+
+---
+
+# Suspensão Administrativa
+
+Foi implementado o bloqueio administrativo de uma empresa.
+
+A suspensão pode ocorrer por motivos como:
+
+```text
+INADIMPLENCIA
+SOLICITACAO_CLIENTE
+RISCO_SEGURANCA
+ENCERRAMENTO_CONTRATO
+BLOQUEIO_ADMINISTRATIVO
+OUTRO
+```
+
+Inadimplência é o motivo.
+
+O estado operacional do contrato é `SUSPENSO`.
+
+## Efeito da Suspensão
+
+Ao suspender uma empresa:
+
+1. o contrato é bloqueado em transação;
+    
+2. o status passa para `SUSPENSO`;
+    
+3. motivo, observação, data e executor são registrados;
+    
+4. todas as sessões ativas são encerradas;
+    
+5. todos os tokens são revogados;
+    
+6. todas as vagas simultâneas são liberadas;
+    
+7. a versão das permissões é atualizada;
+    
+8. a Auditoria obrigatória registra a operação.
+    
+
+Se a Auditoria obrigatória falhar, toda a operação sofre rollback.
+
+## Acesso Bloqueado
+
+Uma empresa suspensa não consegue:
+
+- realizar novos logins;
+    
+- continuar utilizando sessões antigas;
+    
+- utilizar tokens anteriores;
+    
+- utilizar o heartbeat;
+    
+- acessar endpoints protegidos.
+    
+
+Código retornado:
+
+```text
+CONTRACT_SUSPENDED
+```
+
+Mensagem pública:
+
+```text
+O acesso da empresa está temporariamente suspenso. Entre em contato com o suporte.
+```
+
+O motivo comercial detalhado não é exposto ao usuário comum.
+
+---
+
+# Reativação
+
+A reativação:
+
+- retorna o contrato para `ATIVO`;
+    
+- preserva o histórico da suspensão;
+    
+- registra data e executor;
+    
+- atualiza a versão das permissões;
+    
+- não reativa sessões antigas;
+    
+- exige novo login;
+    
+- utiliza Auditoria obrigatória.
+    
+
+---
+
+# Usuários do Sistema
+
+## Superusuário da Plataforma
+
+É o administrador global.
 
 Pode:
 
@@ -219,9 +429,13 @@ Pode:
     
 - configurar contratos;
     
+- suspender e reativar empresas;
+    
 - definir módulos;
     
 - definir limites;
+    
+- transferir master;
     
 - consultar sessões globais;
     
@@ -230,14 +444,18 @@ Pode:
 - realizar manutenção administrativa.
     
 
+O superusuário não está sujeito ao limite de sessões das empresas clientes.
+
 ---
 
-## Usuário master da empresa
+## Usuário Master
 
-É o administrador principal do cliente.
+É o administrador principal da empresa cliente.
 
-Pode administrar:
+Pode administrar, dentro da própria empresa:
 
+- estabelecimentos;
+    
 - usuários;
     
 - perfis;
@@ -246,33 +464,44 @@ Pode administrar:
     
 - sessões;
     
-- lojas;
-    
 - auditoria;
     
-- configurações liberadas.
+- configurações permitidas.
     
 
-O master possui acesso aos módulos contratados pela empresa.
+O master não pode ser:
+
+- excluído;
+    
+- inativado;
+    
+- movido para outra empresa;
+    
+- rebaixado por edição comum.
+    
+
+A transferência utiliza fluxo específico, transação e Auditoria obrigatória.
 
 ---
 
-## Usuários comuns
+## Usuários Comuns
 
 Recebem acesso conforme:
 
 - empresa;
     
-- lojas permitidas;
+- estabelecimentos permitidos;
     
 - perfil;
     
 - módulos contratados;
     
+- override individual;
+    
 - permissões efetivas.
     
 
-Os níveis atuais de permissão são:
+Níveis atuais:
 
 ```text
 NONE
@@ -280,9 +509,391 @@ VIEW
 EDIT
 ```
 
-O nome do perfil não concede acesso automaticamente.
+O nome do perfil ou o tipo funcional não concede acesso automaticamente.
 
 O backend calcula o acesso efetivo.
+
+---
+
+# Tipo Funcional
+
+O usuário ainda pode possuir classificações como:
+
+```text
+Regular
+Vendedor
+Caixa
+Gerente
+Diretor
+Admin
+Auxiliar
+Assistente
+AssistenteReceber
+AssistentePagar
+```
+
+O tipo funcional pode ser utilizado por regras operacionais específicas.
+
+Ele não deve:
+
+- conceder módulo;
+    
+- remover módulo;
+    
+- substituir perfil;
+    
+- criar override;
+    
+- definir a permissão efetiva.
+    
+
+---
+
+# Perfis e Permissões
+
+A regra oficial é:
+
+```text
+Perfil principal
++ Override individual
++ Contrato
++ Módulos contratados
+= Permissão efetiva
+```
+
+## Perfil
+
+O perfil:
+
+- pertence a uma empresa;
+    
+- pode ser ativo ou inativo;
+    
+- possui permissões por módulo;
+    
+- pode ser definido como padrão;
+    
+- não pode habilitar módulo não contratado;
+    
+- deve respeitar dependências entre módulos.
+    
+
+## Override
+
+Valores apresentados ao usuário:
+
+```text
+HERDAR
+NONE
+VIEW
+EDIT
+```
+
+`HERDAR` significa remover a permissão individual e voltar a utilizar o perfil.
+
+## Matriz de Permissões
+
+A tela de usuários utiliza:
+
+|Módulo|Perfil|Override|Efetivo|
+|---|---|---|---|
+|Compras|VIEW|EDIT|EDIT|
+|Financeiro|NONE|HERDAR|NONE|
+|Auditoria|VIEW|HERDAR|VIEW|
+
+O valor efetivo é calculado pelo backend.
+
+## Perfil Padrão
+
+A regra de apenas um perfil padrão por empresa é garantida pela aplicação.
+
+Utiliza:
+
+```text
+transaction.atomic()
+select_for_update()
+```
+
+Não depende de constraint condicional incompatível com MySQL.
+
+---
+
+# Estabelecimentos
+
+A tela de Estabelecimentos utiliza o módulo:
+
+```text
+operacional
+```
+
+Regras:
+
+```text
+NONE
+→ sem acesso
+
+VIEW
+→ consulta
+
+EDIT
+→ criação e alteração
+```
+
+A rota não depende mais exclusivamente dos tipos antigos:
+
+```text
+Diretor
+Gerente
+```
+
+## Ciclo de Vida
+
+Foram implementadas ações explícitas:
+
+```text
+Ativar
+Inativar
+Encerrar
+Reabrir
+```
+
+O encerramento não exclui o histórico.
+
+Antes de inativar ou encerrar, o backend pode verificar impedimentos como:
+
+- sessões ativas;
+    
+- usuários vinculados;
+    
+- loja principal de usuários;
+    
+- operações pendentes;
+    
+- dependências operacionais.
+    
+
+## Usuários Vinculados
+
+A consulta do estabelecimento pode apresentar:
+
+- usuário;
+    
+- nome;
+    
+- perfil;
+    
+- loja principal;
+    
+- loja permitida;
+    
+- situação;
+    
+- sessão ativa.
+    
+
+---
+
+# Ciclo de Vida dos Usuários
+
+As operações foram separadas em:
+
+```text
+Criar
+Consultar
+Editar
+Ativar
+Inativar
+Redefinir senha
+Encerrar sessão
+Encerrar todas as sessões
+Excluir administrativamente
+Transferir administração
+```
+
+Regras principais:
+
+- criar usuário não consome licença;
+    
+- ativar usuário não consome licença;
+    
+- inativar encerra sessões;
+    
+- inativar libera vagas;
+    
+- master não pode ser inativado;
+    
+- master não pode ser excluído;
+    
+- exclusão deve ser excepcional;
+    
+- usuário não pode elevar a própria permissão;
+    
+- usuário não pode alterar sua própria empresa;
+    
+- usuário não pode ampliar suas próprias lojas.
+    
+
+---
+
+# Sessões do Usuário
+
+A tela de usuários pode consultar:
+
+- dispositivo;
+    
+- IP;
+    
+- estabelecimento;
+    
+- início;
+    
+- última atividade;
+    
+- situação;
+    
+- motivo do encerramento.
+    
+
+Ações disponíveis:
+
+```text
+Encerrar sessão
+Encerrar todas as sessões
+```
+
+O encerramento de todas as sessões é transacional.
+
+Se a Auditoria obrigatória falhar:
+
+- as sessões permanecem ativas;
+    
+- os tokens permanecem válidos;
+    
+- nenhuma alteração parcial é confirmada.
+    
+
+Evento consolidado:
+
+```text
+USER_SESSIONS_CLOSED
+```
+
+---
+
+# Redefinição Administrativa de Senha
+
+Um administrador autorizado pode redefinir a senha de um usuário.
+
+A operação:
+
+- valida a senha;
+    
+- marca `deve_trocar_senha`;
+    
+- pode encerrar todas as sessões;
+    
+- revoga tokens;
+    
+- exige novo login;
+    
+- registra Auditoria obrigatória.
+    
+
+Evento:
+
+```text
+USER_PASSWORD_RESET
+```
+
+A senha nunca é registrada na Auditoria.
+
+A operação é transacional.
+
+Se a Auditoria falhar:
+
+- a senha anterior permanece;
+    
+- a flag anterior permanece;
+    
+- as sessões permanecem;
+    
+- os tokens permanecem.
+    
+
+---
+
+# Troca Obrigatória de Senha
+
+Quando:
+
+```text
+deve_trocar_senha = true
+```
+
+o usuário consegue autenticar, mas não consegue acessar os módulos normais.
+
+O backend permite somente os recursos mínimos:
+
+- `/api/me/`;
+    
+- troca de senha;
+    
+- logout;
+    
+- heartbeat necessário.
+    
+
+Outros endpoints retornam:
+
+```text
+PASSWORD_CHANGE_REQUIRED
+```
+
+Mensagem:
+
+```text
+Você precisa alterar sua senha antes de continuar.
+```
+
+## Frontend
+
+Rota específica:
+
+```text
+/change-password-required
+```
+
+O guard:
+
+- redireciona o usuário;
+    
+- bloqueia acesso direto ao `/home`;
+    
+- impede bypass por URL;
+    
+- mantém logout disponível;
+    
+- libera o sistema após a troca.
+    
+
+Após a alteração:
+
+- `deve_trocar_senha` passa para falso;
+    
+- outras sessões são encerradas;
+    
+- a sessão atual permanece;
+    
+- `/api/me/` é atualizado;
+    
+- o acesso aos módulos é liberado.
+    
+
+Evento:
+
+```text
+USER_PASSWORD_CHANGED
+```
 
 ---
 
@@ -298,19 +909,23 @@ Regras:
     
 - ativar usuário não consome licença;
     
-- login cria uma sessão;
+- login cria sessão;
     
-- sessão ativa consome uma vaga;
+- sessão ativa consome vaga;
     
-- logout libera a vaga;
+- logout libera vaga;
     
-- timeout libera a vaga;
+- timeout libera vaga;
     
-- inativação encerra sessões;
+- inativação libera vaga;
+    
+- suspensão da empresa libera todas as vagas;
+    
+- redefinição de senha pode encerrar sessões;
     
 - dispositivos diferentes consomem vagas diferentes;
     
-- novo login no mesmo dispositivo substitui a sessão anterior;
+- login no mesmo dispositivo substitui a sessão anterior;
     
 - login acima do limite é bloqueado.
     
@@ -325,26 +940,32 @@ A segurança considera:
     
 - empresa;
     
-- loja;
+- estabelecimento;
     
 - contrato;
+    
+- status do contrato;
     
 - módulos;
     
 - perfil;
     
-- permissões;
+- override;
+    
+- permissão efetiva;
     
 - sessão;
     
 - token;
     
-- dispositivo.
+- dispositivo;
+    
+- troca obrigatória de senha.
     
 
 O backend é a autoridade final.
 
-O frontend pode ocultar menus, rotas e botões, mas toda operação é validada novamente no servidor.
+O frontend pode ocultar menus, rotas e botões, mas todas as operações são validadas novamente no servidor.
 
 O sistema utiliza:
 
@@ -362,16 +983,20 @@ O sistema utiliza:
     
 - revogação;
     
-- default deny.
+- default deny;
+    
+- bloqueio central de senha pendente;
+    
+- Auditoria obrigatória em operações críticas.
     
 
 ---
 
 # Auditoria Central
 
-A primeira fase da Auditoria Central está implementada, testada, revisada e homologada.
+A Auditoria Central está implementada, testada, revisada e homologada.
 
-A Auditoria registra eventos relacionados a:
+Ela registra eventos relacionados a:
 
 - login;
     
@@ -387,15 +1012,23 @@ A Auditoria registra eventos relacionados a:
     
 - contratos;
     
+- suspensão;
+    
+- reativação;
+    
 - módulos;
     
 - master;
+    
+- estabelecimentos;
     
 - perfis;
     
 - permissões;
     
 - usuários;
+    
+- senhas;
     
 - acessos negados;
     
@@ -404,11 +1037,11 @@ A Auditoria registra eventos relacionados a:
 - exportação.
     
 
-Cada evento pode registrar:
+Os eventos podem registrar:
 
 - empresa;
     
-- loja;
+- estabelecimento;
     
 - usuário;
     
@@ -470,9 +1103,9 @@ Os registros são:
 
 ---
 
-# Principais módulos
+# Principais Grupos do Menu
 
-## Administração
+## Operacional
 
 Abrange:
 
@@ -480,7 +1113,7 @@ Abrange:
     
 - contratos;
     
-- módulos;
+- estabelecimentos;
     
 - usuários;
     
@@ -490,35 +1123,31 @@ Abrange:
     
 - sessões;
     
-- auditoria;
+- auditoria.
     
-- configurações.
-    
+
+Status:
+
+```text
+Implementado
+Validado automaticamente
+Homologação manual pendente
+```
 
 ---
 
 ## Cadastros
 
-Abrange:
+Primeiros itens:
 
-- lojas;
+- Clientes;
     
-- clientes;
+- Fornecedores;
     
-- fornecedores;
+- Funcionários.
     
-- funcionários;
-    
-- naturezas de lançamento;
-    
-- plano financeiro;
-    
-- plano contábil;
-    
-- formas de pagamento;
-    
-- tabelas auxiliares.
-    
+
+Esse será o próximo grupo revisado após a homologação manual do Operacional.
 
 ---
 
@@ -574,7 +1203,9 @@ Abrange:
 - recebimento.
     
 
-A Entrada de Nota Fiscal será revisada como próxima grande frente.
+A Entrada de Nota Fiscal será analisada dentro do momento correto da revisão de Compras e Fiscal.
+
+Ela não está definida como próximo item imediato.
 
 ---
 
@@ -598,29 +1229,6 @@ Abrange:
     
 - reservas.
     
-
----
-
-## Produção
-
-Deverá abranger:
-
-- ficha técnica;
-    
-- matéria-prima;
-    
-- ordem de produção;
-    
-- consumo;
-    
-- facção;
-    
-- retorno;
-    
-- produto acabado.
-    
-
-A implementação existente ainda será revisada detalhadamente.
 
 ---
 
@@ -651,9 +1259,30 @@ Deverá controlar:
 
 ---
 
-## Vendas e PDV
+## Produção
 
-Abrange ou deverá abranger:
+Deverá abranger:
+
+- ficha técnica;
+    
+- matéria-prima;
+    
+- ordem de produção;
+    
+- consumo;
+    
+- facção;
+    
+- retorno;
+    
+- produto acabado.
+    
+
+---
+
+## Vendas e Módulo Loja
+
+Abrangem ou deverão abranger:
 
 - orçamento;
     
@@ -673,30 +1302,9 @@ Abrange ou deverá abranger:
     
 - devoluções;
     
+- PDV;
+    
 - PDV Offline.
-    
-
----
-
-## Fiscal
-
-Abrange:
-
-- NF-e;
-    
-- NFC-e;
-    
-- documentos fiscais;
-    
-- impostos;
-    
-- emissão;
-    
-- rejeições;
-    
-- contingência;
-    
-- integrações.
     
 
 ---
@@ -724,6 +1332,29 @@ Abrange:
 - fluxo de caixa;
     
 - rateios.
+    
+
+---
+
+## Fiscal
+
+Abrange:
+
+- NF-e;
+    
+- NFC-e;
+    
+- documentos fiscais;
+    
+- impostos;
+    
+- emissão;
+    
+- rejeições;
+    
+- contingência;
+    
+- integrações.
     
 
 ---
@@ -768,13 +1399,24 @@ Devem consolidar informações de:
 - auditoria.
     
 
-O acesso depende dos módulos contratados e da permissão efetiva.
+O acesso depende:
+
+- da empresa;
+    
+- do estabelecimento;
+    
+- dos módulos contratados;
+    
+- da permissão efetiva;
+    
+- das dependências entre módulos.
+    
 
 ---
 
-# Situação atual
+# Situação Atual
 
-## Infraestrutura concluída
+## Infraestrutura Concluída
 
 - autenticação centralizada;
     
@@ -818,43 +1460,103 @@ O acesso depende dos módulos contratados e da permissão efetiva.
     
 - snapshots históricos;
     
-- auditoria obrigatória em operações críticas definidas.
+- auditoria obrigatória.
+    
+
+## Operacional Implementado
+
+- Empresas;
+    
+- Contratos;
+    
+- suspensão;
+    
+- reativação;
+    
+- Estabelecimentos;
+    
+- empresa obrigatória no estabelecimento;
+    
+- ciclo de vida do estabelecimento;
+    
+- Usuários;
+    
+- Perfil/Override/Efetivo;
+    
+- sessões do usuário;
+    
+- redefinição administrativa de senha;
+    
+- troca obrigatória de senha;
+    
+- Perfis de acesso;
+    
+- perfil padrão;
+    
+- dependências de módulos;
+    
+- Auditoria integrada.
+    
+
+## Validação Automatizada
+
+Backend:
+
+```text
+50 testes aprovados
+```
+
+Frontend:
+
+```text
+33 testes aprovados
+```
+
+Comandos executados:
+
+```text
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py migrate
+python manage.py test -v 2 --noinput
+
+npx tsc -p tsconfig.app.json --noEmit
+ng build --configuration development
+ng test --watch=false --browsers=ChromeHeadless
+```
+
+## Homologação Manual Pendente
+
+Ainda devem ser testados no navegador:
+
+- suspensão com sessões abertas;
+    
+- reativação;
+    
+- invalidação de tokens antigos;
+    
+- troca obrigatória de senha;
+    
+- bloqueio por URL;
+    
+- usuário VIEW;
+    
+- usuário EDIT;
+    
+- ciclo completo de Estabelecimento;
+    
+- matriz Perfil/Override/Efetivo;
+    
+- dependências entre módulos;
+    
+- eventos novos na Auditoria.
     
 
 ---
 
-## Módulos existentes que ainda serão revisados
+# Processo de Evolução
 
-- Cadastros;
-    
-- Produtos;
-    
-- Compras;
-    
-- Estoque;
-    
-- Financeiro;
-    
-- Fiscal;
-    
-- Vendas;
-    
-- Dashboards;
-    
-- Produção;
-    
-- Distribuição.
-    
-
-A existência do módulo no código não significa que toda a sua arquitetura já foi validada.
-
-Cada módulo será analisado individualmente.
-
----
-
-# Processo de evolução
-
-Cada módulo deverá seguir este fluxo:
+Cada grupo ou módulo deve seguir:
 
 ```text
 Definição funcional
@@ -863,50 +1565,63 @@ Definição funcional
 → Prompt para o Codex
 → Implementação
 → Testes técnicos
-→ Testes funcionais
 → Revisão técnica
 → Correções
+→ Homologação funcional
 → Atualização do Obsidian
 → ADR, quando necessária
 → Commit final
 ```
 
+Uma funcionalidade não deve ser marcada como homologada apenas porque os testes automatizados passaram.
+
 ---
 
-# Próxima prioridade recomendada
+# Próxima Etapa
 
-A próxima análise recomendada é:
+A etapa imediata é concluir a homologação manual do grupo Operacional.
+
+Depois disso, a revisão seguirá a ordem real da barra lateral.
+
+Próximo grupo:
 
 ```text
-Entrada de Nota Fiscal
+Cadastros
 ```
 
-Essa funcionalidade deverá integrar:
+Primeiros itens:
 
-- compras;
+- Clientes;
     
-- fornecedor;
+- Fornecedores;
     
-- produtos;
-    
-- SKUs;
-    
-- estoque;
-    
-- fiscal;
-    
-- financeiro;
-    
-- contabilidade;
-    
-- auditoria.
+- Funcionários.
     
 
-Antes da implementação será necessário verificar o que já existe no backend e frontend.
+A análise deverá verificar:
+
+- isolamento;
+    
+- permissões;
+    
+- validações;
+    
+- layout;
+    
+- paginação;
+    
+- auditoria;
+    
+- integrações;
+    
+- testes;
+    
+- melhorias funcionais.
+    
 
 ---
 
-# Código e documentação
+# Código e Documentação
 
 Código local:
 
@@ -940,9 +1655,23 @@ FernandoMurashima/sysvarfrontend
 FernandoMurashima/sysvar-vault
 ```
 
+Commits finais do grupo Operacional:
+
+Backend:
+
+```text
+3955ea48c721afc7b15520a7afd6ec32f8374af6
+```
+
+Frontend:
+
+```text
+bf66e81e6f1c0d58255a135d9339a34b95ef332f
+```
+
 ---
 
-# Última atualização
+# Última Atualização
 
 ```text
 2026-08-05
@@ -950,7 +1679,7 @@ FernandoMurashima/sysvar-vault
 
 ---
 
-# Notas relacionadas
+# Notas Relacionadas
 
 - [[10 Projetos/Sysvar/Sysvar|Sysvar]]
     
