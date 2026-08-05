@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "43f09c7d9a97731f",
+        "id": "85c52f980134358a",
         "type": "tabs",
         "children": [
           {
-            "id": "eba1f0f8a9f2bf73",
+            "id": "ed51c51a60727dd7",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -76,7 +76,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 485.5
+    "width": 248.5
   },
   "right": {
     "id": "0574bf7236bdcc9a",
@@ -181,9 +181,11 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "eba1f0f8a9f2bf73",
+  "active": "ed51c51a60727dd7",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas.md",
+    "Sem título.base",
     "10 Projetos/Sysvar/Contexto do Projeto/Visão Geral.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio.md",
@@ -214,10 +216,8 @@
     "40 Arquivo/Fontes",
     "90 Sistema",
     "40 Arquivo",
-    "30 Recursos",
     "Projetos/Webfoto/Webfoto.md",
     "Projetos/Webfoto/Atualização da Produção.md",
-    "crie um link.md",
-    "Sem título.md"
+    "crie um link.md"
   ]
 }
