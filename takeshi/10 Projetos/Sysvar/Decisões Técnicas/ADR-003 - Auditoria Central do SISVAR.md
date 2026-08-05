@@ -1,8 +1,9 @@
 
+
 ---
 
 type: adr  
-status: approved  
+status: implemented  
 project: Sysvar  
 adr: 003  
 created: 2026-08-05  
@@ -32,9 +33,15 @@ tags:
 
 Aprovada.
 
-Ainda não implementada integralmente.
+Implementada.
 
-A implementação deverá evoluir o app `auditoria` existente, preservando o que for compatível e substituindo os pontos inadequados para o modelo SaaS multiempresa do SISVAR.
+Revisada tecnicamente.
+
+Validada por testes automatizados e homologação funcional.
+
+A primeira fase da Auditoria Central está concluída.
+
+A integração detalhada com os demais módulos de negócio continuará gradualmente durante a revisão individual de cada módulo.
 
 ---
 
@@ -73,98 +80,75 @@ Suas operações afetam áreas sensíveis e integradas, como:
 - distribuição.
     
 
-O sistema precisa responder com segurança perguntas como:
+O sistema precisava possuir uma infraestrutura capaz de responder:
 
-- Quem realizou uma operação?
+- quem realizou uma operação;
     
-- Quando a operação ocorreu?
+- quando ela ocorreu;
     
-- Em qual empresa?
+- em qual empresa;
     
-- Em qual loja?
+- em qual loja;
     
-- Qual usuário estava autenticado?
+- qual usuário estava autenticado;
     
-- Qual sessão originou a ação?
+- qual sessão originou a ação;
     
-- Qual dispositivo foi utilizado?
+- qual dispositivo foi utilizado;
     
-- Qual era o valor anterior?
+- qual objeto foi afetado;
     
-- Qual passou a ser o novo valor?
+- qual era o estado anterior;
     
-- A operação foi concluída?
+- qual passou a ser o estado posterior;
     
-- A operação foi negada?
+- se a operação foi concluída, negada ou falhou;
     
-- A operação falhou?
+- qual endpoint recebeu a requisição;
     
-- Houve rollback?
-    
-- Qual endpoint recebeu a requisição?
-    
-- Qual IP e user-agent foram utilizados?
-    
-- Qual objeto foi afetado?
+- qual IP e user-agent foram utilizados.
     
 
-O projeto já possui um app chamado `auditoria`, com:
+O app `auditoria` já existia, mas possuía limitações importantes:
 
-- model `AuditLog`;
+- ausência de empresa e loja;
     
-- middleware de contexto;
+- ausência de isolamento multiempresa explícito;
     
-- signals de CRUD;
-    
-- serializer;
-    
-- endpoint somente leitura;
-    
-- filtros;
-    
-- registros manuais em partes da autenticação e segurança.
-    
-
-Entretanto, a estrutura atual ainda não atende integralmente às necessidades do SISVAR.
-
-Os principais problemas identificados são:
-
-- ausência de empresa no log;
-    
-- ausência de loja;
-    
-- consulta global baseada em `IsAdminUser`;
-    
-- falta de isolamento explícito por empresa;
-    
-- dependência de `is_staff`;
+- dependência de `IsAdminUser`;
     
 - ausência de snapshots históricos;
     
-- falta de request ID;
+- falta de request ID e correlation ID;
     
-- falta de sessão e dispositivo;
+- ausência de sessão e dispositivo;
     
-- ausência de resultado e severidade;
+- ausência de resultado, severidade e origem;
     
-- formato inconsistente de alterações;
+- estrutura inconsistente de alterações;
     
 - signals restritos a poucos apps;
     
-- eventos manuais registrados por mecanismo paralelo;
+- mecanismos paralelos de gravação;
     
-- falhas de auditoria silenciosamente ignoradas;
+- falhas silenciosamente ignoradas;
     
-- ausência de distinção entre sucesso, falha, acesso negado e rollback.
+- ausência de imutabilidade forte;
+    
+- ausência de uma tela operacional completa.
     
 
 ---
 
 # Decisão
 
-O SISVAR possuirá uma infraestrutura central de auditoria.
+O SISVAR adotou uma única infraestrutura central de auditoria.
 
-A auditoria será:
+O app `auditoria` existente foi evoluído.
+
+Não foi criado outro app ou tabela paralela.
+
+A Auditoria Central é:
 
 - multiempresa;
     
@@ -178,451 +162,103 @@ A auditoria será:
     
 - somente leitura;
     
-- segura;
+- sanitizada;
     
 - transacional;
     
-- orientada a eventos de negócio;
+- orientada a eventos;
+    
+- protegida por permissões efetivas;
     
 - complementada por signals controlados;
     
 - integrada gradualmente aos módulos.
     
 
-O app `auditoria` existente será evoluído.
-
-Não será criada uma segunda infraestrutura paralela.
-
 ---
 
-# 1. Objetivos
+# Estrutura implementada
 
-A Auditoria Central deverá:
+## AuditLog
 
-- registrar operações críticas;
-    
-- preservar contexto histórico;
-    
-- permitir rastreabilidade;
-    
-- apoiar segurança;
-    
-- apoiar suporte;
-    
-- apoiar investigação de erros;
-    
-- apoiar conferência operacional;
-    
-- apoiar análise de acessos;
-    
-- preservar isolamento entre empresas;
-    
-- permitir consulta e exportação controladas;
-    
-- evitar exposição de dados sensíveis;
-    
-- manter desempenho aceitável.
-    
-
----
-
-# 2. Escopo dos eventos
-
-A auditoria registrará quatro grupos principais.
-
-## Segurança
-
-Exemplos:
-
-- login realizado;
-    
-- login negado;
-    
-- logout;
-    
-- sessão expirada;
-    
-- sessão substituída;
-    
-- sessão encerrada administrativamente;
-    
-- limite simultâneo atingido;
-    
-- acesso negado;
-    
-- tentativa de acesso a outra empresa;
-    
-- alteração de contrato;
-    
-- transferência de master;
-    
-- alteração de perfil;
-    
-- alteração de permissão;
-    
-- exportação de auditoria.
-    
-
-## Operações de negócio
-
-Exemplos:
-
-- pedido criado;
-    
-- pedido aprovado;
-    
-- pedido cancelado;
-    
-- nota recebida;
-    
-- título baixado;
-    
-- estoque movimentado;
-    
-- venda finalizada;
-    
-- NFC-e emitida;
-    
-- distribuição confirmada;
-    
-- ordem de produção finalizada.
-    
-
-## Alterações cadastrais
-
-Exemplos:
-
-- cliente criado;
-    
-- fornecedor alterado;
-    
-- produto alterado;
-    
-- preço modificado;
-    
-- usuário inativado;
-    
-- loja alterada;
-    
-- perfil alterado;
-    
-- cadastro excluído.
-    
-
-## Eventos técnicos
-
-Exemplos:
-
-- integração rejeitada;
-    
-- falha fiscal;
-    
-- importação executada;
-    
-- command administrativo executado;
-    
-- sincronização concluída;
-    
-- rotina automática executada;
-    
-- falha interna da própria auditoria.
-    
-
----
-
-# 3. Permissões de consulta
-
-## Superusuário da plataforma
-
-Pode:
-
-- consultar todas as empresas;
-    
-- filtrar por empresa;
-    
-- filtrar por loja;
-    
-- consultar eventos internos;
-    
-- consultar falhas técnicas;
-    
-- exportar resultados;
-    
-- consultar eventos de segurança da plataforma.
-    
-
-## Usuário master da empresa
-
-Pode:
-
-- consultar todos os logs da própria empresa;
-    
-- consultar todas as lojas da própria empresa;
-    
-- consultar eventos dos usuários da própria empresa;
-    
-- exportar os logs que consegue consultar;
-    
-- visualizar detalhes de alterações.
-    
-
-Não pode:
-
-- consultar outra empresa;
-    
-- alterar logs;
-    
-- excluir logs;
-    
-- alterar retenção;
-    
-- acessar eventos internos restritos da plataforma.
-    
-
-## Usuário comum
-
-Depende de permissão efetiva no módulo de auditoria.
-
-Permissão:
-
-```text
-auditoria = VIEW
-```
-
-Permite:
-
-- consultar logs da própria empresa;
-    
-- consultar apenas lojas permitidas;
-    
-- visualizar detalhes autorizados.
-    
-
-Permissão:
-
-```text
-auditoria = EDIT
-```
-
-Não permite editar registros.
-
-Poderá liberar funções administrativas adicionais, como:
-
-- exportação;
-    
-- relatórios consolidados;
-    
-- detalhes técnicos permitidos.
-    
-
-## Regra geral
+O model central `AuditLog` passou a registrar:
 
-Nenhum usuário cliente poderá:
-
-- criar logs pela API;
+- `event_id`;
     
-- editar logs;
+- `request_id`;
     
-- excluir logs;
+- `correlation_id`;
     
-- alterar empresa do log;
+- empresa;
     
-- alterar usuário do log;
+- snapshots históricos da empresa;
     
-- alterar dados históricos.
+- loja;
     
-
----
-
-# 4. Modelo central
-
-O model atual `AuditLog` será evoluído.
-
-A estrutura deverá conter, no mínimo:
-
-```text
-id
-
-event_id
-request_id
-correlation_id
-
-empresa
-empresa_id_snapshot
-empresa_nome_snapshot
-
-loja
-loja_id_snapshot
-loja_nome_snapshot
-
-user
-user_id_snapshot
-username_snapshot
-user_nome_snapshot
-
-session_id
-device_id
-
-action
-category
-result
-severity
-origin
-
-app_label
-model
-object_id
-object_repr
-
-before_data
-after_data
-changed_fields
-metadata
-
-ip
-user_agent
-http_method
-endpoint
-status_code
-
-error_code
-error_message
-
-created_at
-```
-
-Os nomes finais poderão ser adaptados à convenção atual do código, desde que o significado seja preservado.
-
----
-
-# 5. Identificadores
-
-## Event ID
-
-Cada evento terá identificador próprio e único.
-
-Finalidades:
-
-- referência externa;
+- snapshots históricos da loja;
     
-- suporte;
+- usuário;
     
-- exportação;
+- snapshots históricos do usuário;
     
-- integração;
+- sessão;
     
-- pesquisa.
+- dispositivo;
     
-
-## Request ID
-
-Cada requisição deverá receber um identificador único.
-
-Todos os eventos originados pela mesma requisição poderão ser correlacionados.
-
-## Correlation ID
-
-Permitirá relacionar vários eventos de uma mesma operação de negócio.
-
-Exemplo:
-
-```text
-Aprovação de pedido
-→ geração financeira
-→ movimentação de estoque
-→ emissão fiscal
-→ auditorias relacionadas
-```
-
----
-
-# 6. Empresa e loja
-
-Todo evento de usuário cliente deverá possuir empresa.
-
-Quando a operação estiver vinculada a uma loja, o evento também deverá registrar a loja.
-
-A auditoria deverá manter:
-
-- ForeignKey atual, quando aplicável;
+- ação;
     
-- ID histórico;
+- categoria;
     
-- nome histórico.
+- resultado;
     
-
-Isso garante que o log continue compreensível mesmo quando:
-
-- empresa mudar de nome;
+- severidade;
     
-- loja mudar de nome;
+- origem;
     
-- objeto for inativado;
+- app;
     
-- vínculo for removido;
+- model;
     
-- cadastro for eliminado por manutenção autorizada.
+- objeto;
     
-
----
-
-# 7. Usuário e snapshots históricos
-
-A auditoria manterá a ForeignKey do usuário quando possível.
-
-Também deverá guardar:
-
-- ID do usuário no momento;
+- representação do objeto;
     
-- username no momento;
+- dados anteriores;
     
-- nome no momento.
+- dados posteriores;
     
-
-Exemplo:
-
-```text
-user = referência atual
-user_id_snapshot = 25
-username_snapshot = "fernando"
-user_nome_snapshot = "Fernando Murashima"
-```
-
-A exibição histórica não deverá depender exclusivamente dos dados atuais do usuário.
-
----
-
-# 8. Sessão e dispositivo
-
-Quando o evento for originado por requisição autenticada, deverá registrar:
-
-- session ID;
+- campos alterados;
     
-- device ID;
+- metadata;
     
 - IP;
     
-- user-agent.
+- user-agent;
+    
+- método HTTP;
+    
+- endpoint;
+    
+- status HTTP;
+    
+- código de erro;
+    
+- mensagem de erro;
+    
+- data e hora.
     
 
-A auditoria nunca deverá persistir:
+O campo legado `changes` foi preservado temporariamente para compatibilidade.
 
-- token bruto;
-    
-- hash do token;
-    
-- Authorization header;
-    
-- cookie de autenticação.
-    
+Novos eventos não devem utilizá-lo como fonte principal.
 
 ---
 
-# 9. Classificação
+# Classificações
 
-## Categoria
+## Categorias
 
-Valores iniciais:
+Foram centralizadas as seguintes categorias:
 
 ```text
 SECURITY
@@ -644,9 +280,7 @@ SYSTEM
 INTEGRATION
 ```
 
-## Resultado
-
-Valores iniciais:
+## Resultados
 
 ```text
 SUCCESS
@@ -656,9 +290,7 @@ PENDING
 ROLLED_BACK
 ```
 
-## Severidade
-
-Valores iniciais:
+## Severidades
 
 ```text
 INFO
@@ -667,9 +299,7 @@ ERROR
 CRITICAL
 ```
 
-## Origem
-
-Valores iniciais:
+## Origens
 
 ```text
 API
@@ -682,193 +312,136 @@ INTEGRATION
 SYSTEM
 ```
 
-Esses valores deverão ser definidos em enums centralizados.
-
 ---
 
-# 10. Ações
+# Catálogo de ações
 
-A ação deverá representar o evento de forma clara e estável.
+As ações oficiais são centralizadas no catálogo `AuditAction`.
 
-Exemplos:
+Exemplos implementados:
 
 ```text
 USER_LOGIN
 USER_LOGIN_DENIED
+USER_LOGOUT
+USER_CREATED
+USER_UPDATED
+USER_ACTIVATED
+USER_INACTIVATED
+USER_DELETED
+
+SESSION_CREATED
+SESSION_REPLACED
 SESSION_CLOSED
 SESSION_TIMEOUT
 SESSION_LIMIT_REACHED
+SESSION_CLOSE_DENIED
+
+CONTRACT_CREATED
 CONTRACT_UPDATED
+CONTRACT_STATUS_CHANGED
+CONTRACT_LIMIT_CHANGED
+
 MASTER_TRANSFERRED
+MASTER_TRANSFER_DENIED
+
+PROFILE_CREATED
 PROFILE_UPDATED
+PROFILE_INACTIVATED
+PROFILE_DEFAULT_CHANGED
+
 PERMISSION_UPDATED
-CUSTOMER_CREATED
-PRODUCT_UPDATED
-PRICE_CHANGED
-PURCHASE_ORDER_APPROVED
-PURCHASE_ORDER_CANCELLED
-STOCK_MOVED
-PAYABLE_SETTLED
-SALE_COMPLETED
-NFCE_ISSUED
+PERMISSION_DENIED
+
+AUDIT_EXPORT
+AUDIT_ACCESS_DENIED
+
+OBJECT_CREATED
+OBJECT_UPDATED
+OBJECT_DELETED
+
+AUDIT_INTERNAL_FAILURE
+LEGACY_EVENT
 ```
 
-Não utilizar textos livres diferentes para o mesmo tipo de evento.
+Ações desconhecidas não são aceitas como ações oficiais.
+
+Eventos antigos desconhecidos são registrados como `LEGACY_EVENT`, mantendo a ação original em metadata sanitizada.
 
 ---
 
-# 11. Antes, depois e campos alterados
+# Contexto da requisição
 
-O formato atual de `changes` será substituído conceitualmente por campos separados.
+O `AuditContextMiddleware` passou a controlar o contexto de cada requisição.
 
-## Criação
+Ele registra e disponibiliza:
+
+- request ID;
+    
+- correlation ID;
+    
+- usuário;
+    
+- empresa;
+    
+- loja;
+    
+- sessão;
+    
+- dispositivo;
+    
+- IP;
+    
+- user-agent;
+    
+- método HTTP;
+    
+- endpoint.
+    
+
+Os identificadores são retornados nos headers da resposta quando aplicável:
 
 ```text
-before_data = null
-after_data = snapshot criado
-changed_fields = lista dos campos registrados
+X-Request-ID
+X-Correlation-ID
 ```
 
-## Alteração
-
-```text
-before_data = valores anteriores
-after_data = valores posteriores
-changed_fields = campos efetivamente alterados
-```
-
-## Exclusão
-
-```text
-before_data = snapshot anterior
-after_data = null
-changed_fields = lista dos campos relevantes
-```
-
-## Ação de negócio
-
-Exemplo:
-
-```json
-{
-  "before_data": {
-    "status": "AB"
-  },
-  "after_data": {
-    "status": "AP"
-  },
-  "changed_fields": [
-    "status"
-  ],
-  "metadata": {
-    "numero_pedido": 150,
-    "total": "2500.00"
-  }
-}
-```
+O contexto é limpo ao final de cada requisição para impedir vazamento entre operações.
 
 ---
 
-# 12. Metadata
+# AuditService
 
-O campo `metadata` poderá armazenar contexto adicional que não represente diretamente alteração de campos.
-
-Exemplos:
-
-- número do documento;
-    
-- total;
-    
-- quantidade de itens;
-    
-- forma de pagamento;
-    
-- origem da integração;
-    
-- nome do command;
-    
-- quantidade importada;
-    
-- código de rejeição;
-    
-- duração da operação.
-    
-
-Metadata também passará por sanitização.
-
----
-
-# 13. Imutabilidade
-
-Os registros de auditoria serão imutáveis.
-
-Regras:
-
-- endpoint apenas de leitura;
-    
-- sem `POST`;
-    
-- sem `PUT`;
-    
-- sem `PATCH`;
-    
-- sem `DELETE`;
-    
-- Django Admin somente leitura, caso seja habilitado;
-    
-- bloqueio de alteração comum pelo model ou manager;
-    
-- bloqueio de exclusão comum;
-    
-- retenção executada somente por serviço administrativo controlado;
-    
-- exclusão por retenção também será auditada.
-    
-
-A imutabilidade não deve impedir migrations oficiais.
-
----
-
-# 14. Serviço central
-
-Será criado um serviço central, por exemplo:
-
-```python
-AuditService
-```
+Foi criado um serviço central único chamado `AuditService`.
 
 Responsabilidades:
 
-- receber o evento;
+- validar ações e classificações;
     
-- obter contexto;
+- obter contexto da requisição;
     
-- definir empresa;
+- resolver empresa e loja;
     
-- definir loja;
+- obter sessão e dispositivo;
     
-- obter snapshots;
+- criar snapshots históricos;
     
 - sanitizar dados;
     
-- padronizar enums;
+- truncar conteúdos excessivos;
     
-- validar campos obrigatórios;
+- registrar eventos;
     
-- registrar sucesso;
+- registrar falhas no logger;
     
-- registrar falha;
+- suportar eventos sem request;
     
-- registrar acesso negado;
+- impedir gravação de tokens e segredos;
     
-- registrar evento técnico;
-    
-- usar `transaction.on_commit()` quando necessário;
-    
-- registrar erros da própria auditoria no logger.
+- distinguir auditoria normal e obrigatória.
     
 
-Métodos sugeridos:
+Métodos centrais incluem:
 
 ```python
 AuditService.record(...)
@@ -876,348 +449,383 @@ AuditService.success(...)
 AuditService.failure(...)
 AuditService.denied(...)
 AuditService.security(...)
+AuditService.on_commit(...)
+AuditService.required(...)
+AuditService.required_success(...)
 ```
 
-Os nomes podem ser adaptados, mantendo uma única fonte oficial.
+Chamadas antigas de auditoria passaram a delegar para esse serviço.
 
 ---
 
-# 15. Contexto da requisição
+# Auditoria normal e obrigatória
 
-Será criado ou evoluído um middleware, por exemplo:
+## Auditoria após commit
 
-```python
-AuditContextMiddleware
-```
-
-Responsabilidades:
-
-- gerar request ID;
-    
-- obter usuário;
-    
-- obter empresa;
-    
-- obter loja;
-    
-- obter sessão;
-    
-- obter device ID;
-    
-- obter IP;
-    
-- obter user-agent;
-    
-- obter endpoint;
-    
-- obter método HTTP;
-    
-- medir duração quando necessário;
-    
-- disponibilizar o contexto para serviços e signals.
-    
-
-O middleware atual baseado em thread-local poderá ser evoluído.
-
-A solução deve continuar compatível com o modelo de execução atual do Django.
-
----
-
-# 16. Transações
-
-Existirão comportamentos diferentes conforme o evento.
-
-## Evento confirmado
-
-Eventos que representam operação concluída deverão ser registrados após commit:
+Eventos comuns de sucesso confirmado utilizam:
 
 ```python
 transaction.on_commit()
 ```
 
-Exemplos:
-
-- pedido aprovado;
-    
-- título baixado;
-    
-- produto alterado;
-    
-- estoque movimentado;
-    
-- contrato atualizado.
-    
-
-## Evento negado
-
-Eventos de acesso negado devem ser registrados imediatamente.
+Isso evita registrar sucesso quando a operação principal sofre rollback.
 
 Exemplos:
 
-- login negado;
+- criação comum de usuário;
     
-- acesso a outra empresa;
+- alteração comum de perfil;
     
-- módulo não contratado;
+- login;
     
-- permissão insuficiente;
+- logout;
     
-- limite de sessão atingido.
-    
-
-## Evento de falha
-
-Falhas devem ser registradas quando houver contexto seguro para isso.
-
-Exemplos:
-
-- integração rejeitada;
-    
-- emissão fiscal falhou;
-    
-- importação falhou;
-    
-- validação de negócio recusou operação.
+- eventos operacionais não críticos.
     
 
-## Rollback
+## Auditoria obrigatória
 
-Quando uma operação relevante sofrer rollback e isso puder ser detectado, o evento deverá possuir:
+Operações críticas registram a auditoria dentro da mesma transação.
 
-```text
-result = ROLLED_BACK
-```
+Se a auditoria obrigatória falhar, a operação também deve falhar.
 
-Não registrar sucesso antes do commit.
+Foram classificadas como obrigatórias nesta fase:
 
----
-
-# 17. Signals
-
-Signals continuarão existindo apenas como mecanismo auxiliar.
-
-Serão usados para CRUD simples e models cadastrados explicitamente.
-
-Não será mantida uma lista genérica por app como única estratégia.
-
-Será criado um registro central, por exemplo:
-
-```python
-AuditRegistry.register(
-    Cliente,
-    excluded_fields=["updated_at"],
-    sensitive_fields=["documento"],
-)
-```
-
-O registro deverá permitir:
-
-- models incluídos;
+- criação e alteração de contrato;
     
-- campos ignorados;
+- alteração do limite de acessos;
     
-- campos sensíveis;
-    
-- representação do objeto;
-    
-- categoria;
-    
-- ações permitidas;
-    
-- empresa do objeto;
-    
-- loja do objeto.
-    
-
-Signals não serão usados para interpretar ações de negócio complexas.
-
----
-
-# 18. Eventos explícitos de negócio
-
-Ações relevantes devem registrar auditoria explicitamente.
-
-Exemplo:
-
-```python
-AuditService.success(
-    action="PURCHASE_ORDER_APPROVED",
-    category="PURCHASE",
-    instance=pedido,
-    before={"status": "AB"},
-    after={"status": "AP"},
-)
-```
-
-Ações que exigem evento explícito incluem:
-
-- aprovar;
-    
-- cancelar;
-    
-- reabrir;
-    
-- baixar;
-    
-- estornar;
-    
-- faturar;
-    
-- emitir;
-    
-- distribuir;
-    
-- transferir;
-    
-- finalizar;
-    
-- sincronizar;
-    
-- importar;
-    
-- encerrar sessão;
-    
-- alterar contrato;
-    
-- alterar permissões.
-    
-
----
-
-# 19. Sanitização
-
-A sanitização deverá ser recursiva.
-
-Campos proibidos:
-
-```text
-password
-senha
-token
-authorization
-cookie
-secret
-client_secret
-private_key
-certificate
-certificado
-refresh_token
-access_token
-session_token
-```
-
-Campos que podem exigir mascaramento:
-
-- CPF;
-    
-- CNPJ;
-    
-- telefone;
-    
-- email;
-    
-- dados bancários;
-    
-- documentos pessoais;
-    
-- XML fiscal;
-    
-- informações financeiras sensíveis.
-    
-
-A auditoria deverá registrar apenas o necessário para explicar a operação.
-
----
-
-# 20. Falha da própria auditoria
-
-A auditoria não deve ocultar permanentemente suas próprias falhas.
-
-Não será utilizada como solução definitiva:
-
-```python
-except Exception:
-    pass
-```
-
-Regra:
-
-1. eventos comuns não devem necessariamente derrubar a operação principal;
-    
-2. a falha deve ser registrada no logger;
-    
-3. deve existir métrica ou contador;
-    
-4. eventos críticos poderão usar modo estrito;
-    
-5. falhas deverão ser testadas;
-    
-6. a indisponibilidade da tabela durante migrations deverá ser tratada de forma controlada.
-    
-
-Poderá existir parâmetro:
-
-```text
-audit_required = true
-```
-
-para operações que não podem ser concluídas sem auditoria.
-
-Exemplos candidatos:
-
-- alteração de contrato;
+- alteração de módulos contratados;
     
 - transferência de master;
     
-- alteração de permissão;
+- alteração de permissão de módulo;
     
-- exclusão administrativa;
+- alteração do perfil padrão;
     
-- operação fiscal crítica.
+- exclusão administrativa de usuário.
     
-
-A adoção do modo estrito deverá ser gradual.
 
 ---
 
-# 21. Endpoint
+# Imutabilidade
 
-O endpoint continuará somente leitura.
+Os registros de auditoria são imutáveis.
 
-Rota prevista:
+Foram bloqueados:
+
+- criação direta pelo manager;
+    
+- alteração por `save()`;
+    
+- exclusão por `delete()`;
+    
+- `QuerySet.update()`;
+    
+- `QuerySet.delete()`;
+    
+- `bulk_create()`;
+    
+- `bulk_update()`;
+    
+- `update_or_create()`;
+    
+- `get_or_create()`.
+    
+
+A criação ocorre somente pelo caminho interno controlado do `AuditService`.
+
+A API não possui:
+
+- `POST`;
+    
+- `PUT`;
+    
+- `PATCH`;
+    
+- `DELETE`.
+    
+
+A retenção futura deverá utilizar um caminho administrativo explícito.
+
+---
+
+# Segurança e sanitização
+
+Foi criado sanitizador recursivo.
+
+Campos proibidos são removidos ou substituídos por:
+
+```text
+[REDACTED]
+```
+
+Exemplos:
+
+- senha;
+    
+- token;
+    
+- Authorization;
+    
+- cookie;
+    
+- secrets;
+    
+- chaves privadas;
+    
+- certificados;
+    
+- access token;
+    
+- refresh token;
+    
+- hashes de tokens.
+    
+
+Dados pessoais e documentos podem ser mascarados quando necessário.
+
+Conteúdos excessivamente grandes são truncados.
+
+A auditoria não armazena:
+
+- token bruto;
+    
+- hash do token;
+    
+- senha;
+    
+- Authorization header;
+    
+- cookie;
+    
+- certificado;
+    
+- chave privada.
+    
+
+---
+
+# Snapshots históricos
+
+A auditoria mantém ForeignKeys quando disponíveis, mas também grava snapshots.
+
+## Empresa
+
+- ID histórico;
+    
+- nome histórico.
+    
+
+## Loja
+
+- ID histórico;
+    
+- nome histórico.
+    
+
+## Usuário
+
+- ID histórico;
+    
+- username histórico;
+    
+- nome histórico.
+    
+
+Os nomes são obtidos por helpers centrais baseados nos campos reais dos models.
+
+Isso preserva o contexto mesmo quando cadastros forem:
+
+- renomeados;
+    
+- inativados;
+    
+- desvinculados;
+    
+- excluídos por manutenção autorizada.
+    
+
+---
+
+# Logs antigos
+
+Os registros antigos foram preservados.
+
+As migrations:
+
+```text
+0004_central_audit_phase1
+0005_backfill_historical_context
+```
+
+realizam:
+
+- criação dos novos campos;
+    
+- geração de event IDs;
+    
+- conversão do campo legado `changes`;
+    
+- separação de antes e depois;
+    
+- preenchimento de campos alterados;
+    
+- preenchimento de metadata;
+    
+- recuperação de empresa quando existe fonte confiável;
+    
+- recuperação de loja quando existe fonte confiável;
+    
+- recuperação de snapshots de usuário;
+    
+- preservação de dados já preenchidos.
+    
+
+Nenhum log existente foi apagado.
+
+Quando não existe fonte confiável, o contexto histórico permanece nulo em vez de ser inventado.
+
+---
+
+# Permissões de consulta
+
+## Superusuário da plataforma
+
+Pode:
+
+- consultar todas as empresas;
+    
+- filtrar por empresa e loja;
+    
+- visualizar eventos globais;
+    
+- exportar resultados.
+    
+
+## Usuário master
+
+Pode:
+
+- consultar todos os eventos da própria empresa;
+    
+- consultar todas as lojas da própria empresa;
+    
+- exportar resultados permitidos.
+    
+
+## Usuário com VIEW
+
+Pode:
+
+- acessar a tela;
+    
+- consultar eventos da própria empresa;
+    
+- consultar apenas lojas permitidas;
+    
+- visualizar detalhes.
+    
+
+Não pode exportar.
+
+## Usuário com EDIT
+
+Pode:
+
+- consultar;
+    
+- visualizar detalhes;
+    
+- exportar os registros permitidos.
+    
+
+`EDIT` não permite modificar ou excluir logs.
+
+## Usuário com NONE
+
+- não vê o menu;
+    
+- não acessa a rota;
+    
+- recebe bloqueio da API.
+    
+
+---
+
+# Isolamento multiempresa e por loja
+
+O queryset é sempre limitado pelo contexto do usuário.
+
+Usuários clientes não podem consultar logs de outra empresa.
+
+Tentativas de informar outra empresa retornam:
+
+```text
+403 Forbidden
+```
+
+Tentativas de consultar loja não permitida também retornam:
+
+```text
+403 Forbidden
+```
+
+Essas tentativas geram um único evento:
+
+```text
+AUDIT_ACCESS_DENIED
+```
+
+Foi implementada proteção contra recursão ao auditar acessos negados na própria API de Auditoria.
+
+---
+
+# API
+
+A rota central é:
 
 ```text
 /api/auditoria/logs/
 ```
 
-O queryset deverá respeitar:
+Endpoints implementados:
 
-- superusuário;
-    
-- empresa;
-    
-- loja;
-    
-- usuário;
-    
-- permissão efetiva;
-    
-- módulo contratado.
-    
+```text
+GET /api/auditoria/logs/
+GET /api/auditoria/logs/{id}/
+GET /api/auditoria/logs/indicadores/
+GET /api/auditoria/logs/exportar/
+```
 
-Não será utilizado `IsAdminUser` como regra principal.
+A API possui:
 
-A autorização deverá usar os mecanismos centrais do SISVAR.
+- paginação;
+    
+- ordenação;
+    
+- busca;
+    
+- filtros;
+    
+- serializer resumido;
+    
+- serializer detalhado;
+    
+- indicadores agregados;
+    
+- exportação CSV.
+    
 
 ---
 
-# 22. Filtros
+# Filtros
 
-Filtros previstos:
+Filtros disponíveis incluem:
 
-- período inicial;
+- data inicial;
     
-- período final;
+- data final;
     
 - empresa;
     
@@ -1251,541 +859,377 @@ Filtros previstos:
     
 - IP;
     
+- método HTTP;
+    
 - endpoint;
     
 - status HTTP.
     
 
-Filtros globais por empresa só estarão disponíveis ao superusuário da plataforma.
+Filtros enviados pelo frontend nunca substituem o isolamento aplicado pelo backend.
 
 ---
 
-# 23. Tela
+# Indicadores
 
-A tela seguirá o padrão visual oficial.
+O endpoint de indicadores retorna:
 
-## Barra do título
-
-```text
-Auditoria do Sistema
+```json
+{
+  "total": 0,
+  "success": 0,
+  "failure": 0,
+  "denied": 0,
+  "critical": 0
+}
 ```
 
-## Indicadores
+Os indicadores respeitam:
 
-- total no período;
+- empresa;
     
-- sucessos;
+- loja;
     
-- falhas;
+- permissão;
     
-- acessos negados;
-    
-- eventos críticos.
-    
-
-## Filtros
-
 - período;
     
-- empresa;
-    
-- loja;
-    
-- usuário;
-    
-- categoria;
-    
-- ação;
-    
-- resultado;
-    
-- severidade;
-    
-- módulo;
-    
-- entidade;
-    
-- objeto;
-    
-- IP;
-    
-- request ID.
-    
-
-## Resultado
-
-Colunas:
-
-- data e hora;
-    
-- usuário;
-    
-- empresa;
-    
-- loja;
-    
-- categoria;
-    
-- ação;
-    
-- resultado;
-    
-- entidade;
-    
-- objeto;
-    
-- IP;
-    
-- severidade.
-    
-
-## Detalhe
-
-Deverá apresentar:
-
-- contexto;
-    
-- antes;
-    
-- depois;
-    
-- campos alterados;
-    
-- metadata;
-    
-- requisição;
-    
-- sessão;
-    
-- dispositivo;
-    
-- erro;
-    
-- correlação.
-    
-
-A diferença deverá ser apresentada de maneira legível.
-
-Não exibir apenas JSON bruto como interface principal.
-
----
-
-# 24. Exportação
-
-Usuários autorizados poderão exportar apenas os registros que conseguem consultar.
-
-Formatos iniciais:
-
-- CSV;
-    
-- Excel, quando o padrão de exportação do sistema estiver disponível.
-    
-
-A exportação deverá:
-
-- respeitar os filtros;
-    
-- respeitar empresa;
-    
-- respeitar loja;
-    
-- respeitar permissões;
-    
-- mascarar dados sensíveis;
-    
-- limitar volume;
-    
-- registrar evento de exportação;
-    
-- impedir exportação global por usuário cliente.
+- demais filtros aplicados.
     
 
 ---
 
-# 25. Retenção
+# Exportação
 
-Decisão inicial:
+A exportação inicial utiliza CSV.
 
-- retenção padrão de cinco anos;
+Ela está disponível para:
+
+- superusuário;
     
-- eventos fiscais e financeiros podem exigir prazo maior;
+- master;
     
-- eventos críticos de segurança podem possuir regra própria;
-    
-- exclusão somente por command administrativo;
-    
-- exclusão auditada;
-    
-- possibilidade futura de arquivamento antes da exclusão.
+- usuário com `auditoria=EDIT`.
     
 
-A retenção será configurada por categoria.
+A exportação:
 
-Usuários clientes não poderão alterar a política.
-
-A implementação da retenção poderá ocorrer em fase posterior, sem impedir a criação da infraestrutura central.
-
----
-
-# 26. Índices
-
-Índices mínimos:
-
-```text
-empresa + created_at
-empresa + category + created_at
-empresa + user + created_at
-empresa + app_label + model + object_id
-loja + created_at
-request_id
-correlation_id
-event_id
-result + severity + created_at
-```
-
-Campos usados frequentemente em filtros terão colunas próprias.
-
-Não depender de consultas em JSON para filtros principais.
-
----
-
-# 27. Performance
-
-A implementação deverá evitar:
-
-- N+1;
+- respeita empresa;
     
-- carregamento global;
+- respeita loja;
     
-- ausência de paginação;
+- respeita filtros;
     
-- snapshots excessivamente grandes;
+- possui limite de registros;
     
-- JSON sem limite;
+- não exporta dados secretos;
     
-- auditoria duplicada;
-    
-- consultas sem índice;
-    
-- gravação desnecessária para leituras.
+- gera evento `AUDIT_EXPORT`.
     
 
-A auditoria de consultas simples não será automática por padrão.
+O evento registra:
 
-Serão auditadas consultas sensíveis ou exportações quando necessário.
-
----
-
-# 28. Migração da estrutura atual
-
-A migration deverá preservar os logs existentes.
-
-Estratégia:
-
-1. adicionar novos campos como opcionais;
-    
-2. migrar dados aproveitáveis;
-    
-3. mapear `changes` para a nova estrutura quando possível;
-    
-4. manter compatibilidade temporária;
-    
-5. atualizar serializers e views;
-    
-6. substituir gradualmente chamadas antigas;
-    
-7. remover campos legados apenas em etapa posterior.
-    
-
-Não apagar logs existentes.
-
----
-
-# 29. Integração gradual
-
-Ordem:
-
-1. infraestrutura central;
-    
-2. autenticação e sessões;
-    
-3. contratos;
-    
-4. módulos;
-    
-5. perfis;
-    
-6. permissões;
-    
-7. usuários;
-    
-8. cadastros;
-    
-9. produtos e preços;
-    
-10. compras;
-    
-11. estoque;
-    
-12. financeiro;
-    
-13. fiscal;
-    
-14. vendas e PDV;
-    
-15. produção;
-    
-16. distribuição;
-    
-17. relatórios;
-    
-18. rotinas automáticas.
-    
-
-Cada módulo deverá atualizar sua própria documentação ao ser integrado.
-
----
-
-# 30. Testes obrigatórios
-
-## Backend
-
-Testar:
-
-- criação de evento;
-    
-- sanitização;
-    
-- snapshots;
-    
-- empresa;
-    
-- loja;
-    
-- usuário;
-    
-- sessão;
-    
-- request ID;
-    
-- sucesso após commit;
-    
-- evento negado imediato;
-    
-- falha;
-    
-- rollback;
-    
-- isolamento entre empresas;
-    
-- isolamento por loja;
-    
-- permissões de consulta;
-    
-- imutabilidade;
-    
-- bloqueio de criação pela API;
-    
-- bloqueio de alteração;
-    
-- bloqueio de exclusão;
+- formato;
     
 - filtros;
     
-- paginação;
+- quantidade exportada;
     
-- exportação;
+- limite;
     
-- falha da própria auditoria;
+- indicação de limite atingido;
     
-- compatibilidade com logs antigos.
+- empresa;
+    
+- loja;
+    
+- status HTTP.
     
 
-## Frontend
+---
 
-Testar:
+# Frontend
 
-- carregamento;
+Foi criada a feature Angular standalone de Auditoria.
+
+Rota:
+
+```text
+/config/auditoria
+```
+
+A rota não depende da role antiga `Admin`.
+
+O acesso utiliza a permissão efetiva do módulo `auditoria`.
+
+A tela possui:
+
+- barra de título;
     
 - indicadores;
     
 - filtros;
     
+- barra de ações;
+    
+- tabela;
+    
 - paginação;
     
 - detalhe;
     
-- antes e depois;
+- comparação antes e depois;
     
-- restrição por empresa;
+- exportação condicionada à permissão;
     
-- restrição por loja;
+- estados de carregamento;
     
-- restrição por permissão;
-    
-- exportação;
+- estado vazio;
     
 - tratamento de erro.
     
 
----
-
-# 31. Consequências
-
-## Positivas
-
-- rastreabilidade;
-    
-- maior segurança;
-    
-- suporte mais eficiente;
-    
-- investigação de problemas;
-    
-- histórico confiável;
-    
-- isolamento multiempresa;
-    
-- base para compliance;
-    
-- padronização dos módulos;
-    
-- menor dependência de logs técnicos dispersos.
-    
-
-## Negativas
-
-- aumento de armazenamento;
-    
-- necessidade de índices;
-    
-- custo adicional de gravação;
-    
-- necessidade de sanitização;
-    
-- integração gradual;
-    
-- aumento do esforço de testes;
-    
-- necessidade de política de retenção.
-    
-
-Os custos são aceitos porque a auditoria é infraestrutura essencial para um ERP SaaS.
+A tela não possui ações de editar ou excluir.
 
 ---
 
-# Resultado esperado
+# Integrações concluídas nesta fase
 
-Quando concluída, a Auditoria Central deverá permitir responder:
+A Auditoria Central foi integrada a:
 
-- quem realizou a operação;
+- autenticação;
     
-- em qual empresa;
+- login negado;
     
-- em qual loja;
+- login realizado;
     
-- em qual sessão;
+- logout;
     
-- em qual dispositivo;
+- sessões;
     
-- em qual momento;
+- timeout;
     
-- sobre qual objeto;
+- substituição de sessão;
     
-- qual era o estado anterior;
+- limite simultâneo;
     
-- qual passou a ser o estado posterior;
+- encerramento administrativo;
     
-- qual foi o resultado;
+- contratos;
     
-- qual erro ocorreu;
+- limites de acesso;
     
-- qual requisição originou o evento;
+- módulos contratados;
     
-- quais outros eventos pertencem à mesma operação.
+- transferência de master;
+    
+- perfis;
+    
+- perfil padrão;
+    
+- permissões;
+    
+- usuários;
+    
+- ativação;
+    
+- inativação;
+    
+- exclusão administrativa;
+    
+- consulta da Auditoria;
+    
+- exportação da Auditoria.
     
 
 ---
 
-# Situação da implementação
+# Signals e registry
 
-## Existente
+Os signals deixaram de depender de uma whitelist fixa por app.
 
-- app `auditoria`;
+Foi criado um registry central para os models auditados.
+
+Signals são utilizados apenas como apoio para CRUD simples.
+
+Ações de negócio críticas devem chamar o `AuditService` explicitamente.
+
+Não se deve depender de signals para interpretar ações como:
+
+- aprovar;
     
-- model `AuditLog`;
+- cancelar;
     
-- middleware;
+- baixar;
     
-- thread-local;
+- faturar;
     
-- signals;
+- emitir;
     
-- serializer;
+- distribuir;
     
-- endpoint somente leitura;
+- transferir;
     
-- filtros;
-    
-- registros manuais de eventos de segurança.
+- finalizar.
     
 
-## A implementar
+---
 
-- empresa;
+# Testes executados
+
+## Backend
+
+```text
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py migrate
+python manage.py test auditoria -v 2 --noinput
+python manage.py test accounts -v 2 --noinput
+python manage.py test -v 2 --noinput
+```
+
+Resultados finais informados e revisados:
+
+```text
+auditoria: 21 testes aprovados
+accounts: 14 testes aprovados
+suíte geral: 35 testes aprovados
+```
+
+## Frontend
+
+```text
+tsc -p tsconfig.app.json --noEmit
+ng build --configuration development
+ng test --watch=false --browsers=ChromeHeadless
+```
+
+Resultado final:
+
+```text
+25 testes aprovados
+```
+
+---
+
+# Homologação funcional
+
+Foram validados manualmente:
+
+- acesso do master;
     
-- loja;
+- acesso com `auditoria=VIEW`;
     
-- snapshots;
+- ausência de exportação para VIEW;
     
-- classificação;
+- acesso com `auditoria=EDIT`;
     
-- contexto de sessão;
+- disponibilidade da exportação para EDIT;
     
-- request ID;
+- criação de eventos de usuário;
     
-- correlation ID;
+- exibição de empresa;
     
-- estrutura antes/depois;
+- exibição de usuário;
     
-- serviço central;
+- ação;
     
-- registry;
+- data;
     
-- imutabilidade;
+- antes e depois.
     
-- permissões efetivas;
+
+A homologação funcional foi aprovada em 2026-08-05.
+
+---
+
+# Limitações atuais
+
+A infraestrutura central está concluída.
+
+Ainda não foi realizada integração detalhada de todos os eventos específicos dos módulos:
+
+- compras;
     
-- isolamento;
+- estoque;
     
-- sanitização;
+- financeiro;
     
-- transações;
+- fiscal;
     
-- frontend completo;
+- vendas;
     
-- exportação;
+- PDV;
     
-- testes.
+- produção;
+    
+- distribuição;
+    
+- relatórios.
+    
+
+Esses módulos já podem utilizar o `AuditService`, mas seus eventos de negócio serão revisados e integrados durante a análise individual de cada módulo.
+
+Também permanecem para fases futuras:
+
+- política automatizada de retenção;
+    
+- arquivamento externo;
+    
+- exportação Excel;
+    
+- integração com SIEM;
+    
+- armazenamento especializado de grande volume.
+    
+
+---
+
+# Próxima etapa
+
+Com a infraestrutura central concluída, a Auditoria passa a ser utilizada como padrão obrigatório durante a revisão dos demais módulos.
+
+A próxima etapa geral do SISVAR deverá ser definida no planejamento do projeto.
+
+Candidatos já registrados:
+
+- Entrada de Nota Fiscal;
+    
+- revisão dos Cadastros;
+    
+- revisão de Produtos;
+    
+- Produção;
+    
+- Distribuição;
+    
+- PDV Offline.
     
 
 ---
 
 # Decisão final
 
-O SISVAR adotará uma Auditoria Central única e obrigatória para operações críticas.
+A primeira fase da Auditoria Central do SISVAR está implementada, testada, revisada e homologada.
 
-Não serão criados mecanismos paralelos por módulo.
+A infraestrutura oficial é o app `auditoria`.
 
-Signals serão auxiliares.
+Não devem ser criados mecanismos paralelos.
 
-Eventos de negócio serão explícitos.
+Todo novo módulo deverá utilizar:
 
-A consulta será somente leitura e isolada por empresa.
-
-Logs serão imutáveis e sanitizados.
-
-A integração será gradual.
+- `AuditService`;
+    
+- classificações centralizadas;
+    
+- sanitização;
+    
+- isolamento multiempresa;
+    
+- eventos explícitos de negócio;
+    
+- auditoria obrigatória quando a operação crítica exigir.
+    
 
 ---
 
