@@ -1,4 +1,3 @@
-
 ---
 
 type: reference  
@@ -6,7 +5,7 @@ status: active
 project: Sysvar  
 source: "C:/SysvarProjeto"  
 created: 2026-08-03  
-updated: 2026-08-04  
+updated: 2026-08-05  
 tags:
 
 - sysvar
@@ -21,12 +20,24 @@ tags:
     
 - licenciamento
     
+- auditoria
+    
 
 ---
 
 # Workflows
 
-## Autenticação, contrato e permissões
+## Objetivo
+
+Este documento descreve os principais fluxos transversais do SISVAR.
+
+Os fluxos de autenticação, sessões, licenciamento e Auditoria Central representam funcionalidades implementadas, testadas e homologadas.
+
+Os fluxos dos módulos de negócio ainda deverão ser detalhados durante a revisão específica de cada módulo.
+
+---
+
+# Autenticação, contrato e permissões
 
 1. O usuário informa username e senha no frontend.
     
@@ -44,17 +55,25 @@ tags:
         
     - situação da empresa;
         
-    - existência e situação do contrato;
+    - existência do contrato;
         
-    - vigência do contrato;
+    - situação do contrato;
         
-    - perfil de acesso, exceto para o usuário master.
+    - vigência;
         
-7. O backend verifica o limite de sessões simultâneas contratado.
+    - módulos contratados;
+        
+    - perfil de acesso, exceto para o master;
+        
+    - limite de sessões simultâneas.
+        
+7. Quando o login é aceito, o backend cria uma sessão.
     
-8. Quando o login é aceito, o backend cria uma sessão e um token vinculado a ela.
+8. Um token opaco é emitido e vinculado à sessão.
     
-9. O backend devolve:
+9. Somente o hash do token é persistido.
+    
+10. O backend devolve:
     
     - token;
         
@@ -72,176 +91,202 @@ tags:
         
     - contexto da sessão.
         
-10. O frontend armazena o token e o identificador da sessão no `sessionStorage`.
+11. O frontend armazena o token e o identificador da sessão no `sessionStorage`.
     
-11. O frontend monta menus, rotas e operações conforme as permissões efetivas.
+12. O frontend monta menus, rotas e operações conforme as permissões efetivas.
     
-12. O frontend inicia o heartbeat da sessão.
+13. O frontend inicia o heartbeat.
     
-13. Em cada requisição autenticada, o backend volta a validar:
+14. O evento de login é enviado à Auditoria Central.
     
-
-- token;
+15. Em cada requisição autenticada, o backend volta a validar:
     
-- sessão;
-    
-- usuário;
-    
-- empresa;
-    
-- contrato;
-    
-- módulo;
-    
-- nível de acesso;
-    
-- empresa e loja dos dados acessados.
-    
+    - token;
+        
+    - sessão;
+        
+    - usuário;
+        
+    - empresa;
+        
+    - contrato;
+        
+    - módulo;
+        
+    - nível de acesso;
+        
+    - empresa e loja dos dados acessados.
+        
 
 A ocultação de menus no frontend não substitui as validações do backend.
 
 ---
 
-## Login com controle de sessões simultâneas
+# Login com controle de sessões simultâneas
 
 1. O backend autentica as credenciais.
     
-2. Sessões expiradas da empresa são encerradas.
+2. Quando as credenciais forem inválidas:
     
-3. O contrato da empresa é bloqueado dentro de uma transação.
+    - nenhuma sessão é criada;
+        
+    - a resposta apropriada é retornada;
+        
+    - o evento `USER_LOGIN_DENIED` é registrado;
+        
+    - senha e token não são incluídos na Auditoria.
+        
+3. Sessões expiradas da empresa são encerradas.
     
-4. O backend procura uma sessão ativa do mesmo usuário no mesmo dispositivo.
+4. O contrato é bloqueado dentro da transação.
     
-5. Quando encontra uma sessão anterior no mesmo dispositivo:
+5. O backend procura uma sessão ativa do mesmo usuário no mesmo dispositivo.
+    
+6. Quando encontra uma sessão anterior:
     
     - a sessão anterior é encerrada;
         
-    - o motivo registrado é `REPLACED`;
+    - o motivo é `REPLACED`;
         
-    - o token anterior é revogado.
+    - o token anterior é revogado;
         
-6. O backend conta as sessões ativas e ainda válidas da empresa.
+    - o evento `SESSION_REPLACED` é registrado.
+        
+7. O backend conta as sessões ativas e válidas da empresa.
     
-7. O total é comparado com `limite_sessoes_simultaneas`.
+8. O total é comparado com `limite_sessoes_simultaneas`.
     
-8. Quando existe vaga:
+9. Quando existe vaga:
     
-    - um token opaco é gerado;
+    - uma sessão é criada;
         
-    - apenas o hash do token é persistido;
+    - um token é emitido;
         
-    - uma nova `SessaoUsuario` é criada;
+    - o login é concluído;
         
-    - um `SessionToken` é vinculado à sessão;
+    - o evento `USER_LOGIN` é registrado.
         
-    - o login é concluído.
-        
-9. Quando o limite já foi atingido:
+10. Quando o limite já foi atingido:
     
     - nenhuma nova sessão é criada;
         
     - o login é bloqueado;
         
-    - o backend retorna o código `CONCURRENT_SESSION_LIMIT_REACHED`;
+    - o código `CONCURRENT_SESSION_LIMIT_REACHED` é retornado;
         
-    - a resposta informa o limite e a quantidade de sessões ativas.
+    - o evento `SESSION_LIMIT_REACHED` é registrado;
+        
+    - a Auditoria recebe o limite e a quantidade de sessões ativas.
         
 
 Usuários cadastrados ou ativos sem sessão aberta não consomem acesso simultâneo.
 
 ---
 
-## Sessão no mesmo dispositivo
+# Sessão no mesmo dispositivo
 
 1. O navegador mantém um `device_id` persistente no `localStorage`.
     
 2. Novas abas do mesmo navegador compartilham esse identificador.
     
-3. Um novo login do mesmo usuário e dispositivo não deve ocupar uma vaga adicional.
+3. Um novo login do mesmo usuário e dispositivo não ocupa uma vaga adicional.
     
-4. A sessão anterior é encerrada e substituída pela nova sessão.
+4. A sessão anterior é encerrada.
     
-5. O token anterior deixa de ser válido.
+5. O token anterior é revogado.
     
-6. A nova sessão passa a representar aquele usuário naquele dispositivo.
+6. A nova sessão passa a representar o usuário naquele dispositivo.
+    
+7. O evento de substituição é registrado na Auditoria.
     
 
-O identificador do dispositivo não utiliza fingerprint invasivo. Ele é um UUID gerado pelo frontend.
+O identificador do dispositivo é um UUID gerado pelo frontend.
+
+Não utiliza fingerprint invasivo.
 
 ---
 
-## Mesmo usuário em dispositivos diferentes
+# Mesmo usuário em dispositivos diferentes
 
 1. Cada navegador ou instalação possui seu próprio `device_id`.
     
 2. O mesmo usuário pode autenticar em mais de um dispositivo.
     
-3. Cada dispositivo possui uma sessão independente.
+3. Cada dispositivo mantém uma sessão independente.
     
 4. Cada sessão ativa consome uma vaga do contrato.
     
-5. O limite é aplicado ao total de sessões da empresa, e não ao total de usuários distintos.
+5. O limite é aplicado ao total de sessões da empresa.
     
 
 Exemplo:
 
-- mesmo usuário no computador da loja: uma sessão;
-    
-- mesmo usuário em um notebook: outra sessão;
-    
-- mesmo usuário em outro navegador ou instalação: outra sessão.
-    
+```text
+Computador da loja = uma sessão
+Notebook = outra sessão
+Outro navegador = outra sessão
+```
 
 ---
 
-## Heartbeat e atividade da sessão
+# Heartbeat e atividade da sessão
 
 1. Após o login, o frontend inicia o `SessionService`.
     
-2. O frontend envia heartbeat a cada 120 segundos.
+2. O frontend envia heartbeat periodicamente.
     
-3. O heartbeat chama a ação `heartbeat` do recurso de sessões.
+3. O heartbeat chama a ação correspondente no backend.
     
-4. O backend identifica a sessão pelo token autenticado.
+4. O backend identifica a sessão pelo token.
     
-5. O backend atualiza `ultima_atividade_em`.
+5. O backend valida:
     
-6. A resposta informa:
+    - sessão ativa;
+        
+    - sessão não expirada;
+        
+    - usuário ativo;
+        
+    - contrato válido.
+        
+6. O backend atualiza `ultima_atividade_em` quando necessário.
+    
+7. A resposta informa:
     
     - `session_id`;
         
-    - situação ativa;
+    - situação;
         
     - última atividade;
         
     - `permissions_version`.
         
-7. O frontend mantém apenas um temporizador de heartbeat.
+8. O frontend mantém somente um temporizador.
     
-8. Se o heartbeat falhar porque a sessão não é mais válida:
+9. Quando o heartbeat identifica sessão inválida:
     
-    - o temporizador é interrompido;
+    - interrompe o temporizador;
         
-    - a autenticação local é limpa;
+    - limpa a autenticação local;
         
-    - o usuário é direcionado ao login.
+    - direciona o usuário ao login.
         
 
-Além do heartbeat, a autenticação pode atualizar a última atividade, com limitação para evitar gravação desnecessária em todas as requisições.
+A autenticação pode atualizar a última atividade com limitação para evitar gravação em todas as requisições.
 
 ---
 
-## Expiração por inatividade
+# Expiração por inatividade
 
 1. O timeout padrão é de 30 minutos.
     
-2. Uma sessão é considerada expirada quando `ultima_atividade_em` fica anterior ao limite calculado pelo timeout.
+2. A sessão expira quando `ultima_atividade_em` ultrapassa o limite de inatividade.
     
 3. A expiração pode ser identificada:
     
     - durante o login;
         
-    - durante a autenticação de uma requisição;
+    - durante uma requisição autenticada;
         
     - pelo comando de encerramento de sessões expiradas.
         
@@ -251,13 +296,15 @@ Além do heartbeat, a autenticação pode atualizar a última atividade, com lim
         
     - `encerrada_em` é preenchido;
         
-    - o motivo é definido como `TIMEOUT`;
+    - o motivo é `TIMEOUT`;
         
     - o token é revogado;
         
-    - a vaga simultânea é liberada.
+    - a vaga é liberada;
         
-5. Uma nova tentativa com o token expirado é rejeitada.
+    - o evento `SESSION_TIMEOUT` é registrado.
+        
+5. Nova tentativa com o token expirado é rejeitada.
     
 
 Comando disponível:
@@ -268,11 +315,11 @@ python manage.py encerrar_sessoes_expiradas
 
 ---
 
-## Validação do token de sessão
+# Validação do token
 
 1. O cliente envia o token no cabeçalho de autenticação.
     
-2. O backend calcula o hash do token recebido.
+2. O backend calcula o hash.
     
 3. O backend procura um `SessionToken` não revogado.
     
@@ -290,13 +337,15 @@ python manage.py encerrar_sessoes_expiradas
         
     - usuário ativo;
         
-    - contrato ativo, quando o usuário pertence a uma empresa.
+    - empresa válida;
+        
+    - contrato válido.
         
 6. Quando o usuário está inativo:
     
     - a sessão é encerrada;
         
-    - o motivo é `USER_INACTIVE`;
+    - o token é revogado;
         
     - o acesso é negado.
         
@@ -312,32 +361,36 @@ python manage.py encerrar_sessoes_expiradas
     
     - o usuário é associado à requisição;
         
-    - a sessão é disponibilizada como contexto da requisição;
+    - a sessão é disponibilizada no contexto;
         
-    - a última atividade pode ser atualizada.
+    - a atividade pode ser atualizada;
+        
+    - o contexto pode ser utilizado pela Auditoria.
         
 
-Tokens sem sessão válida não autenticam o usuário.
+Token sem sessão válida não autentica o usuário.
 
 ---
 
-## Logout
+# Logout
 
-1. O frontend solicita o logout com o token atual.
+1. O frontend solicita logout.
     
 2. O backend identifica a sessão vinculada ao token.
     
 3. A sessão é encerrada.
     
-4. O motivo é registrado como `LOGOUT`.
+4. O motivo é `LOGOUT`.
     
 5. `encerrada_em` é preenchido.
     
-6. O token da sessão é revogado.
+6. O token é revogado.
     
-7. A vaga simultânea é liberada imediatamente.
+7. A vaga é liberada imediatamente.
     
-8. O frontend remove:
+8. O evento `USER_LOGOUT` é registrado.
+    
+9. O frontend remove:
     
     - token;
         
@@ -345,70 +398,133 @@ Tokens sem sessão válida não autenticam o usuário.
         
     - usuário em memória;
         
-    - contexto de contrato;
+    - contexto do contrato;
         
     - permissões.
         
-9. O heartbeat é interrompido.
+10. O heartbeat é interrompido.
     
-10. O frontend publica um evento de logout no `localStorage`.
+11. O frontend publica um evento de logout no `localStorage`.
     
-11. Outras abas abertas recebem o evento e encerram o contexto local.
+12. Outras abas encerram o contexto local.
     
 
 ---
 
-## Inativação de usuário
+# Inativação de usuário
 
 1. Um usuário autorizado solicita a inativação.
     
-2. O backend verifica se o usuário não é o master da empresa.
+2. O backend verifica:
     
+    - empresa;
+        
+    - permissão;
+        
+    - se o usuário não é o master.
+        
 3. O usuário passa para inativo.
     
-4. Todas as sessões ativas daquele usuário são localizadas.
+4. Todas as sessões ativas são encerradas.
     
-5. Cada sessão é encerrada com o motivo `USER_INACTIVE`.
+5. Os tokens são revogados.
     
-6. Os tokens correspondentes são revogados.
+6. As vagas são liberadas.
     
-7. As vagas simultâneas são liberadas.
+7. A versão das permissões é atualizada.
     
-8. A versão das permissões da empresa é atualizada.
+8. O evento `USER_INACTIVATED` é registrado.
     
-9. O usuário inativo não consegue iniciar nova sessão.
+9. O usuário não consegue iniciar nova sessão.
     
 
-A ativação de um usuário não consome licença. O consumo ocorre somente quando ele realiza login e cria uma sessão.
+Ativar um usuário não consome licença.
+
+O consumo ocorre somente após login válido.
 
 ---
 
-## Consulta de sessões
+# Ativação de usuário
 
-O recurso de sessões permite consultar sessões conforme o nível do usuário.
-
-### Superusuário da plataforma
-
-- Pode consultar sessões de todas as empresas.
+1. Um usuário autorizado solicita a ativação.
     
-- Pode filtrar por empresa.
+2. O backend valida empresa e permissão.
     
-
-### Usuário master da empresa
-
-- Pode consultar as sessões da própria empresa.
+3. O usuário passa para ativo.
     
-- Não pode consultar sessões de outra empresa.
+4. A versão das permissões é atualizada.
+    
+5. O evento `USER_ACTIVATED` é registrado.
+    
+6. Nenhuma licença é consumida nesse momento.
     
 
-### Usuário comum
+---
 
-- Consulta somente suas próprias sessões.
+# Exclusão administrativa de usuário
+
+1. O executor solicita a exclusão.
+    
+2. O backend valida:
+    
+    - autorização;
+        
+    - empresa;
+        
+    - se o usuário não é master;
+        
+    - dependências aplicáveis.
+        
+3. A operação ocorre dentro de uma transação.
+    
+4. A Auditoria obrigatória registra:
+    
+    - executor;
+        
+    - usuário excluído;
+        
+    - empresa;
+        
+    - estado anterior.
+        
+5. Se a Auditoria obrigatória falhar:
+    
+    - a exclusão sofre rollback.
+        
+6. Se tudo for confirmado:
+    
+    - o usuário é excluído;
+        
+    - o evento permanece registrado.
+        
+
+---
+
+# Consulta de sessões
+
+## Superusuário
+
+Pode:
+
+- consultar todas as empresas;
+    
+- filtrar por empresa.
     
 
-A consulta pode ser filtrada por situação ativa ou inativa.
+## Master
 
-Dados de sessão incluem, conforme o serializer e a permissão aplicada:
+Pode:
+
+- consultar sessões da própria empresa;
+    
+- consultar todas as lojas da empresa.
+    
+
+## Usuário comum
+
+Pode consultar somente as próprias sessões, conforme regra atual.
+
+Dados podem incluir:
 
 - usuário;
     
@@ -435,27 +551,27 @@ Dados de sessão incluem, conforme o serializer e a permissão aplicada:
 
 ---
 
-## Encerramento administrativo de sessão
+# Encerramento administrativo de sessão
 
-1. O usuário autorizado seleciona uma sessão.
+1. O usuário autorizado seleciona a sessão.
     
-2. O backend carrega a sessão dentro do conjunto permitido para o usuário.
+2. O backend carrega a sessão dentro do escopo permitido.
     
 3. O encerramento é permitido para:
     
-    - superusuário da plataforma;
+    - superusuário;
         
-    - master da empresa da sessão;
+    - master da empresa;
         
-    - próprio usuário da sessão.
+    - próprio usuário, quando aplicável.
         
-4. Tentativas de encerrar sessão sem autorização são negadas.
+4. Tentativa sem autorização é negada.
     
-5. Quando um master ou superusuário encerra sessão de outra pessoa:
+5. Quando master ou superusuário encerra:
     
     - o motivo é `ADMIN_TERMINATED`.
         
-6. Quando o próprio usuário encerra a sessão:
+6. Quando o próprio usuário encerra:
     
     - o motivo é `SELF_TERMINATED`.
         
@@ -463,85 +579,843 @@ Dados de sessão incluem, conforme o serializer e a permissão aplicada:
     
 8. O token é revogado.
     
-9. A vaga simultânea é liberada.
+9. A vaga é liberada.
+    
+10. O evento `SESSION_CLOSED` é registrado.
+    
+11. Tentativas negadas podem gerar `SESSION_CLOSE_DENIED`.
     
 
 ---
 
-## Redução do limite de acessos simultâneos
+# Redução do limite simultâneo
 
-1. O superusuário altera `limite_sessoes_simultaneas` no contrato.
+1. O superusuário altera o limite no contrato.
     
-2. O sistema compara o novo limite com as sessões ativas.
+2. A alteração ocorre dentro de uma transação.
     
-3. Quando o novo limite fica abaixo da quantidade ativa:
+3. A Auditoria obrigatória registra antes e depois.
     
-    - as sessões existentes permanecem abertas;
-        
-    - o contrato fica com limite excedido;
+4. O sistema compara o novo limite com as sessões ativas.
+    
+5. Quando o novo limite fica abaixo do total ativo:
+    
+    - as sessões permanecem abertas;
         
     - nenhuma sessão é encerrada automaticamente;
         
     - novos logins são bloqueados.
         
-4. O excesso diminui por:
+6. O excesso diminui por:
     
     - logout;
         
     - timeout;
         
-    - inativação do usuário;
+    - inativação;
         
     - encerramento administrativo.
         
-5. Novos logins voltam a ser permitidos quando o total de sessões ativas fica abaixo do limite contratado.
+7. Novos logins voltam a ser permitidos quando o total fica abaixo do limite.
     
 
 ---
 
-## Mudança de permissões durante a sessão
+# Mudança de permissões durante a sessão
 
-1. Alterações em contrato, módulos, perfis ou permissões incrementam `permissions_version`.
+1. Contrato, módulos, perfis ou permissões são alterados.
     
-2. O heartbeat retorna a versão atual.
+2. A operação atualiza `permissions_version`.
     
-3. O frontend pode comparar a versão recebida com a versão armazenada.
+3. Alterações críticas usam Auditoria obrigatória.
     
-4. Quando identifica mudança:
+4. O heartbeat retorna a versão atual.
     
-    - recarrega o contexto do usuário;
+5. O frontend compara com a versão armazenada.
+    
+6. Quando identifica mudança:
+    
+    - recarrega o contexto;
         
     - atualiza permissões efetivas;
         
     - remonta menus;
         
-    - reavalia a rota atual.
+    - reavalia a rota.
         
-5. Mesmo antes da atualização visual, o backend continua sendo a autoridade para permitir ou negar operações.
+7. Antes mesmo da atualização visual, o backend já aplica as novas permissões.
     
 
 ---
 
-## Venda PDV
+# Transferência de master
+
+1. O executor solicita a transferência.
+    
+2. O backend valida:
+    
+    - se o executor é superusuário ou master atual;
+        
+    - se o novo master pertence à empresa;
+        
+    - se o novo master está ativo;
+        
+    - se o novo master não é superusuário.
+        
+3. O contrato é bloqueado dentro da transação.
+    
+4. O master anterior é identificado.
+    
+5. O novo master é definido.
+    
+6. A versão das permissões é incrementada.
+    
+7. A Auditoria obrigatória registra:
+    
+    - executor;
+        
+    - empresa;
+        
+    - master anterior;
+        
+    - novo master.
+        
+8. Se a Auditoria falhar:
+    
+    - a transferência sofre rollback.
+        
+9. Se tudo for confirmado:
+    
+    - o novo master passa a administrar a empresa.
+        
+
+Tentativa sem autorização gera acesso negado auditado.
+
+---
+
+# Alteração de contrato
+
+1. O superusuário cria ou altera o contrato.
+    
+2. O backend captura os valores anteriores.
+    
+3. A operação ocorre dentro de uma transação.
+    
+4. São alterados, conforme o caso:
+    
+    - status;
+        
+    - vigência;
+        
+    - limite de sessões;
+        
+    - plano completo;
+        
+    - módulos;
+        
+    - master.
+        
+5. A versão das permissões é incrementada.
+    
+6. Flags legadas compatíveis são sincronizadas.
+    
+7. A Auditoria obrigatória registra antes e depois.
+    
+8. Se a Auditoria falhar:
+    
+    - a alteração sofre rollback.
+        
+9. Quando confirmado:
+    
+    - o novo contrato passa a valer nos acessos posteriores.
+        
+
+---
+
+# Alteração de módulos contratados
+
+1. O superusuário altera a disponibilidade de um módulo.
+    
+2. O backend valida empresa e módulo.
+    
+3. A operação ocorre dentro de transação.
+    
+4. A versão das permissões é incrementada.
+    
+5. O frontend passará a refletir a nova disponibilidade.
+    
+6. O backend bloqueia ou libera o módulo conforme o novo contrato.
+    
+7. A Auditoria obrigatória registra:
+    
+    - módulo;
+        
+    - situação anterior;
+        
+    - situação posterior;
+        
+    - empresa;
+        
+    - executor.
+        
+8. Falha da Auditoria provoca rollback.
+    
+
+---
+
+# Alteração de perfil e permissões
+
+1. O administrador autorizado altera um perfil ou override.
+    
+2. O backend valida:
+    
+    - empresa;
+        
+    - módulo contratado;
+        
+    - nível de acesso;
+        
+    - escopo do executor.
+        
+3. A operação ocorre dentro de transação quando necessário.
+    
+4. As permissões são atualizadas.
+    
+5. `permissions_version` é incrementada.
+    
+6. A Auditoria obrigatória registra:
+    
+    - perfil ou usuário afetado;
+        
+    - módulo;
+        
+    - nível anterior;
+        
+    - nível posterior;
+        
+    - executor.
+        
+7. Se a Auditoria obrigatória falhar:
+    
+    - a mudança sofre rollback.
+        
+8. Sessões abertas passam a receber a nova versão pelo heartbeat.
+    
+
+---
+
+# Perfil padrão
+
+1. O administrador autorizado escolhe o perfil padrão.
+    
+2. O backend bloqueia os perfis relevantes da empresa.
+    
+3. Perfis anteriormente padrão deixam de ser padrão.
+    
+4. O perfil escolhido passa a ser padrão.
+    
+5. A versão das permissões é incrementada.
+    
+6. A Auditoria obrigatória registra a alteração.
+    
+7. Falha da Auditoria provoca rollback.
+    
+8. A regra de apenas um perfil padrão ativo permanece garantida pela aplicação.
+    
+
+---
+
+# Contexto da Auditoria
+
+1. A requisição entra no backend.
+    
+2. O `AuditContextMiddleware` gera ou valida:
+    
+    - `request_id`;
+        
+    - `correlation_id`.
+        
+3. O middleware obtém:
+    
+    - usuário;
+        
+    - empresa;
+        
+    - loja;
+        
+    - sessão;
+        
+    - dispositivo;
+        
+    - IP;
+        
+    - user-agent;
+        
+    - método;
+        
+    - endpoint.
+        
+4. O contexto é disponibilizado ao `AuditService`.
+    
+5. O request ID é devolvido no header:
+    
+
+```text
+X-Request-ID
+```
+
+6. Quando aplicável, o correlation ID é devolvido em:
+    
+
+```text
+X-Correlation-ID
+```
+
+7. Ao final da requisição, o contexto é limpo.
+    
+
+Isso impede vazamento de contexto entre requisições.
+
+---
+
+# Registro de evento comum
+
+1. Uma operação de baixa ou média criticidade é concluída.
+    
+2. O serviço de negócio chama:
+    
+
+```python
+AuditService.on_commit(...)
+```
+
+ou método equivalente.
+
+3. O callback aguarda a confirmação da transação.
+    
+4. Quando o commit é realizado:
+    
+    - o contexto é resolvido;
+        
+    - os dados são sanitizados;
+        
+    - snapshots são criados;
+        
+    - o evento é persistido.
+        
+5. Quando a transação sofre rollback:
+    
+    - o evento de sucesso não é criado.
+        
+6. Quando a Auditoria falha depois do commit:
+    
+    - a falha é registrada no logger;
+        
+    - a operação já confirmada não é desfeita.
+        
+
+---
+
+# Registro de evento obrigatório
+
+1. Uma operação crítica é iniciada dentro de `transaction.atomic()`.
+    
+2. A alteração principal é executada.
+    
+3. Antes do commit final, o sistema chama:
+    
+
+```python
+AuditService.required_success(...)
+```
+
+4. O evento é validado.
+    
+5. Os dados são sanitizados.
+    
+6. O registro é criado dentro da mesma transação.
+    
+7. Quando a Auditoria funciona:
+    
+    - a transação é confirmada;
+        
+    - operação e log permanecem.
+        
+8. Quando a Auditoria falha:
+    
+    - a exceção é propagada;
+        
+    - a operação sofre rollback;
+        
+    - o usuário recebe mensagem segura.
+        
+
+---
+
+# Registro de acesso negado
+
+1. O usuário tenta executar operação não autorizada.
+    
+2. O backend identifica o motivo.
+    
+3. O `AuditService.denied()` registra:
+    
+    - usuário;
+        
+    - empresa;
+        
+    - loja;
+        
+    - ação;
+        
+    - endpoint;
+        
+    - status 403;
+        
+    - contexto seguro.
+        
+4. A API retorna `403 Forbidden`.
+    
+5. Dados do recurso não autorizado não são revelados.
+    
+
+Na própria API de Auditoria existe proteção contra recursão.
+
+A tentativa deve gerar somente um evento.
+
+---
+
+# Sanitização da Auditoria
+
+1. O `AuditService` recebe:
+    
+    - before;
+        
+    - after;
+        
+    - metadata;
+        
+    - erro;
+        
+    - contexto.
+        
+2. O sanitizador percorre recursivamente:
+    
+    - objetos;
+        
+    - dicionários;
+        
+    - listas;
+        
+    - strings.
+        
+3. Campos proibidos são removidos ou substituídos por:
+    
+
+```text
+[REDACTED]
+```
+
+4. Exemplos bloqueados:
+    
+    - senha;
+        
+    - token;
+        
+    - cookie;
+        
+    - Authorization;
+        
+    - secret;
+        
+    - certificado;
+        
+    - chave privada;
+        
+    - hash de token.
+        
+5. Conteúdo excessivo é truncado.
+    
+6. O evento sanitizado é persistido.
+    
+
+---
+
+# Criação e alteração auditada de objeto simples
+
+1. O objeto pertence a um model registrado no `AuditRegistry`.
+    
+2. O signal identifica criação, alteração ou exclusão.
+    
+3. O registry informa:
+    
+    - categoria;
+        
+    - campos ignorados;
+        
+    - campos sensíveis;
+        
+    - empresa;
+        
+    - loja;
+        
+    - representação.
+        
+4. O sistema calcula:
+    
+    - estado anterior;
+        
+    - estado posterior;
+        
+    - campos alterados.
+        
+5. O evento é enviado ao `AuditService`.
+    
+6. O serviço sanitiza e persiste após commit, quando aplicável.
+    
+
+Signals são usados apenas para CRUD simples.
+
+---
+
+# Ação explícita de negócio
+
+1. O serviço responsável executa uma ação com significado próprio.
+    
+2. O código não depende apenas de signals.
+    
+3. O serviço chama o `AuditService` com uma ação específica.
+    
+
+Exemplo:
+
+```python
+AuditService.success(
+    action="PURCHASE_ORDER_APPROVED",
+    category="PURCHASE",
+    instance=pedido,
+    before={"status": "AB"},
+    after={"status": "AP"},
+)
+```
+
+4. O evento representa a ação de negócio, não apenas uma alteração genérica de tabela.
+    
+5. O mesmo padrão deverá ser aplicado a:
+    
+    - aprovar;
+        
+    - cancelar;
+        
+    - reabrir;
+        
+    - baixar;
+        
+    - estornar;
+        
+    - faturar;
+        
+    - emitir;
+        
+    - distribuir;
+        
+    - finalizar;
+        
+    - sincronizar.
+        
+
+---
+
+# Consulta da Auditoria
+
+1. O usuário acessa:
+    
+
+```text
+/config/auditoria
+```
+
+2. O frontend verifica a permissão efetiva do módulo `auditoria`.
+    
+3. O backend continua sendo a autoridade final.
+    
+4. Regras:
+    
+    - superusuário: todas as empresas;
+        
+    - master: própria empresa e todas as lojas;
+        
+    - VIEW: própria empresa e lojas permitidas;
+        
+    - EDIT: mesma consulta e possibilidade de exportação;
+        
+    - NONE: bloqueado.
+        
+5. O frontend envia os filtros.
+    
+6. O backend aplica primeiro o isolamento obrigatório.
+    
+7. Depois aplica os filtros permitidos.
+    
+8. A API retorna dados paginados.
+    
+9. A tela apresenta:
+    
+    - indicadores;
+        
+    - tabela;
+        
+    - total;
+        
+    - intervalo;
+        
+    - detalhe;
+        
+    - antes e depois.
+        
+
+---
+
+# Tentativa de consultar outra empresa
+
+1. Um usuário cliente envia filtro de outra empresa.
+    
+2. O backend identifica a divergência.
+    
+3. O evento `AUDIT_ACCESS_DENIED` é registrado.
+    
+4. A API retorna `403`.
+    
+5. Nenhum dado da empresa solicitada é retornado.
+    
+6. A proteção de recursão impede eventos duplicados.
+    
+
+---
+
+# Tentativa de consultar loja não permitida
+
+1. O usuário informa uma loja fora do seu escopo.
+    
+2. O backend verifica:
+    
+    - empresa;
+        
+    - vínculo da loja;
+        
+    - acesso do usuário.
+        
+3. O evento `AUDIT_ACCESS_DENIED` é registrado.
+    
+4. A API retorna `403`.
+    
+5. Nenhum dado da loja é retornado.
+    
+
+O master pode consultar todas as lojas da própria empresa.
+
+---
+
+# Indicadores da Auditoria
+
+1. O frontend envia o período e filtros.
+    
+2. O backend aplica o mesmo isolamento da listagem.
+    
+3. Uma agregação calcula:
+    
+    - total;
+        
+    - sucessos;
+        
+    - falhas;
+        
+    - negados;
+        
+    - críticos.
+        
+4. A resposta é devolvida ao frontend.
+    
+5. Os indicadores não são recalculados localmente pela tabela.
+    
+
+Endpoint:
+
+```text
+GET /api/auditoria/logs/indicadores/
+```
+
+---
+
+# Exportação da Auditoria
+
+1. O usuário solicita exportação.
+    
+2. O backend valida:
+    
+    - superusuário;
+        
+    - master;
+        
+    - ou `auditoria=EDIT`.
+        
+3. Usuário com `VIEW` não pode exportar.
+    
+4. O backend aplica:
+    
+    - empresa;
+        
+    - loja;
+        
+    - período;
+        
+    - filtros;
+        
+    - limite de registros.
+        
+5. O arquivo CSV é gerado.
+    
+6. A resposta é devolvida ao frontend.
+    
+7. O evento `AUDIT_EXPORT` é registrado.
+    
+8. A metadata inclui:
+    
+    - formato;
+        
+    - filtros;
+        
+    - quantidade exportada;
+        
+    - limite;
+        
+    - limite atingido;
+        
+    - empresa;
+        
+    - loja;
+        
+    - status HTTP.
+        
+
+Endpoint:
+
+```text
+GET /api/auditoria/logs/exportar/
+```
+
+---
+
+# Detalhe de evento
+
+1. O usuário seleciona um evento.
+    
+2. O frontend solicita o detalhe.
+    
+3. O backend aplica o mesmo isolamento da listagem.
+    
+4. A resposta pode conter:
+    
+    - evento;
+        
+    - contexto;
+        
+    - usuário;
+        
+    - empresa;
+        
+    - loja;
+        
+    - sessão;
+        
+    - dispositivo;
+        
+    - objeto;
+        
+    - before;
+        
+    - after;
+        
+    - campos alterados;
+        
+    - metadata;
+        
+    - requisição;
+        
+    - erro.
+        
+5. O frontend apresenta diferenças em formato legível.
+    
+6. Não existem ações de editar ou excluir.
+    
+
+---
+
+# Migração dos logs antigos
+
+1. A migration adiciona os novos campos.
+    
+2. Cada log recebe `event_id`.
+    
+3. O campo legado `changes` é analisado.
+    
+4. Quando possível:
+    
+    - criação vira `after_data`;
+        
+    - alteração é separada em before e after;
+        
+    - exclusão vira `before_data`;
+        
+    - evento livre vira metadata.
+        
+5. Uma migration posterior tenta recuperar:
+    
+    - empresa;
+        
+    - loja;
+        
+    - snapshots do usuário.
+        
+6. A recuperação utiliza apenas fontes confiáveis:
+    
+    - usuário;
+        
+    - objeto;
+        
+    - vínculo seguro.
+        
+7. Quando não existe fonte confiável:
+    
+    - o campo permanece nulo.
+        
+8. Nenhum log antigo é apagado.
+    
+
+---
+
+# Venda PDV
 
 1. Caixa ou vendedor inicia a venda.
     
-2. Itens, pagamentos, cashback e NFC-e são processados.
+2. Itens, pagamentos, descontos e NFC-e são processados.
     
 3. O estoque é movimentado.
     
 4. Financeiro e contabilidade recebem os reflexos previstos.
     
-5. Dashboards consolidam os indicadores.
+5. A Auditoria deve registrar os eventos críticos.
+    
+6. Dashboards consolidam os indicadores.
     
 
-Este fluxo é transversal e deve ser revisto em conjunto com os módulos de vendas, fiscal, estoque e financeiro.
+Esse fluxo ainda deverá ser confrontado com o código real durante a revisão do módulo de Vendas e PDV.
 
 ---
 
-## Devolução de venda
+# Devolução de venda
 
-1. Operador inicia a devolução a partir de uma venda finalizada.
+1. O operador inicia a devolução a partir de uma venda finalizada.
     
 2. O sistema valida quantidades e valores.
     
@@ -549,31 +1423,37 @@ Este fluxo é transversal e deve ser revisto em conjunto com os módulos de vend
     
 4. O financeiro é ajustado ou estornado.
     
-5. CMV e auditoria registram o evento.
+5. CMV é ajustado.
+    
+6. A Auditoria registra a operação.
     
 
-Este fluxo permanece como visão funcional de alto nível e deverá ser detalhado durante a revisão do módulo de vendas.
+Esse fluxo ainda deverá ser detalhado na revisão do módulo de Vendas.
 
 ---
 
-## Distribuição entre lojas
+# Distribuição entre lojas
 
 1. A distribuição é criada a partir do estoque da origem.
     
 2. Perfis e destinos definem a alocação.
     
-3. A confirmação reserva estoque e gera pedidos.
+3. A confirmação reserva estoque.
     
-4. A NF-e de transferência pode ser emitida.
+4. Pedidos por loja podem ser gerados.
     
-5. Estoque e financeiro são atualizados na origem e no destino.
+5. A NF-e de transferência pode ser emitida.
+    
+6. Estoque de origem e destino é atualizado conforme o processo.
+    
+7. A Auditoria registra confirmação, cancelamento e transferências.
     
 
-Este fluxo permanece como visão funcional de alto nível e deverá ser validado durante a revisão do módulo de distribuição.
+Esse fluxo ainda deverá ser validado contra o código durante a revisão do módulo de Distribuição.
 
 ---
 
-## Pagamento e recebimento
+# Pagamento e recebimento
 
 1. O título nasce de compra, venda, transferência ou lançamento manual.
     
@@ -581,14 +1461,16 @@ Este fluxo permanece como visão funcional de alto nível e deverá ser validado
     
 3. O lançamento contábil é criado ou estornado conforme a natureza.
     
-4. O dashboard utiliza os dados consolidados.
+4. A Auditoria registra baixa, cancelamento, reabertura e estorno.
+    
+5. O dashboard utiliza os dados consolidados.
     
 
-Este fluxo deverá ser confirmado em detalhes durante a revisão dos módulos financeiro e contábil.
+Esse fluxo será detalhado na revisão dos módulos Financeiro e Contábil.
 
 ---
 
-## Produção e estoque
+# Produção e estoque
 
 1. A ficha técnica define a composição.
     
@@ -596,26 +1478,167 @@ Este fluxo deverá ser confirmado em detalhes durante a revisão dos módulos fi
     
 3. A finalização movimenta o estoque.
     
-4. A produção pode alimentar distribuição, venda e financeiro.
+4. O produto acabado fica disponível.
+    
+5. A produção pode alimentar distribuição e venda.
+    
+6. A Auditoria registra início, consumo, retorno, finalização e cancelamento.
     
 
-Este fluxo permanece como visão funcional de alto nível e deverá ser validado durante a revisão dos módulos de produção e estoque.
+Esse fluxo ainda deverá ser validado na revisão de Produção.
 
 ---
 
-## Última atualização
+# Entrada de Nota Fiscal
 
-2026-08-04
+Fluxo conceitual ainda não implementado integralmente:
 
-## Limitações do contexto
+1. O usuário inicia uma entrada:
+    
+    - a partir de pedido;
+        
+    - ou de forma avulsa.
+        
+2. O sistema identifica:
+    
+    - empresa;
+        
+    - loja;
+        
+    - fornecedor;
+        
+    - documento;
+        
+    - itens.
+        
+3. Os itens são conciliados com produtos e SKUs.
+    
+4. Quantidades, valores e impostos são validados.
+    
+5. O sistema impede duplicidade do documento.
+    
+6. A confirmação deve ocorrer de forma transacional.
+    
+7. A operação pode gerar:
+    
+    - recebimento de compra;
+        
+    - movimentação de estoque;
+        
+    - documento fiscal;
+        
+    - contas a pagar;
+        
+    - lançamentos contábeis;
+        
+    - auditoria.
+        
+8. Em falha:
+    
+    - nenhuma integração parcial deve permanecer.
+        
+9. Cancelamento ou estorno devem possuir fluxo próprio e auditado.
+    
 
-Os fluxos de autenticação, sessões simultâneas, heartbeat, timeout, logout e encerramento de sessão refletem a implementação commitada em 2026-08-04.
+Esse será um dos próximos fluxos a ser analisado no código real.
 
-Os fluxos de PDV, devolução, distribuição, financeiro e produção permanecem como mapas funcionais resumidos do Vault. Eles ainda deverão ser confrontados com o código real durante a revisão individual de cada módulo.
+---
 
-Operações transversais devem ser testadas por integração. Evitar alterar apenas um app sem verificar efeitos em autenticação, permissões, auditoria, fiscal, financeiro, estoque e dashboards.
+# Última atualização
 
-## Notas relacionadas
+```text
+2026-08-05
+```
+
+---
+
+# Situação dos fluxos
+
+## Implementados, testados e homologados
+
+- autenticação;
+    
+- contrato e permissões;
+    
+- login;
+    
+- sessões simultâneas;
+    
+- substituição no mesmo dispositivo;
+    
+- heartbeat;
+    
+- timeout;
+    
+- token;
+    
+- logout;
+    
+- ativação e inativação de usuário;
+    
+- encerramento administrativo;
+    
+- redução do limite;
+    
+- mudança de permissões;
+    
+- transferência de master;
+    
+- alteração de contrato;
+    
+- alteração de módulos;
+    
+- perfil padrão;
+    
+- contexto da Auditoria;
+    
+- auditoria comum;
+    
+- auditoria obrigatória;
+    
+- acesso negado;
+    
+- sanitização;
+    
+- consulta da Auditoria;
+    
+- indicadores;
+    
+- exportação;
+    
+- detalhe;
+    
+- migração de logs antigos.
+    
+
+## Ainda pendentes de revisão detalhada
+
+- Entrada de Nota Fiscal;
+    
+- Compras;
+    
+- Estoque;
+    
+- Financeiro;
+    
+- Fiscal;
+    
+- Vendas;
+    
+- PDV;
+    
+- Produção;
+    
+- Distribuição;
+    
+- Contabilidade;
+    
+- Relatórios.
+    
+
+---
+
+# Notas relacionadas
 
 - [[10 Projetos/Sysvar/Sysvar|Sysvar]]
     
@@ -625,4 +1648,10 @@ Operações transversais devem ser testadas por integração. Evitar alterar ape
     
 - [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados|Riscos e Cuidados]]
     
+- [[10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico|Mapa Técnico]]
+    
 - [[10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas|ADR-001 - Licenciamento por Sessões Simultâneas]]
+    
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR|ADR-002 - Princípios Arquiteturais do SISVAR]]
+    
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR|ADR-003 - Auditoria Central do SISVAR]]

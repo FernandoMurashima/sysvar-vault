@@ -4,17 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "a6ccbed30fa6bd0c",
+        "id": "b3eba9b464103122",
         "type": "tabs",
         "children": [
           {
-            "id": "f33fee4ce749de8d",
+            "id": "f1d57ec04b5c3eb5",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "Nova aba"
+              "title": "Workflows"
             }
           }
         ]
@@ -181,8 +185,9 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "f33fee4ce749de8d",
+  "active": "f1d57ec04b5c3eb5",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Arquitetura.md",
@@ -192,7 +197,6 @@
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas.md",
     "Sem título.base",
     "10 Projetos/Sysvar/Contexto do Projeto/Visão Geral.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
     "10 Projetos/Sysvar/Decisões tecnicas/ADR-001 - Licenciamento por Sessões Simultâneas.md.md",
     "10 Projetos/Sysvar/Decisões Técnicas",
     "10 Projetos/Sysvar/Decisões tecnicas",
