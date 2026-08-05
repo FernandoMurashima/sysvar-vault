@@ -4,17 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "a5efc822bedc13c9",
+        "id": "4235222ba042c5f6",
         "type": "tabs",
         "children": [
           {
-            "id": "d67999e3c0516b13",
+            "id": "2d615530c346bfa5",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "10 Projetos/Sysvar/Sysvar.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "Nova aba"
+              "title": "Sysvar"
             }
           }
         ]
@@ -181,8 +185,9 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "d67999e3c0516b13",
+  "active": "2d615530c346bfa5",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Sysvar.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas.md",
@@ -192,7 +197,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Arquitetura.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
-    "10 Projetos/Sysvar/Sysvar.md",
     "10 Projetos/Sysvar/Decisões tecnicas/ADR-001 - Licenciamento por Sessões Simultâneas.md.md",
     "10 Projetos/Sysvar/Decisões Técnicas",
     "10 Projetos/Sysvar/Decisões tecnicas",
