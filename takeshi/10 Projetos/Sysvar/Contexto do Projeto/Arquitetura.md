@@ -14,6 +14,8 @@ tags:
     
 - segurança
     
+- operacional
+    
 - auditoria
     
 - multiempresa
@@ -25,7 +27,9 @@ tags:
 
 ## Objetivo
 
-A arquitetura do SISVAR foi projetada para suportar um ERP SaaS voltado ao varejo de moda, com foco em:
+A arquitetura do SISVAR foi projetada para suportar um ERP SaaS voltado ao varejo e à indústria de moda.
+
+Seus principais objetivos são:
 
 - segurança;
     
@@ -33,22 +37,26 @@ A arquitetura do SISVAR foi projetada para suportar um ERP SaaS voltado ao varej
     
 - isolamento por loja;
     
-- escalabilidade;
-    
 - modularização;
+    
+- escalabilidade;
     
 - rastreabilidade;
     
-- manutenção;
+- integridade transacional;
     
-- evolução contínua.
+- evolução contínua;
+    
+- compatibilidade com MySQL;
+    
+- manutenção simplificada.
     
 
-Toda decisão arquitetural deve permitir que novos módulos sejam adicionados sem comprometer os existentes.
+Toda nova funcionalidade deve reutilizar as infraestruturas centrais já existentes.
 
 ---
 
-# Princípios da arquitetura
+# Princípios arquiteturais
 
 O SISVAR segue os seguintes princípios:
 
@@ -56,50 +64,52 @@ O SISVAR segue os seguintes princípios:
     
 - frontend como camada de apresentação;
     
-- acesso baseado em permissões efetivas;
+- default deny;
     
-- ausência de permissão significa bloqueio;
+- permissões efetivas;
     
 - isolamento multiempresa obrigatório;
     
 - isolamento por loja quando aplicável;
     
-- arquitetura modular;
-    
-- serviços transversais centralizados;
+- módulos contratados;
     
 - operações críticas transacionais;
+    
+- serviços centrais;
     
 - auditoria centralizada;
     
 - dados sensíveis protegidos;
     
-- APIs compatíveis sempre que possível;
-    
 - migrations obrigatórias;
     
 - testes proporcionais ao risco;
     
-- documentação técnica versionada;
+- documentação versionada;
     
 - decisões arquiteturais registradas por ADR.
     
 
+Ocultar botão, menu, campo ou rota no frontend não substitui a validação no backend.
+
 ---
 
-# Arquitetura lógica
+# Camadas principais
 
-O sistema é dividido nas seguintes camadas principais:
+A arquitetura é dividida em:
 
 1. Frontend.
     
 2. Backend.
     
-3. Banco de Dados.
+3. Banco de dados.
     
-4. Infraestrutura transversal.
+4. Infraestruturas transversais.
     
-5. Documentação.
+5. Módulos de negócio.
+    
+6. Documentação.
     
 
 ---
@@ -114,33 +124,27 @@ Angular 17 Standalone
 
 O frontend é responsável por:
 
-- interface do usuário;
+- interface;
     
 - navegação;
     
-- componentes;
-    
 - formulários;
     
-- dashboards;
+- tabelas;
     
 - filtros;
-    
-- tabelas;
     
 - indicadores;
     
 - experiência do usuário;
     
-- validações simples;
+- exibição conforme permissões efetivas;
     
-- exibição conforme permissões efetivas.
+- tratamento de respostas do backend.
     
 
-O frontend não é responsável por decidir:
+O frontend não é autoridade para decidir:
 
-- permissões;
-    
 - empresa do registro;
     
 - loja permitida;
@@ -149,24 +153,22 @@ O frontend não é responsável por decidir:
     
 - módulo contratado;
     
+- permissão efetiva;
+    
 - limite de sessões;
+    
+- suspensão da empresa;
     
 - regras financeiras;
     
-- regras de estoque;
-    
 - regras fiscais;
+    
+- regras de estoque;
     
 - auditoria obrigatória;
     
 - autorização final.
     
-
-Menus, botões, campos e rotas podem ser ocultados conforme o contexto do usuário.
-
-Essa ocultação não representa segurança suficiente.
-
-Toda operação é novamente validada pelo backend.
 
 ---
 
@@ -187,13 +189,11 @@ O backend é responsável por:
     
 - autorização;
     
-- isolamento multiempresa;
-    
-- isolamento por loja;
-    
 - contratos;
     
 - módulos;
+    
+- perfis;
     
 - permissões;
     
@@ -201,30 +201,30 @@ O backend é responsável por:
     
 - licenciamento;
     
+- isolamento multiempresa;
+    
+- isolamento por loja;
+    
 - regras de negócio;
     
-- validações;
-    
 - transações;
+    
+- validações;
     
 - integrações;
     
 - auditoria;
     
-- APIs REST;
+- proteção de dados;
     
-- tratamento de erros;
-    
-- proteção de dados.
+- APIs REST.
     
 
 Toda regra crítica deve permanecer no backend.
 
-Nenhum módulo deve confiar exclusivamente em informações enviadas pelo frontend.
-
 ---
 
-# Banco de Dados
+# Banco de dados
 
 Tecnologia principal:
 
@@ -238,57 +238,55 @@ O banco é responsável por:
     
 - integridade referencial;
     
-- histórico;
-    
 - índices;
+    
+- histórico;
     
 - contratos;
     
 - sessões;
     
+- perfis;
+    
 - permissões;
     
 - auditoria;
     
-- dados dos módulos de negócio.
+- dados dos módulos.
     
 
 Toda alteração estrutural deve possuir migration.
 
-Não utilizar alteração manual de produção como substituto de migration.
+Não utilizar alteração manual do banco como solução definitiva.
 
-Recursos utilizados no Django devem ser conferidos quanto à compatibilidade real com MySQL.
+Recursos do Django devem ser conferidos quanto à compatibilidade com MySQL.
 
-Quando uma constraint não for suportada pelo MySQL, deve ser utilizada uma solução compatível baseada em:
+Quando uma constraint não for suportada, a regra deve ser garantida por:
 
-- estrutura alternativa;
-    
 - serviço central;
-    
-- validação de aplicação;
     
 - transação;
     
-- bloqueio de linha;
+- `select_for_update`;
     
-- testes específicos.
+- validação de aplicação;
+    
+- testes.
     
 
 ---
 
-# Infraestrutura transversal
+# Infraestruturas transversais
 
-A infraestrutura transversal é formada por serviços utilizados por vários módulos.
-
-Atualmente inclui:
+Atualmente existem serviços centrais para:
 
 - autenticação;
-    
-- acesso efetivo;
     
 - contratos;
     
 - módulos contratados;
+    
+- acesso efetivo;
     
 - perfis;
     
@@ -300,68 +298,28 @@ Atualmente inclui:
     
 - transferência de master;
     
-- auditoria central.
+- suspensão de contrato;
+    
+- troca obrigatória de senha;
+    
+- Auditoria Central.
     
 
-Novos módulos devem reutilizar esses serviços.
-
-Não criar mecanismos paralelos para responsabilidades já centralizadas.
-
----
-
-# Documentação
-
-O Vault do Obsidian é a memória técnica oficial do projeto.
-
-A documentação registra:
-
-- estado atual;
-    
-- arquitetura;
-    
-- domínio;
-    
-- workflows;
-    
-- riscos;
-    
-- decisões técnicas;
-    
-- histórico das implementações;
-    
-- padrões;
-    
-- próximos passos.
-    
-
-Nenhuma funcionalidade é considerada concluída sem:
-
-- implementação;
-    
-- testes;
-    
-- revisão;
-    
-- homologação;
-    
-- documentação;
-    
-- commit.
-    
+Novos módulos não devem criar mecanismos paralelos para essas responsabilidades.
 
 ---
 
 # Multiempresa
 
-O SISVAR é multiempresa.
+A empresa é a principal fronteira de isolamento do SISVAR.
 
 Cada empresa possui seus próprios:
 
-- contratos;
+- contrato;
     
 - módulos;
     
-- lojas;
+- estabelecimentos;
     
 - usuários;
     
@@ -381,9 +339,9 @@ Cada empresa possui seus próprios:
     
 - vendas;
     
-- financeiro;
-    
 - fiscal;
+    
+- financeiro;
     
 - produção;
     
@@ -392,56 +350,58 @@ Cada empresa possui seus próprios:
 - auditoria.
     
 
-Nenhum usuário cliente pode acessar registros pertencentes a outra empresa.
+Nenhum usuário cliente pode acessar dados de outra empresa.
 
-Esse isolamento deve permanecer válido mesmo quando houver:
+O isolamento deve continuar válido mesmo com:
 
-- manipulação de URL;
+- alteração de URL;
     
-- alteração de query parameters;
+- alteração de parâmetros;
     
-- alteração de payload;
+- envio de payload manual;
     
-- chamada manual à API;
+- chamada direta à API;
     
-- envio de ID de outra empresa;
-    
-- tentativa de vínculo cruzado;
+- uso de ID de outra empresa;
     
 - tentativa de exportação;
     
-- tentativa de filtragem.
+- tentativa de vínculo cruzado.
     
 
-O backend deve obter ou validar a empresa com base no usuário, sessão, objeto e regras do domínio.
-
-A empresa enviada pelo frontend nunca deve ser considerada fonte de verdade isoladamente.
+A empresa enviada pelo frontend não é fonte de verdade.
 
 ---
 
 # Multilojas
 
-Cada empresa pode possuir várias lojas.
+Cada empresa pode possuir vários estabelecimentos.
 
-Quando uma operação depender de loja, o backend deve validar:
+Todo estabelecimento pertence obrigatoriamente a uma empresa.
 
-- se a loja pertence à empresa;
+Quando uma operação depender de loja, o backend valida:
+
+- empresa da loja;
     
-- se o usuário possui acesso à loja;
+- empresa do usuário;
     
-- se o objeto pertence à loja;
+- lojas permitidas;
     
-- se a operação permite loja nula;
+- loja principal;
     
-- se o contexto da sessão é compatível.
+- loja da sessão;
+    
+- loja do objeto;
+    
+- escopo da operação.
     
 
 Usuário comum:
 
-- acessa somente lojas permitidas.
+- acessa apenas lojas permitidas.
     
 
-Usuário master:
+Master:
 
 - acessa todas as lojas da própria empresa.
     
@@ -451,44 +411,74 @@ Superusuário:
 - possui acesso global administrativo.
     
 
-Filtros de loja não podem ampliar o acesso definido pelo backend.
+---
+
+# Grupo Operacional
+
+O grupo Operacional reúne as funcionalidades administrativas centrais da empresa.
+
+Estrutura atual:
+
+```text
+Operacional
+├── Empresas
+├── Estabelecimento
+├── Usuários
+├── Perfis de acesso
+└── Auditoria
+```
+
+A implementação técnica do grupo foi concluída e validada por testes automatizados.
+
+A homologação manual completa no navegador ainda permanece pendente.
 
 ---
 
 # Empresas
 
-A empresa representa um cliente do SISVAR.
+A empresa representa um cliente da plataforma.
 
-A empresa concentra o contexto principal de:
+Concentra:
 
 - contrato;
     
 - módulos;
     
+- master;
+    
+- limite de sessões;
+    
+- estabelecimentos;
+    
 - usuários;
     
-- lojas;
-    
 - perfis;
-    
-- sessões;
     
 - dados operacionais;
     
 - auditoria.
     
 
-A situação da empresa é validada durante a autenticação e nas operações administrativas relevantes.
+A situação da empresa é validada durante:
+
+- login;
+    
+- heartbeat;
+    
+- requisições autenticadas;
+    
+- operações administrativas.
+    
 
 ---
 
 # Contratos
 
-Cada empresa cliente depende de contrato válido.
+Cada empresa cliente depende de um contrato.
 
 O contrato controla:
 
-- situação;
+- status;
     
 - vigência;
     
@@ -496,172 +486,296 @@ O contrato controla:
     
 - módulos contratados;
     
-- limite de acessos simultâneos;
+- limite de sessões;
     
 - usuário master;
     
-- versão das permissões.
+- versão das permissões;
+    
+- suspensão;
+    
+- reativação.
     
 
-O contrato é validado durante a autenticação.
+Estados possíveis incluem:
 
-Alterações críticas de contrato utilizam:
+```text
+PENDENTE
+ATIVO
+SUSPENSO
+VENCIDO
+CANCELADO
+```
 
-- transação;
-    
-- auditoria obrigatória;
-    
-- atualização da versão das permissões.
-    
+Operações críticas do contrato utilizam:
 
-Exemplos:
-
-- criação de contrato;
+- `transaction.atomic`;
     
-- alteração de status;
+- `select_for_update`;
     
-- alteração do limite;
+- Auditoria obrigatória;
     
-- alteração do plano;
-    
-- alteração de módulos;
-    
-- transferência de master.
+- atualização de `permissions_version`.
     
 
 ---
 
-# Módulos do sistema
+# Suspensão administrativa
 
-O SISVAR utiliza arquitetura modular.
+A suspensão é um bloqueio operacional do contrato.
 
-Cada funcionalidade pertence a um módulo.
+Inadimplência é um motivo, não um status separado.
 
-O contrato determina quais módulos ficam disponíveis para cada empresa.
-
-Consequências:
-
-- menus são ocultados;
-    
-- rotas são protegidas;
-    
-- endpoints são protegidos;
-    
-- operações são negadas;
-    
-- relatórios podem depender de múltiplos módulos.
-    
-
-Exemplo:
+Motivos atuais:
 
 ```text
-Relatório financeiro = Relatórios + Financeiro
+INADIMPLENCIA
+SOLICITACAO_CLIENTE
+RISCO_SEGURANCA
+ENCERRAMENTO_CONTRATO
+BLOQUEIO_ADMINISTRATIVO
+OUTRO
 ```
 
-Mesmo que a rota exista no frontend, o backend valida o módulo antes da execução.
+## Fluxo
+
+Ao suspender:
+
+1. contrato é bloqueado;
+    
+2. status passa para `SUSPENSO`;
+    
+3. motivo e observação são registrados;
+    
+4. todas as sessões são encerradas;
+    
+5. tokens são revogados;
+    
+6. vagas são liberadas;
+    
+7. versão das permissões é atualizada;
+    
+8. Auditoria obrigatória é registrada;
+    
+9. a transação é confirmada.
+    
+
+Se a Auditoria falhar, toda a operação sofre rollback.
+
+## Bloqueio
+
+Uma empresa suspensa não pode:
+
+- realizar login;
+    
+- utilizar token antigo;
+    
+- manter sessão ativa;
+    
+- acessar endpoint protegido;
+    
+- continuar pelo heartbeat.
+    
+
+Código:
+
+```text
+CONTRACT_SUSPENDED
+```
+
+Mensagem pública:
+
+```text
+O acesso da empresa está temporariamente suspenso. Entre em contato com o suporte.
+```
+
+O motivo comercial detalhado não é exposto ao usuário comum.
+
+---
+
+# Reativação
+
+A reativação:
+
+- retorna o contrato para `ATIVO`;
+    
+- mantém histórico da suspensão;
+    
+- atualiza a versão das permissões;
+    
+- não reativa sessões antigas;
+    
+- exige novo login;
+    
+- registra Auditoria obrigatória.
+    
+
+---
+
+# Estabelecimentos
+
+O model principal é `Loja`.
+
+Tipos oficiais:
+
+```text
+LOJA
+MATRIZ
+FABRICA
+```
+
+Todo estabelecimento pertence obrigatoriamente a uma empresa.
+
+Antes da migration final, foi executado diagnóstico:
+
+```text
+lojas_sem_empresa = 0
+```
+
+Nenhum saneamento foi necessário.
+
+## Tipo de unidade
+
+`tipo_unidade` é a fonte principal.
+
+O campo legado `Matriz` permanece sincronizado por compatibilidade.
+
+Não permitir contradição entre os dois campos.
+
+## Ciclo de vida
+
+Existem ações explícitas:
+
+```text
+Ativar
+Inativar
+Encerrar
+Reabrir
+```
+
+Encerrar não exclui o histórico.
+
+Antes de inativar ou encerrar, o backend pode verificar:
+
+- sessões;
+    
+- usuários vinculados;
+    
+- loja principal;
+    
+- operações pendentes;
+    
+- dependências operacionais.
+    
+
+## Permissão
+
+```text
+operacional = NONE
+→ sem acesso
+
+operacional = VIEW
+→ consulta
+
+operacional = EDIT
+→ criação e alteração
+```
+
+A rota não depende mais exclusivamente de tipos antigos como `Diretor` e `Gerente`.
 
 ---
 
 # Usuários
 
-Existem dois grandes grupos de usuários.
+Usuários clientes pertencem a uma empresa.
 
-## Superusuário da plataforma
+Podem possuir:
 
-Possui acesso administrativo global.
-
-Pode:
-
-- administrar empresas;
+- perfil principal;
     
-- administrar contratos;
+- tipo funcional;
     
-- administrar módulos;
+- loja principal;
     
-- consultar sessões;
+- lojas permitidas;
     
-- consultar auditoria global;
+- overrides;
     
-- realizar manutenção da plataforma.
+- permissões de campo;
+    
+- sessões.
     
 
-Não está sujeito ao limite de acessos simultâneos das empresas clientes.
+A regra oficial é:
+
+```text
+Perfil
++ Override
++ Contrato
++ Módulos contratados
+= Permissão efetiva
+```
+
+## Tipo funcional
+
+O campo `type` continua existindo por compatibilidade e classificação funcional.
+
+Ele não deve:
+
+- conceder módulo;
+    
+- remover módulo;
+    
+- alterar perfil;
+    
+- sobrescrever override;
+    
+- definir acesso efetivo.
+    
+
+## Perfil principal
+
+Para usuário comum:
+
+- perfil é obrigatório;
+    
+- perfil deve estar ativo;
+    
+- perfil deve pertencer à mesma empresa;
+    
+- perfil não pode habilitar módulo não contratado.
+    
+
+Master e superusuário possuem regras próprias.
 
 ---
 
-## Usuários das empresas
+# Permissões efetivas
 
-Pertencem a uma empresa.
+O backend calcula a permissão efetiva.
 
-Podem ser:
+Considera:
 
-- usuário master;
+- usuário ativo;
     
-- usuário comum.
+- empresa;
     
-
-O usuário master administra, dentro da própria empresa:
-
-- usuários;
+- contrato;
     
-- perfis;
+- status do contrato;
     
-- permissões;
+- módulo contratado;
     
-- sessões;
+- perfil;
     
-- auditoria;
+- override;
     
-- configurações permitidas.
+- master;
     
-
-Usuários comuns dependem das permissões efetivas.
-
----
-
-# Usuário master
-
-Cada empresa possui um usuário master definido no contrato.
-
-O master possui acesso administrativo ao que a empresa contratou.
-
-Pode administrar:
-
-- usuários;
-    
-- perfis;
-    
-- permissões;
-    
-- sessões;
-    
-- auditoria da própria empresa.
+- superusuário.
     
 
-A transferência de master:
-
-- exige autorização;
-    
-- utiliza transação;
-    
-- utiliza bloqueio adequado;
-    
-- utiliza auditoria obrigatória.
-    
-
-Um master não deve ser excluído ou inativado sem transferência prévia.
-
----
-
-# Perfis de acesso
-
-Perfis representam conjuntos reutilizáveis de permissões.
-
-Cada perfil pertence a uma empresa.
-
-Um perfil pode determinar o nível de acesso a cada módulo.
-
-Níveis atuais:
+Níveis:
 
 ```text
 NONE
@@ -669,103 +783,68 @@ VIEW
 EDIT
 ```
 
-O perfil padrão é único por empresa conforme a regra de aplicação implementada.
+Override:
 
-Alterações em perfis podem modificar as permissões efetivas dos usuários.
+```text
+HERDAR
+NONE
+VIEW
+EDIT
+```
 
-Por isso, alterações críticas de perfil e permissão são auditadas.
+`HERDAR` significa ausência de override individual.
 
----
-
-# Permissões efetivas
-
-O backend calcula o acesso efetivo.
-
-O cálculo considera:
-
-- usuário;
-    
-- situação do usuário;
-    
-- empresa;
-    
-- situação da empresa;
-    
-- contrato;
-    
-- vigência;
-    
-- módulos disponíveis;
-    
-- perfil principal;
-    
-- override do usuário;
-    
-- usuário master;
-    
-- superusuário.
-    
-
-Regras principais:
-
-- ausência de configuração resulta em bloqueio;
-    
-- módulo não contratado resulta em bloqueio;
-    
-- contrato inválido resulta em bloqueio;
-    
-- usuário inativo resulta em bloqueio;
-    
-- master possui acesso administrativo ao escopo contratado;
-    
-- superusuário possui acesso global.
-    
-
-O frontend recebe o resultado do backend e monta a interface.
+A permissão efetiva deve ser retornada pelo backend.
 
 ---
 
-# Autenticação
+# Proteção do usuário master
 
-A autenticação é centralizada.
+O master não pode ser:
 
-O login valida:
-
-- username;
+- excluído;
     
-- senha;
+- inativado;
     
-- situação do usuário;
+- movido para outra empresa;
     
-- empresa;
+- rebaixado por edição comum;
     
-- contrato;
-    
-- perfil;
-    
-- módulos;
-    
-- limite de sessões simultâneas;
-    
-- dispositivo;
-    
-- loja, quando aplicável.
+- privado do acesso administrativo essencial.
     
 
-Quando o login é aprovado:
+A troca de master utiliza serviço específico, transação e Auditoria obrigatória.
 
-- uma sessão é criada;
+---
+
+# Autoproteção
+
+O usuário não pode:
+
+- elevar a própria permissão;
     
-- um token opaco é emitido;
+- trocar o próprio perfil por um perfil superior;
     
-- somente o hash do token é persistido;
+- alterar a própria empresa;
     
-- o token é vinculado à sessão;
+- ampliar suas próprias lojas;
     
-- o frontend recebe o contexto efetivo.
+- tornar-se master;
+    
+- alterar campos internos do Django.
     
 
-O token sem sessão válida não autentica o usuário.
+Campos protegidos incluem:
+
+```text
+is_staff
+is_superuser
+groups
+user_permissions
+master
+token
+session_id
+```
 
 ---
 
@@ -775,11 +854,11 @@ Cada acesso autenticado é representado por uma sessão.
 
 A sessão registra:
 
-- usuário;
-    
 - empresa;
     
 - loja;
+    
+- usuário;
     
 - dispositivo;
     
@@ -793,7 +872,7 @@ A sessão registra:
     
 - encerramento;
     
-- motivo do encerramento.
+- motivo.
     
 
 Uma sessão pode ser encerrada por:
@@ -804,18 +883,346 @@ Uma sessão pode ser encerrada por:
     
 - substituição;
     
-- inativação do usuário;
+- inativação;
+    
+- suspensão da empresa;
     
 - encerramento administrativo;
     
-- outras regras de segurança.
+- redefinição de senha.
     
 
 ---
 
-# Licenciamento por sessões simultâneas
+# Encerramento de sessões do usuário
 
-O SISVAR licencia por sessões simultâneas.
+O encerramento de todas as sessões é transacional.
+
+Fluxo:
+
+1. usuário é bloqueado;
+    
+2. sessões são bloqueadas;
+    
+3. sessões são encerradas;
+    
+4. tokens são revogados;
+    
+5. evento consolidado é registrado;
+    
+6. transação é confirmada.
+    
+
+Evento:
+
+```text
+USER_SESSIONS_CLOSED
+```
+
+Se a Auditoria obrigatória falhar:
+
+- sessões permanecem ativas;
+    
+- tokens permanecem válidos;
+    
+- não existe resultado parcial.
+    
+
+---
+
+# Redefinição administrativa de senha
+
+Um administrador autorizado pode redefinir a senha.
+
+A operação:
+
+- valida a nova senha;
+    
+- marca `deve_trocar_senha`;
+    
+- encerra sessões quando solicitado;
+    
+- revoga tokens;
+    
+- exige novo login;
+    
+- registra Auditoria obrigatória.
+    
+
+A operação é transacional.
+
+Se a Auditoria falhar, senha, flag, sessões e tokens voltam ao estado anterior.
+
+---
+
+# Troca obrigatória de senha
+
+Quando:
+
+```text
+deve_trocar_senha = true
+```
+
+o usuário autentica, mas não pode acessar os módulos normais.
+
+O backend permite apenas:
+
+- `/api/me/`;
+    
+- endpoint de troca;
+    
+- logout;
+    
+- heartbeat necessário ao fluxo.
+    
+
+Outros endpoints retornam:
+
+```text
+PASSWORD_CHANGE_REQUIRED
+```
+
+Mensagem:
+
+```text
+Você precisa alterar sua senha antes de continuar.
+```
+
+## Frontend
+
+Rota:
+
+```text
+/change-password-required
+```
+
+O guard:
+
+- redireciona o usuário;
+    
+- bloqueia `/home`;
+    
+- impede bypass por URL;
+    
+- libera o sistema após a troca.
+    
+
+A sessão atual permanece válida.
+
+As demais sessões são encerradas.
+
+---
+
+# Perfis de acesso
+
+Perfis representam conjuntos reutilizáveis de permissões.
+
+Cada perfil pertence a uma empresa.
+
+Regras:
+
+- nome único por empresa;
+    
+- isolamento por empresa;
+    
+- perfil inativo não pode ser atribuído;
+    
+- perfil em uso não pode ser excluído;
+    
+- módulo não contratado não pode ser habilitado;
+    
+- dependências de módulos são validadas;
+    
+- alterações incrementam `permissions_version`;
+    
+- mudanças críticas utilizam Auditoria obrigatória.
+    
+
+## Perfil padrão
+
+A regra de apenas um perfil padrão é garantida pela aplicação.
+
+Utiliza:
+
+```python
+transaction.atomic()
+select_for_update()
+```
+
+Não depende de constraint condicional incompatível com MySQL.
+
+---
+
+# Dependências de módulos
+
+As dependências são declaradas em:
+
+```text
+ModuloSistema.dependencias
+```
+
+Um módulo não pode ser habilitado com uma dependência em `NONE`.
+
+Exemplo:
+
+```text
+Relatórios financeiros
+→ Relatórios + Financeiro
+```
+
+A validação ocorre no backend.
+
+---
+
+# Rotas do Operacional
+
+As rotas de:
+
+- Estabelecimentos;
+    
+- ajuda de Estabelecimentos;
+    
+- Usuários;
+    
+- Perfis;
+    
+
+não dependem mais exclusivamente de roles antigas.
+
+O acesso utiliza:
+
+- autenticação;
+    
+- módulo `operacional`;
+    
+- nível efetivo;
+    
+- master;
+    
+- superusuário.
+    
+
+Auditoria continua utilizando o módulo próprio:
+
+```text
+auditoria
+```
+
+---
+
+# Auditoria Central
+
+A Auditoria Central é uma infraestrutura transversal.
+
+Componentes principais:
+
+```text
+AuditLog
+AuditService
+AuditContextMiddleware
+AuditRegistry
+```
+
+Os logs são:
+
+- imutáveis;
+    
+- somente leitura;
+    
+- sanitizados;
+    
+- isolados por empresa;
+    
+- isolados por loja;
+    
+- estruturados.
+    
+
+## Integrações do Operacional
+
+A Auditoria foi integrada a:
+
+- suspensão;
+    
+- reativação;
+    
+- criação e alteração de estabelecimento;
+    
+- ativação;
+    
+- inativação;
+    
+- encerramento;
+    
+- reabertura;
+    
+- criação e alteração de usuário;
+    
+- perfil;
+    
+- override;
+    
+- lojas permitidas;
+    
+- redefinição de senha;
+    
+- troca de senha;
+    
+- encerramento de sessões;
+    
+- perfil padrão;
+    
+- permissões;
+    
+- acessos negados.
+    
+
+---
+
+# Auditoria normal
+
+Eventos comuns podem ser registrados após commit:
+
+```python
+transaction.on_commit()
+```
+
+Isso evita log de sucesso em operações com rollback.
+
+---
+
+# Auditoria obrigatória
+
+Operações críticas registram o evento dentro da mesma transação.
+
+Exemplos:
+
+- suspensão;
+    
+- reativação;
+    
+- transferência de master;
+    
+- permissão;
+    
+- perfil padrão;
+    
+- redefinição de senha;
+    
+- troca obrigatória;
+    
+- encerramento consolidado de sessões;
+    
+- exclusão administrativa.
+    
+
+Se a Auditoria falhar, a operação também falha.
+
+---
+
+# Licenciamento
+
+O licenciamento é baseado em sessões simultâneas.
 
 Regras:
 
@@ -823,47 +1230,24 @@ Regras:
     
 - usuário ativo não consome licença;
     
-- sessão ativa consome uma vaga;
+- sessão ativa consome vaga;
     
-- logout libera a vaga;
+- logout libera vaga;
     
-- timeout libera a vaga;
+- timeout libera vaga;
     
-- inativação encerra sessões;
+- inativação libera vaga;
     
-- dispositivos diferentes usam sessões independentes;
+- suspensão libera todas as vagas;
     
-- novo login no mesmo dispositivo substitui a sessão anterior;
+- redefinição de senha pode liberar vagas;
     
-- login acima do limite é bloqueado;
+- mesmo dispositivo substitui sessão anterior;
     
-- redução do limite não encerra sessões automaticamente;
+- dispositivos diferentes usam vagas independentes;
     
-- novos logins ficam bloqueados enquanto o limite estiver excedido.
+- login acima do limite é bloqueado.
     
-
-O controle da última vaga utiliza transação e bloqueio de contrato.
-
----
-
-# Heartbeat
-
-O frontend mantém a sessão ativa por heartbeat.
-
-O heartbeat:
-
-- confirma que a sessão continua válida;
-    
-- atualiza a última atividade;
-    
-- informa a versão das permissões;
-    
-- detecta sessão encerrada;
-    
-- permite atualização do contexto.
-    
-
-O heartbeat não substitui a validação realizada nas demais requisições.
 
 ---
 
@@ -883,165 +1267,24 @@ Cada requisição autenticada pode validar:
     
 - contrato;
     
+- status do contrato;
+    
+- troca obrigatória de senha;
+    
 - módulo;
     
 - permissão;
     
 - loja;
     
-- objeto acessado.
+- objeto.
     
 
 O backend aplica default deny.
 
-A ocultação de telas no frontend não substitui a segurança no servidor.
-
-Dados sensíveis não devem ser expostos ou registrados sem necessidade.
+Dados sensíveis não devem ser registrados.
 
 Exemplos:
-
-- senhas;
-    
-- tokens;
-    
-- cookies;
-    
-- certificados;
-    
-- chaves privadas;
-    
-- segredos;
-    
-- Authorization headers.
-    
-
----
-
-# Auditoria Central
-
-A Auditoria Central está implementada, testada, revisada e homologada.
-
-Ela é uma infraestrutura transversal.
-
-O model central é:
-
-```text
-AuditLog
-```
-
-O serviço central é:
-
-```text
-AuditService
-```
-
-O contexto é mantido por:
-
-```text
-AuditContextMiddleware
-```
-
----
-
-## Contexto auditado
-
-A auditoria pode registrar:
-
-- event ID;
-    
-- request ID;
-    
-- correlation ID;
-    
-- empresa;
-    
-- loja;
-    
-- usuário;
-    
-- sessão;
-    
-- dispositivo;
-    
-- IP;
-    
-- user-agent;
-    
-- ação;
-    
-- categoria;
-    
-- resultado;
-    
-- severidade;
-    
-- origem;
-    
-- app;
-    
-- model;
-    
-- objeto;
-    
-- representação;
-    
-- dados anteriores;
-    
-- dados posteriores;
-    
-- campos alterados;
-    
-- metadata;
-    
-- método HTTP;
-    
-- endpoint;
-    
-- status HTTP;
-    
-- erro;
-    
-- data e hora.
-    
-
----
-
-## Imutabilidade
-
-Os logs são imutáveis.
-
-A infraestrutura bloqueia:
-
-- criação direta;
-    
-- alteração por `save`;
-    
-- exclusão;
-    
-- `QuerySet.update`;
-    
-- `QuerySet.delete`;
-    
-- `bulk_create`;
-    
-- `bulk_update`;
-    
-- `update_or_create`;
-    
-- `get_or_create`.
-    
-
-A criação ocorre pelo `AuditService`.
-
-A API é somente leitura.
-
----
-
-## Sanitização
-
-A auditoria possui sanitização recursiva.
-
-Dados como:
 
 - senha;
     
@@ -1049,204 +1292,14 @@ Dados como:
     
 - cookie;
     
-- segredo;
-    
 - certificado;
     
 - chave privada;
     
 - Authorization;
     
-- hash de token;
+- hash de token.
     
-
-são removidos ou substituídos por:
-
-```text
-[REDACTED]
-```
-
-Conteúdos excessivos são truncados.
-
----
-
-## Snapshots históricos
-
-A auditoria mantém snapshots de:
-
-- empresa;
-    
-- loja;
-    
-- usuário.
-    
-
-Isso preserva o contexto histórico mesmo quando o cadastro é alterado posteriormente.
-
-Logs antigos foram migrados sem exclusão.
-
-O contexto anterior foi recuperado somente quando existia fonte confiável.
-
----
-
-## Auditoria normal
-
-Eventos comuns de sucesso confirmado utilizam:
-
-```python
-transaction.on_commit()
-```
-
-Assim, não existe log de sucesso quando a transação principal sofre rollback.
-
----
-
-## Auditoria obrigatória
-
-Operações críticas podem exigir auditoria dentro da mesma transação.
-
-Se a auditoria obrigatória falhar, a operação também falha.
-
-Atualmente esse comportamento é utilizado em operações como:
-
-- contrato;
-    
-- limite de acessos;
-    
-- módulos contratados;
-    
-- transferência de master;
-    
-- permissões;
-    
-- perfil padrão;
-    
-- exclusão administrativa de usuário.
-    
-
----
-
-## Permissões da Auditoria
-
-Superusuário:
-
-- consulta todas as empresas.
-    
-
-Master:
-
-- consulta toda a própria empresa;
-    
-- consulta todas as lojas da empresa;
-    
-- exporta.
-    
-
-Usuário com `VIEW`:
-
-- consulta a própria empresa;
-    
-- consulta lojas permitidas;
-    
-- não exporta.
-    
-
-Usuário com `EDIT`:
-
-- consulta;
-    
-- exporta;
-    
-- não altera logs.
-    
-
-Usuário com `NONE`:
-
-- não vê menu;
-    
-- não acessa rota;
-    
-- recebe bloqueio da API.
-    
-
----
-
-## API da Auditoria
-
-Endpoints:
-
-```text
-GET /api/auditoria/logs/
-GET /api/auditoria/logs/{id}/
-GET /api/auditoria/logs/indicadores/
-GET /api/auditoria/logs/exportar/
-```
-
-A consulta possui:
-
-- paginação;
-    
-- filtros;
-    
-- busca;
-    
-- ordenação;
-    
-- indicadores;
-    
-- detalhe;
-    
-- exportação CSV.
-    
-
-Tentativa de consultar outra empresa ou loja não permitida retorna `403`.
-
----
-
-## Integrações atuais
-
-A Auditoria Central já está integrada a:
-
-- login;
-    
-- login negado;
-    
-- logout;
-    
-- sessões;
-    
-- timeout;
-    
-- substituição de sessão;
-    
-- limite simultâneo;
-    
-- contratos;
-    
-- módulos;
-    
-- transferência de master;
-    
-- perfis;
-    
-- perfil padrão;
-    
-- permissões;
-    
-- usuários;
-    
-- ativação;
-    
-- inativação;
-    
-- exclusão administrativa;
-    
-- consulta da Auditoria;
-    
-- exportação da Auditoria.
-    
-
-Os eventos específicos dos módulos de negócio serão integrados gradualmente.
 
 ---
 
@@ -1256,13 +1309,21 @@ Operações que alteram vários registros relacionados devem utilizar transaçã
 
 Exemplos:
 
-- login ocupando a última vaga;
+- login na última vaga;
+    
+- suspensão;
+    
+- reativação;
     
 - transferência de master;
     
-- alteração de contrato;
+- perfil padrão;
     
 - alteração de permissões;
+    
+- redefinição de senha;
+    
+- encerramento de sessões;
     
 - aprovação de pedido;
     
@@ -1270,155 +1331,15 @@ Exemplos:
     
 - movimentação de estoque;
     
-- geração financeira;
-    
-- emissão fiscal;
-    
-- distribuição;
-    
-- produção;
-    
-- estornos.
+- emissão fiscal.
     
 
 Quando necessário, utilizar:
 
 ```python
 transaction.atomic()
-```
-
-e:
-
-```python
 select_for_update()
 ```
-
-Não registrar sucesso antes da confirmação da operação.
-
----
-
-# Integração entre módulos
-
-O SISVAR possui módulos interdependentes.
-
-Uma alteração pode afetar:
-
-- estoque;
-    
-- financeiro;
-    
-- fiscal;
-    
-- contabilidade;
-    
-- auditoria;
-    
-- dashboards;
-    
-- relatórios.
-    
-
-Exemplo:
-
-```text
-Aprovação de compra
-→ financeiro
-→ estoque
-→ fiscal
-→ auditoria
-```
-
-As integrações devem utilizar os serviços responsáveis pelo domínio.
-
-Um módulo não deve duplicar regras pertencentes a outro.
-
----
-
-# Escalabilidade
-
-A arquitetura foi desenhada para permitir crescimento.
-
-Novos módulos devem seguir os mesmos padrões de:
-
-- autenticação;
-    
-- autorização;
-    
-- isolamento;
-    
-- sessões;
-    
-- auditoria;
-    
-- transações;
-    
-- paginação;
-    
-- índices;
-    
-- padronização visual;
-    
-- testes;
-    
-- documentação.
-    
-
-Não carregar tabelas inteiras no frontend sem necessidade.
-
-Evitar:
-
-- N+1;
-    
-- consultas sem índice;
-    
-- payloads excessivos;
-    
-- JSON sem limite;
-    
-- duplicação de serviços;
-    
-- regras críticas em componentes.
-    
-
----
-
-# Padrão visual
-
-As telas devem seguir, conforme aplicável:
-
-1. Barra Principal.
-    
-2. Barra do Título.
-    
-3. Barra de Indicadores.
-    
-4. Barra de Filtros.
-    
-5. Barra de Ações.
-    
-6. Área de Resultados.
-    
-
-A área de resultados deve preservar:
-
-- tabela;
-    
-- paginação;
-    
-- intervalo exibido;
-    
-- total;
-    
-- ordenação;
-    
-- estado vazio;
-    
-- estado de carregamento;
-    
-- tratamento de erro.
-    
-
-Botões não aplicáveis devem ser ocultados.
 
 ---
 
@@ -1449,12 +1370,69 @@ Antes de alterar:
     
 - documentação;
     
-- scripts;
+- commands;
     
-- commands.
+- migrations.
     
 
-Breaking changes inevitáveis devem ser documentadas.
+---
+
+# Performance
+
+Evitar:
+
+- N+1;
+    
+- consultas globais;
+    
+- ausência de paginação;
+    
+- listas de 2.000 registros no frontend;
+    
+- filtros em JSON para campos frequentes;
+    
+- payloads excessivos;
+    
+- duplicação de serviços.
+    
+
+Listagens operacionais devem utilizar paginação real do backend.
+
+---
+
+# Padrão visual
+
+As telas devem seguir:
+
+1. Barra Principal.
+    
+2. Barra do Título.
+    
+3. Barra de Indicadores.
+    
+4. Barra de Filtros.
+    
+5. Barra de Ações.
+    
+6. Área de Resultados.
+    
+
+A área de resultados deve possuir:
+
+- paginação;
+    
+- total;
+    
+- intervalo exibido;
+    
+- ordenação;
+    
+- estado vazio;
+    
+- loading;
+    
+- tratamento de erro.
+    
 
 ---
 
@@ -1462,91 +1440,74 @@ Breaking changes inevitáveis devem ser documentadas.
 
 Toda implementação deve possuir testes proporcionais ao risco.
 
-Tipos:
+## Grupo Operacional
 
-- unitários;
-    
-- integração;
-    
-- API;
-    
-- banco;
-    
-- concorrência;
-    
-- frontend;
-    
-- regressão;
-    
-- homologação manual.
-    
+Validação automatizada final:
 
-Não afirmar que um teste passou sem executá-lo.
+Backend:
 
-A suíte geral deve descobrir e executar testes reais.
+```text
+50 testes aprovados
+```
 
----
+Frontend:
 
-# Decisões arquiteturais
+```text
+33 testes aprovados
+```
 
-As decisões principais atuais são:
+Comandos executados:
 
-## ADR-001
+```text
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py migrate
+python manage.py test -v 2 --noinput
 
-Licenciamento por sessões simultâneas.
-
-## ADR-002
-
-Princípios arquiteturais do SISVAR.
-
-## ADR-003
-
-Auditoria Central do SISVAR.
-
-Novas decisões relevantes devem gerar ADR própria.
+npx tsc -p tsconfig.app.json --noEmit
+ng build --configuration development
+ng test --watch=false --browsers=ChromeHeadless
+```
 
 ---
 
-# Tecnologias
+# Homologação manual
 
-## Backend
+A implementação técnica do Operacional está concluída.
 
-- Python
+Ainda falta homologar manualmente:
+
+- suspensão;
     
-- Django
+- reativação;
     
-- Django REST Framework
+- queda das sessões;
     
-
-## Frontend
-
-- Angular 17 Standalone
+- bloqueio do login;
     
-- TypeScript
+- troca obrigatória de senha;
     
-
-## Banco de Dados
-
-- MySQL
+- acesso VIEW e EDIT;
     
-
-## Versionamento
-
-- Git
+- ciclo de vida do estabelecimento;
     
-- GitHub
+- matriz Perfil/Override/Efetivo;
+    
+- eventos na Auditoria.
     
 
-## Documentação
+Até essa execução, o grupo deve ser considerado:
 
-- Obsidian
-    
+```text
+Implementado e validado automaticamente
+Homologação manual pendente
+```
 
 ---
 
 # Situação atual da arquitetura
 
-Implementado, testado e validado:
+Implementado:
 
 - autenticação centralizada;
     
@@ -1556,81 +1517,121 @@ Implementado, testado e validado:
     
 - contratos;
     
+- suspensão;
+    
+- reativação;
+    
 - módulos contratados;
     
 - usuário master;
     
+- estabelecimentos obrigatoriamente vinculados à empresa;
+    
 - perfis;
+    
+- perfil padrão;
+    
+- dependências de módulos;
     
 - permissões efetivas;
     
-- sessões simultâneas;
+- sessões;
     
-- licenciamento por sessões;
+- licenciamento;
     
-- device ID;
+- redefinição de senha;
     
-- heartbeat;
-    
-- timeout;
-    
-- encerramento de sessões;
-    
-- proteção de endpoints;
+- troca obrigatória de senha;
     
 - Auditoria Central;
     
-- imutabilidade dos logs;
+- imutabilidade;
     
 - sanitização;
     
-- snapshots históricos;
-    
-- consulta da Auditoria;
+- snapshots;
     
 - indicadores;
     
-- exportação CSV;
-    
-- auditoria obrigatória para operações críticas definidas.
+- exportação.
     
 
 ---
 
-# Próximas evoluções arquiteturais
+# Próxima etapa
 
-As próximas evoluções devem acontecer durante a revisão dos módulos de negócio.
+Após a homologação manual do Operacional, a revisão seguirá a ordem do menu lateral.
 
-Prioridades candidatas:
+Próximo grupo:
 
-- Entrada de Nota Fiscal;
+```text
+Cadastros
+```
+
+Itens iniciais:
+
+- Clientes;
     
-- integração de auditoria em Cadastros;
+- Fornecedores;
     
-- integração de auditoria em Produtos;
-    
-- revisão de Compras;
-    
-- Estoque;
-    
-- Financeiro;
-    
-- Fiscal;
-    
-- Produção;
-    
-- Distribuição;
-    
-- PDV Offline.
+- Funcionários.
     
 
-Cada módulo deverá seguir os serviços centrais já consolidados.
+Cada item deverá ser analisado quanto a:
+
+- isolamento;
+    
+- permissão;
+    
+- validação;
+    
+- layout;
+    
+- auditoria;
+    
+- integrações;
+    
+- paginação;
+    
+- testes;
+    
+- melhorias.
+    
+
+---
+
+# Commits relacionados
+
+Backend do Operacional:
+
+```text
+3955ea48c721afc7b15520a7afd6ec32f8374af6
+```
+
+Frontend do Operacional:
+
+```text
+bf66e81e6f1c0d58255a135d9339a34b95ef332f
+```
+
+---
+
+# Decisões arquiteturais
+
+- ADR-001 — Licenciamento por Sessões Simultâneas.
+    
+- ADR-002 — Princípios Arquiteturais do SISVAR.
+    
+- ADR-003 — Auditoria Central do SISVAR.
+    
 
 ---
 
 # Notas relacionadas
 
 - [[10 Projetos/Sysvar/Sysvar|Sysvar]]
+    
+- [[10 Projetos/Sysvar/Contexto do Projeto/Visão Geral|Visão Geral]]
     
 - [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio|Modelo de Domínio]]
     
