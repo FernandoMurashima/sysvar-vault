@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "85c52f980134358a",
+        "id": "8ab005b0c08d272e",
         "type": "tabs",
         "children": [
           {
-            "id": "ed51c51a60727dd7",
+            "id": "d3dd8b3aa744458f",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -181,8 +181,9 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "ed51c51a60727dd7",
+  "active": "d3dd8b3aa744458f",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas.md",
     "Sem título.base",
@@ -217,7 +218,6 @@
     "90 Sistema",
     "40 Arquivo",
     "Projetos/Webfoto/Webfoto.md",
-    "Projetos/Webfoto/Atualização da Produção.md",
-    "crie um link.md"
+    "Projetos/Webfoto/Atualização da Produção.md"
   ]
 }
