@@ -14,9 +14,11 @@ tags:
     
 - modelo
     
-- auditoria
+- operacional
     
 - segurança
+    
+- auditoria
     
 - multiempresa
     
@@ -27,23 +29,27 @@ tags:
 
 ## Objetivo
 
-O Modelo de Domínio descreve as principais entidades do SISVAR, suas responsabilidades e seus relacionamentos.
+Este documento descreve as principais entidades do SISVAR, suas responsabilidades, regras e relacionamentos.
 
-Ele representa a visão funcional do sistema.
+Ele representa a visão funcional do domínio.
 
-Não deve ser confundido com uma cópia direta das tabelas do banco de dados ou das classes do Django.
+Não é uma cópia direta das tabelas do banco ou das classes Django.
 
 ---
 
 # Organização do domínio
 
-O domínio do SISVAR está dividido nos seguintes grupos:
+O domínio está dividido em:
 
 - Plataforma
     
 - Empresas e Contratos
     
+- Estabelecimentos
+    
 - Segurança e Acesso
+    
+- Licenciamento e Sessões
     
 - Auditoria
     
@@ -86,7 +92,9 @@ Cada empresa possui seus próprios:
     
 - módulos contratados;
     
-- lojas;
+- usuário master;
+    
+- estabelecimentos;
     
 - usuários;
     
@@ -111,75 +119,59 @@ Nenhum usuário cliente pode acessar dados pertencentes a outra empresa.
 
 ---
 
-## Loja
-
-Representa uma unidade operacional pertencente a uma empresa.
-
-Uma empresa pode possuir várias lojas.
-
-A loja pode estar relacionada a:
-
-- usuários;
-    
-- sessões;
-    
-- estoque;
-    
-- vendas;
-    
-- caixa;
-    
-- distribuição;
-    
-- documentos fiscais;
-    
-- operações financeiras;
-    
-- registros de auditoria.
-    
-
-A loja nunca pode pertencer a uma empresa diferente da empresa do objeto relacionado.
-
----
-
 ## Módulo do Sistema
 
-Representa uma funcionalidade comercializável e controlável.
+Representa uma funcionalidade controlada comercialmente e por permissão.
 
 Exemplos:
 
-- Cadastros;
+```text
+operacional
+cadastros
+produtos
+compras
+estoque
+distribuicao
+producao
+vendas
+financeiro
+fiscal
+relatorios
+auditoria
+```
+
+Cada módulo possui uma chave estável.
+
+O contrato determina quais módulos estão disponíveis para a empresa.
+
+O módulo também pode possuir:
+
+- descrição;
     
-- Produtos;
+- ordem;
     
-- Compras;
+- situação ativa;
     
-- Estoque;
-    
-- Vendas;
-    
-- Fiscal;
-    
-- Financeiro;
-    
-- Produção;
-    
-- Distribuição;
-    
-- Relatórios;
-    
-- Auditoria.
+- dependências de outros módulos.
     
 
-O módulo possui uma chave estável.
+---
+
+## Dependência de Módulo
+
+Representa a necessidade de um módulo estar habilitado para que outro possa funcionar.
 
 Exemplo:
 
 ```text
-auditoria
+Relatório financeiro
+→ Relatórios
+→ Financeiro
 ```
 
-O contrato determina quais módulos estão disponíveis para a empresa.
+As dependências são declaradas no catálogo de módulos.
+
+O backend impede configurações inconsistentes.
 
 ---
 
@@ -187,15 +179,17 @@ O contrato determina quais módulos estão disponíveis para a empresa.
 
 ## Contrato
 
-Representa o contrato comercial e operacional da empresa no SISVAR.
+Representa a relação comercial e operacional entre a empresa e o SISVAR.
 
 O contrato controla:
 
-- situação;
+- status;
     
 - vigência;
     
 - plano completo;
+    
+- módulos contratados;
     
 - usuário master;
     
@@ -203,18 +197,28 @@ O contrato controla:
     
 - versão das permissões;
     
-- módulos contratados.
+- suspensão;
+    
+- reativação.
     
 
-A autenticação de usuários clientes depende da existência e validade do contrato.
+Estados possíveis incluem:
 
-Alterações críticas do contrato utilizam transação e auditoria obrigatória.
+```text
+PENDENTE
+ATIVO
+SUSPENSO
+VENCIDO
+CANCELADO
+```
+
+A autenticação de usuários clientes depende de contrato válido.
 
 ---
 
 ## Empresa Módulo
 
-Representa a contratação ou disponibilidade de um módulo para uma empresa.
+Representa a disponibilidade de um módulo para uma empresa.
 
 Relaciona:
 
@@ -223,9 +227,7 @@ Empresa
 → Módulo do Sistema
 ```
 
-Controla se determinado módulo está disponível para o cliente.
-
-Alterações nessa entidade podem modificar imediatamente:
+Uma alteração pode modificar imediatamente:
 
 - menus;
     
@@ -238,7 +240,324 @@ Alterações nessa entidade podem modificar imediatamente:
 - acesso dos usuários.
     
 
-Por isso, alterações de módulos contratados são operações críticas auditadas.
+Alterações nessa entidade são auditadas.
+
+---
+
+## Suspensão do Contrato
+
+Representa o bloqueio administrativo do acesso da empresa.
+
+Inadimplência é um motivo de suspensão, não um status separado.
+
+Motivos atuais:
+
+```text
+INADIMPLENCIA
+SOLICITACAO_CLIENTE
+RISCO_SEGURANCA
+ENCERRAMENTO_CONTRATO
+BLOQUEIO_ADMINISTRATIVO
+OUTRO
+```
+
+A suspensão mantém:
+
+- empresa;
+    
+- usuários;
+    
+- perfis;
+    
+- estabelecimentos;
+    
+- módulos;
+    
+- dados operacionais;
+    
+- histórico.
+    
+
+A suspensão encerra:
+
+- sessões ativas;
+    
+- tokens válidos;
+    
+- consumo de vagas simultâneas.
+    
+
+---
+
+## Dados da Suspensão
+
+O contrato pode registrar:
+
+- motivo;
+    
+- observação;
+    
+- data da suspensão;
+    
+- usuário responsável;
+    
+- data da reativação;
+    
+- usuário responsável pela reativação.
+    
+
+O motivo comercial detalhado não deve ser exposto a usuários comuns.
+
+---
+
+## Reativação do Contrato
+
+Representa a liberação do acesso de uma empresa suspensa.
+
+A reativação:
+
+- retorna o contrato para `ATIVO`;
+    
+- preserva o histórico da suspensão;
+    
+- não reativa sessões antigas;
+    
+- exige novo login;
+    
+- atualiza a versão das permissões;
+    
+- gera Auditoria obrigatória.
+    
+
+---
+
+# Estabelecimentos
+
+## Estabelecimento
+
+O model principal utilizado é `Loja`.
+
+Representa uma unidade operacional pertencente a uma empresa.
+
+Todo estabelecimento pertence obrigatoriamente a uma empresa.
+
+O diagnóstico executado antes da migration final encontrou:
+
+```text
+lojas_sem_empresa = 0
+```
+
+Nenhum saneamento de dados foi necessário.
+
+---
+
+## Tipos de Estabelecimento
+
+Tipos oficiais:
+
+```text
+LOJA
+MATRIZ
+FABRICA
+```
+
+O campo `tipo_unidade` é a fonte principal da classificação.
+
+O campo legado `Matriz` permanece temporariamente por compatibilidade e deve permanecer sincronizado com `tipo_unidade`.
+
+---
+
+## Loja
+
+Representa uma unidade comercial ou operacional.
+
+Pode estar relacionada a:
+
+- usuários;
+    
+- sessões;
+    
+- estoque;
+    
+- caixas;
+    
+- vendas;
+    
+- documentos fiscais;
+    
+- transferências;
+    
+- distribuição;
+    
+- operações financeiras;
+    
+- auditoria.
+    
+
+---
+
+## Matriz
+
+Representa a unidade administrativa ou operacional principal da empresa.
+
+Pode concentrar:
+
+- administração;
+    
+- estoque central;
+    
+- compras;
+    
+- faturamento;
+    
+- financeiro;
+    
+- distribuição.
+    
+
+A existência de uma matriz não elimina a necessidade de vínculo obrigatório com a empresa.
+
+---
+
+## Fábrica
+
+Representa uma unidade de produção.
+
+Pode participar de:
+
+- estoque de matéria-prima;
+    
+- produção;
+    
+- facção;
+    
+- recebimento de produto acabado;
+    
+- distribuição.
+    
+
+A fábrica pode não emitir NFC-e.
+
+---
+
+## Situação do Estabelecimento
+
+O estabelecimento pode estar:
+
+- ativo;
+    
+- inativo;
+    
+- encerrado;
+    
+- reaberto.
+    
+
+O encerramento não exclui o histórico.
+
+---
+
+## Ativação
+
+Representa a liberação operacional de um estabelecimento.
+
+A ativação não cria automaticamente:
+
+- sessões;
+    
+- usuários;
+    
+- estoque;
+    
+- caixas.
+    
+
+---
+
+## Inativação
+
+Representa a interrupção temporária do uso do estabelecimento.
+
+Antes da inativação, podem ser verificados:
+
+- sessões ativas;
+    
+- usuários vinculados;
+    
+- loja principal de usuários;
+    
+- caixas abertos;
+    
+- operações pendentes;
+    
+- movimentações em andamento.
+    
+
+---
+
+## Encerramento
+
+Representa o encerramento formal de um estabelecimento.
+
+Pode exigir:
+
+- data;
+    
+- motivo;
+    
+- validação de dependências;
+    
+- inativação;
+    
+- Auditoria obrigatória.
+    
+
+O encerramento não apaga:
+
+- vendas;
+    
+- estoque histórico;
+    
+- documentos;
+    
+- usuários;
+    
+- auditoria.
+    
+
+---
+
+## Reabertura
+
+Representa a retomada das operações de um estabelecimento encerrado.
+
+A reabertura:
+
+- valida empresa e contrato;
+    
+- altera a situação;
+    
+- preserva o histórico anterior;
+    
+- gera auditoria.
+    
+
+---
+
+## Usuário Vinculado ao Estabelecimento
+
+Representa a relação entre usuário e loja.
+
+Um usuário pode estar vinculado como:
+
+- usuário com loja principal;
+    
+- usuário com loja permitida;
+    
+- usuário com sessão ativa na loja.
+    
+
+A consulta deve respeitar empresa e permissão efetiva.
 
 ---
 
@@ -250,28 +569,70 @@ Representa uma pessoa autorizada a utilizar o SISVAR.
 
 Um usuário cliente pertence a uma empresa.
 
-Um usuário pode possuir:
+Pode possuir:
 
 - perfil principal;
     
-- permissões adicionais;
+- tipo funcional;
     
-- acesso a lojas;
+- loja principal;
     
-- uma ou mais sessões;
+- lojas permitidas;
     
-- registros de auditoria associados.
+- overrides;
+    
+- permissões de campo;
+    
+- sessões;
+    
+- registros de auditoria.
     
 
-Criar ou ativar um usuário não consome licença.
+Criar ou ativar usuário não consome licença.
 
-O consumo ocorre apenas quando existe uma sessão ativa.
+---
+
+## Tipo Funcional
+
+Representa uma classificação operacional legada ou funcional.
+
+Exemplos:
+
+```text
+Regular
+Vendedor
+Caixa
+Gerente
+Diretor
+Admin
+Auxiliar
+Assistente
+AssistenteReceber
+AssistentePagar
+```
+
+O tipo funcional pode continuar sendo usado em regras específicas.
+
+Ele não define automaticamente a permissão efetiva.
+
+Não deve:
+
+- conceder módulo;
+    
+- remover módulo;
+    
+- substituir perfil;
+    
+- criar override;
+    
+- elevar acesso.
+    
 
 ---
 
 ## Superusuário da Plataforma
 
-Representa um administrador global do SISVAR.
+Representa o administrador global do SISVAR.
 
 Pode:
 
@@ -279,16 +640,18 @@ Pode:
     
 - administrar contratos;
     
+- suspender e reativar empresas;
+    
 - administrar módulos;
     
 - consultar sessões globais;
     
-- consultar auditoria de todas as empresas;
+- consultar auditoria global;
     
-- realizar manutenção da plataforma.
+- realizar manutenção.
     
 
-Não está sujeito ao limite de acessos simultâneos dos contratos das empresas clientes.
+Não está sujeito ao limite de sessões das empresas clientes.
 
 ---
 
@@ -296,9 +659,9 @@ Não está sujeito ao limite de acessos simultâneos dos contratos das empresas 
 
 Representa o administrador principal de uma empresa.
 
-O master é definido no contrato da empresa.
+É definido no contrato.
 
-Pode administrar, dentro do escopo contratado:
+Pode administrar, dentro da própria empresa:
 
 - usuários;
     
@@ -306,16 +669,27 @@ Pode administrar, dentro do escopo contratado:
     
 - permissões;
     
+- estabelecimentos;
+    
 - sessões;
     
 - auditoria;
     
-- configurações da empresa.
+- configurações permitidas.
     
 
-Existe um único master vigente por empresa.
+O master não pode ser:
 
-A transferência de master é uma operação crítica, transacional e obrigatoriamente auditada.
+- excluído;
+    
+- inativado;
+    
+- movido para outra empresa;
+    
+- rebaixado por edição comum.
+    
+
+A transferência utiliza fluxo específico e Auditoria obrigatória.
 
 ---
 
@@ -325,9 +699,7 @@ Representa um conjunto reutilizável de permissões.
 
 Cada perfil pertence a uma empresa.
 
-Um perfil pode conter permissões por módulo.
-
-Exemplos de perfis:
+Exemplos:
 
 - Administrador;
     
@@ -344,23 +716,36 @@ Exemplos de perfis:
 
 O nome do perfil não concede acesso por si só.
 
-O acesso efetivo é calculado pelo backend.
+---
+
+## Perfil Padrão
+
+Representa o perfil aplicado automaticamente quando a regra de negócio exigir.
+
+Existe apenas um perfil padrão ativo por empresa.
+
+A garantia ocorre por:
+
+```text
+transaction.atomic()
+select_for_update()
+```
+
+A regra não depende de constraint condicional incompatível com MySQL.
 
 ---
 
 ## Perfil Módulo Permissão
 
-Representa o nível de acesso de um perfil a um módulo.
-
 Relaciona:
 
 ```text
-Perfil de Acesso
-→ Módulo do Sistema
-→ Nível de Acesso
+Perfil
+→ Módulo
+→ Nível
 ```
 
-Níveis atuais:
+Níveis:
 
 ```text
 NONE
@@ -368,69 +753,64 @@ VIEW
 EDIT
 ```
 
-Alterar essa entidade pode modificar o acesso de vários usuários.
+Alterações podem afetar vários usuários.
 
-Por isso, a alteração é considerada crítica e utiliza auditoria obrigatória.
+Por isso:
+
+- incrementam `permissions_version`;
+    
+- geram Auditoria obrigatória;
+    
+- respeitam módulos contratados;
+    
+- respeitam dependências.
+    
 
 ---
 
-## Permissão Adicional do Usuário
+## Override do Usuário
 
-Representa um override individual sobre as permissões herdadas do perfil.
+Representa uma exceção individual à permissão herdada do perfil.
 
-Pode:
+Opções:
 
-- conceder acesso adicional;
-    
-- reduzir acesso;
-    
-- substituir o nível definido no perfil.
-    
+```text
+HERDAR
+NONE
+VIEW
+EDIT
+```
 
-O backend calcula a permissão efetiva considerando:
+`HERDAR` significa que não existe permissão individual persistida.
 
-- empresa;
-    
-- contrato;
-    
-- módulo contratado;
-    
-- perfil;
-    
-- override;
-    
-- usuário master;
-    
-- situação do usuário.
-    
+O valor do perfil volta a ser utilizado.
 
 ---
 
 ## Permissão Efetiva
 
-Não é apenas um cadastro isolado.
+Representa o resultado final calculado pelo backend.
 
-É o resultado do cálculo realizado pelo backend.
+A regra é:
 
-Considera:
+```text
+Perfil
++ Override
++ Contrato
++ Módulos contratados
++ Situação do usuário
+= Permissão efetiva
+```
 
-- usuário ativo;
-    
-- empresa ativa;
-    
-- contrato válido;
-    
-- módulo contratado;
-    
-- perfil;
-    
-- permissão do perfil;
-    
-- override do usuário;
-    
+Também considera:
+
 - master;
     
-- superusuário.
+- superusuário;
+    
+- status do contrato;
+    
+- dependências do módulo.
     
 
 Regra principal:
@@ -441,14 +821,233 @@ Ausência de permissão = acesso negado
 
 ---
 
+## Matriz de Permissões
+
+A tela de usuário representa:
+
+|Módulo|Perfil|Override|Efetivo|
+|---|---|---|---|
+|Compras|VIEW|EDIT|EDIT|
+|Financeiro|NONE|HERDAR|NONE|
+|Auditoria|VIEW|HERDAR|VIEW|
+
+O frontend exibe os valores.
+
+O backend é responsável pelo cálculo efetivo.
+
+---
+
+## Loja Principal
+
+Representa a unidade operacional principal do usuário.
+
+Regras:
+
+- deve pertencer à empresa do usuário;
+    
+- deve estar incluída nas lojas permitidas;
+    
+- não pode pertencer a outra empresa;
+    
+- pode ser nula quando a função não exigir loja.
+    
+
+---
+
+## Lojas Permitidas
+
+Representam o conjunto de estabelecimentos que o usuário pode acessar.
+
+Todas devem pertencer à empresa do usuário.
+
+A relação não pode ampliar o acesso para outra empresa.
+
+---
+
+## Autoproteção do Usuário
+
+Um usuário não pode:
+
+- elevar a própria permissão;
+    
+- alterar a própria empresa;
+    
+- atribuir a si mesmo um perfil superior;
+    
+- ampliar as próprias lojas;
+    
+- tornar-se master;
+    
+- alterar campos internos de segurança.
+    
+
+Campos protegidos incluem:
+
+```text
+is_staff
+is_superuser
+groups
+user_permissions
+master
+token
+session_id
+```
+
+---
+
+# Ciclo de Vida do Usuário
+
+## Criação
+
+Na criação:
+
+- empresa é validada;
+    
+- perfil é validado;
+    
+- lojas são validadas;
+    
+- senha inicial é definida;
+    
+- nenhuma licença é consumida;
+    
+- auditoria é registrada.
+    
+
+---
+
+## Ativação
+
+A ativação:
+
+- permite novo login;
+    
+- não cria sessão;
+    
+- não consome licença;
+    
+- não reativa sessões antigas.
+    
+
+---
+
+## Inativação
+
+A inativação:
+
+- bloqueia novos logins;
+    
+- encerra sessões;
+    
+- revoga tokens;
+    
+- libera vagas;
+    
+- atualiza permissões;
+    
+- registra auditoria.
+    
+
+Master não pode ser inativado.
+
+---
+
+## Exclusão Administrativa
+
+Representa uma exclusão excepcional.
+
+Antes da exclusão devem ser verificadas dependências.
+
+O master não pode ser excluído.
+
+A exclusão utiliza Auditoria obrigatória.
+
+---
+
+## Redefinição Administrativa de Senha
+
+Representa a definição de uma nova senha por administrador autorizado.
+
+A operação:
+
+- valida a senha;
+    
+- marca `deve_trocar_senha`;
+    
+- pode encerrar sessões;
+    
+- revoga tokens;
+    
+- exige novo login;
+    
+- registra Auditoria obrigatória.
+    
+
+A senha nunca é gravada na Auditoria.
+
+---
+
+## Troca Obrigatória de Senha
+
+Representa a obrigação de o próprio usuário trocar a senha temporária.
+
+Campo:
+
+```text
+deve_trocar_senha
+```
+
+Enquanto estiver ativo:
+
+- o usuário consegue autenticar;
+    
+- o usuário não acessa os módulos normais;
+    
+- o usuário acessa apenas recursos mínimos;
+    
+- o backend retorna `PASSWORD_CHANGE_REQUIRED`.
+    
+
+---
+
+## Troca de Senha pelo Usuário
+
+O usuário informa:
+
+- senha atual;
+    
+- nova senha;
+    
+- confirmação.
+    
+
+A operação:
+
+- valida a senha atual;
+    
+- aplica validadores do Django;
+    
+- impede reutilização imediata da mesma senha;
+    
+- limpa `deve_trocar_senha`;
+    
+- encerra outras sessões;
+    
+- mantém a sessão atual;
+    
+- registra Auditoria obrigatória.
+    
+
+---
+
+# Licenciamento e Sessões
+
 ## Sessão de Usuário
 
-Representa uma utilização autenticada e simultânea do sistema.
+Representa uma utilização autenticada e simultânea.
 
-Uma sessão contém:
+Contém:
 
-- identificador;
-    
 - empresa;
     
 - usuário;
@@ -457,7 +1056,7 @@ Uma sessão contém:
     
 - dispositivo;
     
-- endereço IP;
+- IP;
     
 - user-agent;
     
@@ -467,9 +1066,9 @@ Uma sessão contém:
     
 - encerramento;
     
-- motivo do encerramento;
+- motivo;
     
-- situação ativa ou encerrada.
+- situação.
     
 
 Uma sessão ativa consome uma vaga do contrato.
@@ -478,7 +1077,7 @@ Uma sessão ativa consome uma vaga do contrato.
 
 ## Token de Sessão
 
-Representa a credencial técnica vinculada a uma sessão.
+Representa a credencial vinculada à sessão.
 
 O token:
 
@@ -488,59 +1087,61 @@ O token:
     
 - pode ser revogado;
     
-- perde validade quando a sessão termina;
+- perde validade ao encerrar a sessão;
     
 - não é armazenado em texto puro.
     
 
 Somente o hash é persistido.
 
-Token sem sessão válida não autentica o usuário.
-
 ---
 
 ## Dispositivo
 
-Representa o navegador ou instalação que originou a sessão.
+Representa o navegador ou instalação de origem.
 
-É identificado por um `device_id`.
+É identificado por:
 
-O dispositivo é utilizado para:
+```text
+device_id
+```
 
-- distinguir acessos;
-    
-- substituir sessão anterior no mesmo dispositivo;
-    
-- registrar contexto de auditoria;
-    
-- controlar sessões simultâneas.
-    
+Serve para:
 
-O mesmo usuário em dispositivos diferentes mantém sessões independentes.
+- distinguir sessões;
+    
+- substituir sessão anterior;
+    
+- controlar acessos simultâneos;
+    
+- registrar auditoria.
+    
 
 ---
 
-# Licenciamento
-
 ## Acesso Simultâneo
 
-Representa uma vaga disponível no contrato.
+Representa uma vaga do contrato.
 
-Não existe como usuário cadastrado.
+Não corresponde a um usuário cadastrado.
 
-Uma vaga é consumida quando uma sessão ativa é criada.
+Uma vaga é consumida quando uma sessão é criada.
 
-Uma vaga é liberada quando a sessão é encerrada por:
+É liberada por:
 
 - logout;
     
 - timeout;
     
-- inativação;
-    
 - substituição;
     
-- encerramento administrativo.
+- inativação;
+    
+- suspensão da empresa;
+    
+- encerramento administrativo;
+    
+- redefinição de senha.
     
 
 ---
@@ -549,15 +1150,82 @@ Uma vaga é liberada quando a sessão é encerrada por:
 
 É definido no contrato.
 
-Controla quantas sessões simultâneas podem permanecer ativas para a empresa.
+Quando atingido:
 
-Quando o limite é atingido:
-
-- o novo login é negado;
+- novo login é negado;
     
 - nenhuma sessão adicional é criada;
     
-- um evento de auditoria é registrado.
+- evento de auditoria é registrado.
+    
+
+Código:
+
+```text
+CONCURRENT_SESSION_LIMIT_REACHED
+```
+
+---
+
+## Encerramento de Sessão
+
+Uma sessão pode ser encerrada por:
+
+```text
+LOGOUT
+TIMEOUT
+REPLACED
+ADMIN_TERMINATED
+SELF_TERMINATED
+USER_INACTIVATED
+CONTRACT_SUSPENDED
+PASSWORD_RESET
+```
+
+Os nomes exatos devem seguir os choices existentes no código.
+
+---
+
+## Encerramento Consolidado
+
+Representa o encerramento de todas as sessões de um usuário.
+
+A operação é transacional.
+
+Evento principal:
+
+```text
+USER_SESSIONS_CLOSED
+```
+
+Se a Auditoria obrigatória falhar:
+
+- sessões permanecem ativas;
+    
+- tokens permanecem válidos;
+    
+- não ocorre encerramento parcial.
+    
+
+---
+
+## Heartbeat
+
+Representa a atualização periódica da atividade da sessão.
+
+Pode informar:
+
+- sessão válida;
+    
+- última atividade;
+    
+- versão das permissões;
+    
+- necessidade de novo login;
+    
+- suspensão do contrato;
+    
+- troca obrigatória de senha.
     
 
 ---
@@ -568,7 +1236,13 @@ Quando o limite é atingido:
 
 Representa um fato relevante ocorrido no SISVAR.
 
-O evento pode representar:
+O model central é:
+
+```text
+AuditLog
+```
+
+Pode representar:
 
 - sucesso;
     
@@ -576,72 +1250,20 @@ O evento pode representar:
     
 - acesso negado;
     
-- operação pendente;
-    
 - rollback;
-    
-- evento técnico;
     
 - alteração cadastral;
     
-- ação de negócio;
+- ação administrativa;
     
-- evento de segurança.
+- evento de segurança;
     
-
-O model central utilizado é:
-
-```text
-AuditLog
-```
-
----
-
-## Identificador do Evento
-
-Cada evento possui um `event_id` único.
-
-Permite:
-
-- pesquisa;
+- ação de negócio.
     
-- suporte;
-    
-- referência externa;
-    
-- exportação;
-    
-- investigação.
-    
-
----
-
-## Request ID
-
-Identifica a requisição HTTP que originou o evento.
-
-Vários eventos podem compartilhar o mesmo request ID quando foram gerados pela mesma requisição.
-
----
-
-## Correlation ID
-
-Relaciona eventos pertencentes à mesma operação de negócio.
-
-Exemplo:
-
-```text
-Aprovação de pedido
-→ geração financeira
-→ movimentação de estoque
-→ auditorias relacionadas
-```
 
 ---
 
 ## Contexto de Auditoria
-
-Representa as informações técnicas e funcionais disponíveis no momento do evento.
 
 Pode conter:
 
@@ -670,24 +1292,13 @@ Pode conter:
 - correlation ID.
     
 
-Esse contexto é fornecido pelo `AuditContextMiddleware`.
-
 ---
 
 ## Snapshot Histórico
 
-Representa uma cópia dos dados de identificação no momento do evento.
+Preserva informações no momento do evento.
 
-São mantidos snapshots de:
-
-- empresa;
-    
-- loja;
-    
-- usuário.
-    
-
-Exemplos:
+Snapshots existentes:
 
 ```text
 empresa_id_snapshot
@@ -701,282 +1312,146 @@ username_snapshot
 user_nome_snapshot
 ```
 
-Os snapshots preservam o significado histórico mesmo quando o cadastro original é alterado posteriormente.
-
 ---
 
-## Ação de Auditoria
+## Estado Anterior e Posterior
 
-Representa o tipo específico de evento.
-
-Exemplos:
-
-```text
-USER_LOGIN
-USER_LOGOUT
-SESSION_TIMEOUT
-SESSION_LIMIT_REACHED
-CONTRACT_UPDATED
-MASTER_TRANSFERRED
-PERMISSION_UPDATED
-AUDIT_EXPORT
-OBJECT_CREATED
-OBJECT_UPDATED
-OBJECT_DELETED
-```
-
-Ações oficiais pertencem ao catálogo central `AuditAction`.
-
-Ações desconhecidas não são aceitas livremente.
-
----
-
-## Categoria de Auditoria
-
-Classifica o domínio funcional do evento.
-
-Categorias atuais:
-
-```text
-SECURITY
-ACCESS
-CONTRACT
-USER_MANAGEMENT
-CADASTRO
-PRODUCT
-PURCHASE
-STOCK
-SALE
-FISCAL
-FINANCIAL
-ACCOUNTING
-PRODUCTION
-DISTRIBUTION
-REPORT
-SYSTEM
-INTEGRATION
-```
-
----
-
-## Resultado da Auditoria
-
-Representa o resultado da operação.
-
-Valores atuais:
-
-```text
-SUCCESS
-FAILURE
-DENIED
-PENDING
-ROLLED_BACK
-```
-
----
-
-## Severidade
-
-Representa a importância ou gravidade do evento.
-
-Valores atuais:
-
-```text
-INFO
-WARNING
-ERROR
-CRITICAL
-```
-
----
-
-## Origem
-
-Representa o canal ou processo que gerou o evento.
-
-Valores atuais:
-
-```text
-API
-WEB
-PDV
-OFFLINE_SYNC
-COMMAND
-IMPORT
-INTEGRATION
-SYSTEM
-```
-
----
-
-## Objeto Auditado
-
-Representa a entidade afetada pelo evento.
-
-Pode conter:
-
-- app;
-    
-- model;
-    
-- object ID;
-    
-- representação textual.
-    
-
-Exemplo:
-
-```text
-accounts.user #25
-```
-
----
-
-## Estado Anterior
-
-Representado por:
+Estado anterior:
 
 ```text
 before_data
 ```
 
-Contém os valores relevantes existentes antes da operação.
-
----
-
-## Estado Posterior
-
-Representado por:
+Estado posterior:
 
 ```text
 after_data
 ```
 
-Contém os valores relevantes existentes depois da operação.
-
----
-
-## Campos Alterados
-
-Representado por:
+Campos alterados:
 
 ```text
 changed_fields
 ```
 
-Contém a lista de campos efetivamente modificados.
+Dados complementares:
 
----
-
-## Metadata
-
-Contém informações complementares que não representam diretamente antes e depois.
-
-Exemplos:
-
-- motivo;
-    
-- limite de sessões;
-    
-- quantidade exportada;
-    
-- filtros utilizados;
-    
-- número do documento;
-    
-- código de rejeição;
-    
-- origem da integração.
-    
-
----
-
-## Erro Auditado
-
-Quando a operação falha, o evento pode registrar:
-
-- código do erro;
-    
-- mensagem segura;
-    
-- status HTTP;
-    
-- severidade.
-    
-
-Dados internos sensíveis não devem ser expostos.
+```text
+metadata
+```
 
 ---
 
 ## Auditoria Normal
 
-Representa eventos de sucesso que podem ser gravados depois da confirmação da operação.
+Representa eventos que podem ser persistidos depois da confirmação da operação.
 
 Utiliza:
 
-```python
+```text
 transaction.on_commit()
 ```
 
-Se a operação sofre rollback, o evento de sucesso não é criado.
+Se a operação sofrer rollback, o evento de sucesso não é criado.
 
 ---
 
 ## Auditoria Obrigatória
 
-Representa eventos que precisam ser registrados para que a operação crítica possa ser confirmada.
+Representa eventos necessários para confirmar uma operação crítica.
 
-Se a auditoria obrigatória falhar, a operação principal também falha.
+Se a Auditoria falhar, a operação principal sofre rollback.
 
-É utilizada atualmente em operações como:
+Aplicações atuais incluem:
 
-- contrato;
+- suspensão;
     
-- limite de sessões;
-    
-- módulos contratados;
+- reativação;
     
 - transferência de master;
     
-- permissões;
-    
 - perfil padrão;
     
-- exclusão administrativa de usuário.
+- alteração de permissão;
+    
+- redefinição de senha;
+    
+- troca obrigatória de senha;
+    
+- encerramento consolidado de sessões;
+    
+- exclusão administrativa.
     
 
 ---
 
-## Imutabilidade do Evento
+## Eventos do Contrato
 
-Um evento de auditoria não pode ser alterado ou excluído por operações comuns.
+Exemplos:
 
-São bloqueados:
+```text
+CONTRACT_SUSPENDED
+CONTRACT_REACTIVATED
+CONTRACT_SUSPENSION_DENIED
+CONTRACT_REACTIVATION_DENIED
+```
 
-- criação direta;
-    
-- edição;
-    
-- exclusão;
-    
-- atualização em massa;
-    
-- criação em massa;
-    
-- `update_or_create`;
-    
-- `get_or_create`.
-    
+---
 
-A criação ocorre por meio do `AuditService`.
+## Eventos do Estabelecimento
+
+Exemplos:
+
+```text
+STORE_CREATED
+STORE_UPDATED
+STORE_ACTIVATED
+STORE_DEACTIVATED
+STORE_CLOSED
+STORE_REOPENED
+STORE_FISCAL_CONFIG_UPDATED
+STORE_NUMBERING_UPDATED
+STORE_NEGATIVE_STOCK_POLICY_UPDATED
+STORE_OPERATION_DENIED
+```
+
+---
+
+## Eventos do Usuário
+
+Exemplos:
+
+```text
+USER_CREATED
+USER_UPDATED
+USER_ACTIVATED
+USER_INACTIVATED
+USER_PASSWORD_RESET
+USER_PASSWORD_CHANGED
+USER_PROFILE_CHANGED
+USER_STORE_ACCESS_CHANGED
+USER_OVERRIDE_CHANGED
+USER_SESSIONS_CLOSED
+USER_DELETED
+USER_OPERATION_DENIED
+PASSWORD_CHANGE_REQUIRED_ACCESS_DENIED
+```
+
+---
+
+## Imutabilidade
+
+Eventos não podem ser alterados ou excluídos por operações comuns.
+
+A criação ocorre pelo `AuditService`.
+
+A API é somente leitura.
 
 ---
 
 ## Sanitização
 
-Antes de persistir o evento, os dados passam por sanitização.
-
-Exemplos de informações proibidas:
+Não registrar:
 
 - senha;
     
@@ -986,16 +1461,16 @@ Exemplos de informações proibidas:
     
 - Authorization;
     
-- segredo;
-    
 - certificado;
     
 - chave privada;
     
-- hash de token.
+- hash de token;
+    
+- secrets.
     
 
-Esses dados são removidos ou substituídos por:
+Esses valores são removidos ou substituídos por:
 
 ```text
 [REDACTED]
@@ -1003,80 +1478,21 @@ Esses dados são removidos ou substituídos por:
 
 ---
 
-## Consulta de Auditoria
-
-A consulta depende da permissão efetiva.
-
-Superusuário:
-
-- todas as empresas.
-    
-
-Master:
-
-- toda a própria empresa.
-    
-
-Usuário com `VIEW`:
-
-- própria empresa;
-    
-- lojas permitidas;
-    
-- sem exportação.
-    
-
-Usuário com `EDIT`:
-
-- própria empresa;
-    
-- lojas permitidas;
-    
-- com exportação.
-    
-
-Usuário com `NONE`:
-
-- sem acesso.
-    
-
----
-
-## Exportação de Auditoria
-
-Representa a geração de arquivo CSV dos eventos permitidos.
-
-A exportação:
-
-- respeita empresa;
-    
-- respeita loja;
-    
-- respeita filtros;
-    
-- possui limite;
-    
-- é auditada.
-    
-
-A exportação não altera eventos.
-
----
-
 # Cadastros
 
-O domínio de Cadastros reúne entidades básicas utilizadas por vários módulos.
+O grupo Cadastros reúne entidades compartilhadas pelos demais módulos.
 
-Inclui, entre outros:
+Itens iniciais do menu:
 
-- clientes;
+- Clientes;
     
-- fornecedores;
+- Fornecedores;
     
-- funcionários;
+- Funcionários.
     
-- lojas;
-    
+
+Também existem entidades auxiliares como:
+
 - naturezas de lançamento;
     
 - plano financeiro;
@@ -1088,17 +1504,13 @@ Inclui, entre outros:
 - tabelas auxiliares.
     
 
-Todos os cadastros de cliente devem respeitar a empresa.
-
-Quando aplicável, também devem respeitar a loja.
+Esse grupo será revisado após a homologação manual do Operacional.
 
 ---
 
 # Produtos
 
-O domínio de Produtos representa a estrutura comercial e técnica dos itens.
-
-Inclui:
+O domínio de Produtos inclui:
 
 - produto;
     
@@ -1129,15 +1541,15 @@ Inclui:
 - itens do pack.
     
 
-Eventos específicos de produto e preço serão integrados detalhadamente à Auditoria durante a revisão do módulo.
+A revisão detalhada ainda será realizada.
 
 ---
 
 # Compras
 
-O domínio de Compras representa:
+O domínio de Compras inclui:
 
-- pedidos;
+- pedido;
     
 - itens;
     
@@ -1153,27 +1565,27 @@ O domínio de Compras representa:
     
 - recebimento;
     
-- entrada de mercadorias.
+- futura Entrada de Nota Fiscal.
     
 
-Compras podem integrar:
+Pode integrar:
 
 - estoque;
     
+- fiscal;
+    
 - financeiro;
     
-- fiscal;
+- contabilidade;
     
 - auditoria.
     
-
-A integração detalhada dos eventos de negócio será revisada na etapa do módulo.
 
 ---
 
 # Estoque
 
-O domínio de Estoque controla movimentações físicas.
+Controla movimentações físicas.
 
 Origens possíveis:
 
@@ -1196,13 +1608,11 @@ Origens possíveis:
 
 Toda movimentação deve possuir origem rastreável.
 
-Eventos críticos deverão utilizar auditoria explícita.
-
 ---
 
 # Produção
 
-O domínio de Produção controla:
+Pode incluir:
 
 - ficha técnica;
     
@@ -1212,30 +1622,26 @@ O domínio de Produção controla:
     
 - consumo;
     
-- envio para facção;
+- facção;
     
 - retorno;
     
 - finalização;
     
-- entrada do produto acabado.
+- produto acabado.
     
-
-A integração completa ainda será revisada.
 
 ---
 
 # Distribuição
 
-O domínio de Distribuição controla o envio de produtos da origem para as lojas.
-
 Pode incluir:
 
-- estoque disponível;
+- estoque de origem;
     
-- perfil de distribuição;
+- lojas de destino;
     
-- percentuais;
+- perfis percentuais;
     
 - quantidades por tamanho;
     
@@ -1245,20 +1651,18 @@ Pode incluir:
     
 - pedidos por loja;
     
-- transferência;
+- transferências;
     
 - faturamento;
     
 - recebimento.
     
 
-A integração detalhada com estoque, fiscal e auditoria ainda será revisada.
-
 ---
 
 # Vendas e PDV
 
-O domínio de Vendas representa:
+Pode incluir:
 
 - orçamento;
     
@@ -1268,49 +1672,47 @@ O domínio de Vendas representa:
     
 - itens;
     
-- pagamento;
+- pagamentos;
     
-- desconto;
+- descontos;
     
 - caixa;
     
 - NFC-e;
     
-- devolução.
+- devoluções;
     
-
-O PDV Offline deverá utilizar a mesma identidade de empresa, loja, usuário, sessão e auditoria, adaptada ao processo de sincronização.
+- PDV Offline.
+    
 
 ---
 
 # Fiscal
 
-O domínio Fiscal é responsável por:
+Responsável por:
 
-- documentos fiscais;
+- NF-e;
     
 - NFC-e;
     
-- NF-e;
-    
-- eventos fiscais;
+- documentos fiscais;
     
 - tributos;
     
-- integrações;
+- emissão;
     
 - rejeições;
     
-- contingência.
+- contingência;
     
-
-Falhas e operações fiscais críticas deverão gerar auditoria explícita.
+- eventos fiscais.
+    
 
 ---
 
 # Financeiro
 
-O domínio Financeiro é responsável por:
+Responsável por:
 
 - contas a pagar;
     
@@ -1324,7 +1726,7 @@ O domínio Financeiro é responsável por:
     
 - reaberturas;
     
-- caixa;
+- caixas;
     
 - bancos;
     
@@ -1333,13 +1735,11 @@ O domínio Financeiro é responsável por:
 - rateios.
     
 
-Operações financeiras críticas deverão ser auditadas durante a revisão do módulo.
-
 ---
 
 # Contabilidade
 
-O domínio Contábil representa:
+Responsável por:
 
 - plano contábil;
     
@@ -1354,32 +1754,28 @@ O domínio Contábil representa:
 - estornos.
     
 
-Alterações contábeis devem preservar rastreabilidade.
-
 ---
 
 # Relatórios e Dashboards
 
-Representam consultas consolidadas sobre os módulos.
+Representam consultas consolidadas.
 
-Podem depender simultaneamente de:
+O acesso depende de:
 
-- módulo de Relatórios;
-    
-- módulo de origem;
-    
 - empresa;
     
 - loja;
     
-- permissão efetiva.
+- módulos contratados;
     
-
-Exportações sensíveis podem exigir auditoria.
+- permissão efetiva;
+    
+- dependências entre módulos.
+    
 
 ---
 
-# Relacionamentos principais
+# Relacionamentos Principais
 
 ## Empresa
 
@@ -1387,7 +1783,7 @@ Exportações sensíveis podem exigir auditoria.
 Empresa
 → Contrato
 → Módulos Contratados
-→ Lojas
+→ Estabelecimentos
 → Usuários
 → Perfis
 → Sessões
@@ -1409,10 +1805,27 @@ Empresa
 ```text
 Contrato
 → Empresa
-→ Usuário Master
+→ Master
 → Limite de Sessões
-→ Plano Completo
+→ Status
+→ Suspensão
+→ Reativação
+→ Módulos
 → Versão das Permissões
+```
+
+## Estabelecimento
+
+```text
+Estabelecimento
+→ Empresa
+→ Usuários
+→ Sessões
+→ Estoque
+→ Vendas
+→ Fiscal
+→ Distribuição
+→ Auditoria
 ```
 
 ## Usuário
@@ -1421,10 +1834,12 @@ Contrato
 Usuário
 → Empresa
 → Perfil
-→ Permissões Adicionais
+→ Tipo Funcional
+→ Loja Principal
 → Lojas Permitidas
+→ Overrides
 → Sessões
-→ Eventos de Auditoria
+→ Auditoria
 ```
 
 ## Perfil
@@ -1434,6 +1849,7 @@ Perfil
 → Empresa
 → Permissões por Módulo
 → Usuários
+→ Perfil Padrão
 ```
 
 ## Sessão
@@ -1441,119 +1857,149 @@ Perfil
 ```text
 Sessão
 → Empresa
-→ Loja
+→ Estabelecimento
 → Usuário
 → Dispositivo
 → Token
-→ Eventos de Auditoria
+→ Auditoria
 ```
 
 ## Auditoria
 
 ```text
-Evento de Auditoria
+Evento
 → Empresa
-→ Loja
+→ Estabelecimento
 → Usuário
 → Sessão
 → Dispositivo
 → Objeto
 → Requisição
-→ Operação de Negócio
+→ Operação
 ```
 
 ---
 
-# Situação atual
+# Situação Atual
 
-## Implementado, testado e homologado
+## Implementado e validado automaticamente
 
 - Empresa
     
-- Loja
-    
 - Contrato
     
-- Módulo do Sistema
+- Módulos contratados
     
-- Empresa Módulo
+- Suspensão administrativa
+    
+- Reativação
+    
+- Estabelecimento obrigatório por empresa
+    
+- Tipos de estabelecimento
+    
+- Ciclo de vida do estabelecimento
     
 - Usuário
     
-- Usuário Master
+- Usuário master
     
-- Perfil de Acesso
+- Perfil de acesso
     
-- Permissão por Módulo
+- Perfil padrão
     
-- Permissão adicional
+- Dependências entre módulos
+    
+- Permissão por módulo
+    
+- Override
     
 - Permissão efetiva
     
-- Sessão de Usuário
+- Loja principal
     
-- Token de Sessão
+- Lojas permitidas
+    
+- Sessão
+    
+- Token
     
 - Device ID
     
-- Licenciamento por sessões simultâneas
+- Licenciamento simultâneo
+    
+- Encerramento consolidado de sessões
+    
+- Redefinição administrativa de senha
+    
+- Troca obrigatória de senha
     
 - Auditoria Central
     
-- Contexto de Auditoria
-    
-- Snapshots históricos
-    
-- Sanitização
-    
-- Imutabilidade
-    
-- Consulta de Auditoria
-    
-- Indicadores
-    
-- Exportação CSV
-    
 
-## Implementado em módulos existentes, ainda sujeito a revisão detalhada
+## Validação automatizada
 
-- Cadastros
-    
-- Produtos
-    
-- Compras
-    
-- Estoque
-    
-- Financeiro
-    
-- Fiscal
-    
-- Vendas
-    
-- Dashboards
-    
+Backend:
 
-## Em evolução ou pendente de revisão completa
+```text
+50 testes aprovados
+```
 
-- Entrada de Nota Fiscal
+Frontend:
+
+```text
+33 testes aprovados
+```
+
+## Homologação manual pendente
+
+Ainda precisam ser testados no navegador:
+
+- suspensão;
     
-- Produção
+- reativação;
     
-- Distribuição
+- encerramento das sessões;
     
-- PDV Offline
+- bloqueio de login;
     
-- Integração detalhada da Auditoria com cada módulo
+- troca obrigatória de senha;
     
-- Relatórios consolidados
+- Estabelecimento com VIEW;
     
-- Contabilidade integrada
+- Estabelecimento com EDIT;
+    
+- matriz Perfil/Override/Efetivo;
+    
+- dependências de módulos;
+    
+- novos eventos na Auditoria.
     
 
 ---
 
-# Decisões relacionadas
+# Próxima Etapa
+
+Após a homologação manual do Operacional, a revisão seguirá a ordem do menu lateral.
+
+Próximo grupo:
+
+```text
+Cadastros
+```
+
+Itens iniciais:
+
+- Clientes;
+    
+- Fornecedores;
+    
+- Funcionários.
+    
+
+---
+
+# Decisões Relacionadas
 
 - ADR-001 — Licenciamento por Sessões Simultâneas.
     
@@ -1564,9 +2010,11 @@ Evento de Auditoria
 
 ---
 
-# Notas relacionadas
+# Notas Relacionadas
 
 - [[10 Projetos/Sysvar/Sysvar|Sysvar]]
+    
+- [[10 Projetos/Sysvar/Contexto do Projeto/Visão Geral|Visão Geral]]
     
 - [[10 Projetos/Sysvar/Contexto do Projeto/Arquitetura|Arquitetura]]
     
