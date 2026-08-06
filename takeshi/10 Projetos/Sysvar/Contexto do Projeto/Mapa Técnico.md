@@ -1,28 +1,21 @@
 ---
-
-type: reference  
-status: active  
-project: Sysvar  
-source: "C:/SysvarProjeto"  
-created: 2026-08-03  
-updated: 2026-08-05  
+type: reference
+status: active
+project: Sysvar
+source: "C:/SysvarProjeto"
+created: 2026-08-03
+updated: 2026-08-06
 tags:
-
-- sysvar
-    
-- contexto
-    
-- mapa-tecnico
-    
-- backend
-    
-- frontend
-    
-- operacional
-    
-- auditoria
-    
-
+  - sysvar
+  - contexto
+  - mapa-tecnico
+  - backend
+  - frontend
+  - operacional
+  - auditoria
+  - sessões
+  - licenciamento
+  - homologado
 ---
 
 # Mapa Técnico
@@ -34,52 +27,81 @@ Este documento indica onde estão as principais responsabilidades técnicas do S
 Ele deve ser utilizado para localizar rapidamente:
 
 - apps;
-    
 - models;
-    
 - services;
-    
 - serializers;
-    
 - views;
-    
 - rotas;
-    
 - migrations;
-    
+- commands;
 - components;
-    
 - guards;
-    
 - interceptors;
-    
 - testes;
-    
 - infraestrutura transversal.
-    
 
 Este arquivo não substitui a leitura do código atual.
 
 Antes de qualquer alteração:
 
 1. localizar o arquivo;
-    
 2. abrir o conteúdo atual;
-    
 3. verificar consumidores;
-    
 4. verificar testes;
-    
 5. verificar migrations;
-    
 6. verificar impacto no frontend;
-    
-7. verificar impacto na Auditoria.
-    
+7. verificar impacto na Auditoria;
+8. verificar a documentação relacionada.
 
 ---
 
-# Estrutura local
+# Situação Técnica Atual
+
+O grupo Operacional está:
+
+```text
+IMPLEMENTADO
+TESTADO AUTOMATICAMENTE
+HOMOLOGADO MANUALMENTE
+DOCUMENTADO
+```
+
+Foram concluídos:
+
+- Empresas;
+- Contratos;
+- Suspensão;
+- Reativação;
+- Estabelecimentos;
+- Usuários;
+- Perfis;
+- Permissões;
+- Overrides;
+- Sessões;
+- Tokens;
+- Licenciamento simultâneo;
+- Administração de sessões;
+- Diagnóstico de sessões;
+- Reconciliação de sessões;
+- Redefinição administrativa de senha;
+- Troca obrigatória de senha;
+- Auditoria Central.
+
+Próximo grupo:
+
+```text
+Cadastros
+```
+
+Primeiros itens:
+
+1. Clientes;
+2. Fornecedores;
+3. Funcionários.
+
+---
+
+# Estrutura Local
 
 Projeto:
 
@@ -139,18 +161,19 @@ Branch principal:
 main
 ```
 
-Commits finais do grupo Operacional:
+Os hashes não devem ser mantidos como referência permanente neste arquivo, porque novas correções podem substituí-los.
 
-Backend:
+Para consultar os commits atuais:
 
-```text
-3955ea48c721afc7b15520a7afd6ec32f8374af6
-```
+```powershell
+cd C:\SysvarProjeto\Backend
+git log -5 --oneline
 
-Frontend:
+cd C:\SysvarProjeto\Frontend\sysvar
+git log -5 --oneline
 
-```text
-bf66e81e6f1c0d58255a135d9339a34b95ef332f
+cd C:\takeshi
+git log -5 --oneline
 ```
 
 ---
@@ -159,35 +182,25 @@ bf66e81e6f1c0d58255a135d9339a34b95ef332f
 
 ## Backend
 
-- Python
-    
-- Django
-    
-- Django REST Framework
-    
-- MySQL
-    
+- Python;
+- Django;
+- Django REST Framework;
+- MySQL.
 
 ## Frontend
 
-- Angular 17 Standalone
-    
-- TypeScript
-    
+- Angular 17 Standalone;
+- TypeScript.
 
 ## Versionamento
 
-- Git
-    
-- GitHub
-    
+- Git;
+- GitHub.
 
 ## Documentação
 
-- Obsidian
-    
-- Markdown
-    
+- Obsidian;
+- Markdown.
 
 ---
 
@@ -235,7 +248,7 @@ cadastros
 auditoria
 ```
 
-Arquivos frontend principais:
+Features principais do frontend:
 
 ```text
 features\empresas
@@ -243,6 +256,7 @@ features\lojas
 features\usuarios
 features\perfis-acesso
 features\auditoria
+features\change-password-required
 ```
 
 ---
@@ -258,29 +272,18 @@ Backend\accounts
 Responsabilidades:
 
 - usuários;
-    
 - autenticação;
-    
 - perfis;
-    
 - permissões;
-    
 - overrides;
-    
 - sessões;
-    
 - tokens;
-    
 - licenciamento;
-    
 - heartbeat;
-    
 - troca de senha;
-    
 - transferência de master;
-    
-- acesso efetivo.
-    
+- acesso efetivo;
+- administração de sessões.
 
 Arquivos principais:
 
@@ -300,6 +303,12 @@ Services:
 ```text
 Backend\accounts\services\effective_access.py
 Backend\accounts\services\sessions.py
+```
+
+Commands:
+
+```text
+Backend\accounts\management\commands
 ```
 
 ---
@@ -325,26 +334,17 @@ SessionToken
 
 ## User
 
-Responsabilidades e campos relevantes:
+Campos e responsabilidades relevantes:
 
 - empresa;
-    
 - perfil principal;
-    
 - tipo funcional;
-    
-- loja principal;
-    
-- lojas permitidas;
-    
+- estabelecimento principal;
+- estabelecimentos permitidos;
 - permissões individuais;
-    
 - permissões de campo;
-    
 - situação ativa;
-    
 - `deve_trocar_senha`.
-    
 
 O campo:
 
@@ -359,17 +359,11 @@ controla o fluxo obrigatório de alteração após redefinição administrativa.
 Responsável por:
 
 - perfil da empresa;
-    
 - nome;
-    
 - descrição;
-    
 - situação;
-    
 - perfil padrão;
-    
 - usuários vinculados.
-    
 
 ## PerfilModuloPermissao
 
@@ -392,23 +386,16 @@ No frontend, `HERDAR` significa ausência desse registro.
 Responsável por:
 
 - empresa;
-    
 - usuário;
-    
-- loja;
-    
+- estabelecimento;
 - dispositivo;
-    
 - início;
-    
 - última atividade;
-    
 - encerramento;
-    
 - motivo;
-    
 - situação ativa.
-    
+
+A sessão do superusuário pode permanecer sem empresa.
 
 ## SessionToken
 
@@ -420,10 +407,9 @@ O token bruto não é persistido.
 
 # Accounts — Migrations
 
-Migrations relevantes da infraestrutura:
+Migrations relevantes:
 
 ```text
-Backend\accounts\migrations\0006_...
 Backend\accounts\migrations\0009_usermodulepermission_auditoria_choice.py
 Backend\accounts\migrations\0010_user_deve_trocar_senha.py
 ```
@@ -457,25 +443,15 @@ CompanyTokenAuthentication
 Responsável por validar:
 
 - cabeçalho de autenticação;
-    
 - token;
-    
 - hash;
-    
 - sessão;
-    
 - expiração;
-    
 - usuário;
-    
 - empresa;
-    
 - contrato;
-    
 - suspensão;
-    
 - troca obrigatória de senha.
-    
 
 Código de bloqueio da troca obrigatória:
 
@@ -489,9 +465,7 @@ Mensagem:
 Você precisa alterar sua senha antes de continuar.
 ```
 
-Lista de caminhos permitidos durante a troca obrigatória é centralizada nesse arquivo.
-
-Caminhos conhecidos:
+Caminhos conhecidos permitidos durante a troca obrigatória:
 
 ```text
 /api/me/
@@ -502,7 +476,7 @@ Caminhos conhecidos:
 /api/accounts/sessoes/heartbeat/
 ```
 
-Antes de criar novos endpoints necessários durante esse fluxo, atualizar essa lista conscientemente.
+Antes de criar novo endpoint necessário nesse fluxo, revisar conscientemente essa lista.
 
 ---
 
@@ -523,23 +497,16 @@ EffectiveAccessService
 Responsável por:
 
 - verificar empresa;
-    
 - verificar contrato;
-    
 - verificar módulos;
-    
 - verificar perfil;
-    
 - verificar overrides;
-    
 - identificar master;
-    
+- identificar superusuário;
 - calcular permissões efetivas;
-    
 - retornar contexto para `/api/me/`.
-    
 
-A permissão final não deve ser calculada de forma independente no frontend.
+A permissão final não deve ser calculada independentemente no frontend.
 
 ---
 
@@ -560,23 +527,27 @@ ConcurrentSessionService
 Responsabilidades:
 
 - criar sessão;
-    
 - validar token;
-    
 - controlar limite simultâneo;
-    
-- substituir sessão do mesmo dispositivo;
-    
+- substituir sessão do mesmo usuário e dispositivo;
 - encerrar sessão;
-    
 - revogar token;
-    
 - fechar sessões expiradas;
-    
 - heartbeat;
-    
-- liberar licença.
-    
+- liberar licença;
+- listar sessões válidas;
+- calcular validade;
+- centralizar a contagem.
+
+Métodos centrais:
+
+```text
+ConcurrentSessionService.valid_sessions_queryset
+ConcurrentSessionService.active_sessions_queryset
+ConcurrentSessionService.count_active_sessions
+ConcurrentSessionService.session_validity
+ConcurrentSessionService.is_session_valid
+```
 
 Método de encerramento:
 
@@ -584,15 +555,204 @@ Método de encerramento:
 close_session(...)
 ```
 
-Possui controle:
+Pode possuir controle:
 
 ```text
-audit=True ou audit=False
+audit=True
+audit=False
 ```
 
-Esse parâmetro permite evitar eventos individuais duplicados quando uma operação em massa gera um evento consolidado.
+`audit=False` só deve ser utilizado quando o fluxo registrar auditoria equivalente de forma explícita.
 
-Não utilizar `audit=False` fora de um fluxo que registre auditoria equivalente de forma explícita.
+---
+
+# Regra Central de Sessão Válida
+
+Uma sessão ocupa licença quando atende aos critérios do serviço central, incluindo:
+
+- `ativa=True`;
+- `encerrada_em` nulo;
+- sessão não expirada;
+- usuário ativo;
+- empresa válida;
+- contrato válido;
+- token existente;
+- token não revogado.
+
+A mesma regra deve ser utilizada por:
+
+- login;
+- bloqueio por limite;
+- contador da empresa;
+- quantidade disponível;
+- heartbeat;
+- listagem por empresa;
+- listagem por usuário;
+- encerramento;
+- diagnóstico;
+- reconciliação.
+
+Não criar contagem paralela baseada somente em:
+
+```python
+SessaoUsuario.objects.filter(ativa=True)
+```
+
+---
+
+# Login e Limite Simultâneo
+
+O fluxo técnico deve manter:
+
+```text
+transaction.atomic
+→ validação do usuário
+→ validação do contrato
+→ encerramento de expiradas
+→ substituição do mesmo usuário e device_id
+→ bloqueio do contrato
+→ contagem de sessões válidas
+→ verificação do limite
+→ criação da sessão
+→ criação do token
+→ commit
+```
+
+Código de limite atingido:
+
+```text
+CONCURRENT_SESSION_LIMIT_REACHED
+```
+
+Login bloqueado não deve criar:
+
+- sessão válida;
+- token utilizável;
+- contexto local de autenticação.
+
+---
+
+# Mesmo Dispositivo
+
+## Mesmo Usuário
+
+```text
+mesmo usuário + mesmo device_id
+→ substitui a sessão anterior
+```
+
+## Usuários Diferentes
+
+```text
+usuários diferentes + mesmo device_id
+→ sessões independentes
+```
+
+Não substituir sessão apenas porque os usuários utilizaram o mesmo navegador.
+
+---
+
+# Logout
+
+Arquivos principais:
+
+```text
+Backend\accounts\views.py
+Backend\accounts\services\sessions.py
+Frontend\sysvar\src\app\core\auth.service.ts
+Frontend\sysvar\src\app\layout\shell\shell.component.ts
+```
+
+Ordem correta:
+
+```text
+frontend mantém o token
+→ frontend chama o backend
+→ backend identifica SessionToken
+→ backend identifica SessaoUsuario
+→ backend encerra a sessão
+→ backend revoga o token
+→ backend libera a vaga
+→ backend registra Auditoria
+→ frontend limpa o token
+→ frontend interrompe o heartbeat
+→ frontend redireciona
+```
+
+Não limpar o token antes da chamada ao backend.
+
+Esse erro já ocorreu e foi corrigido.
+
+---
+
+# Superusuário e Licenciamento
+
+O superusuário:
+
+- cria sessão;
+- cria token;
+- permanece sem empresa cliente;
+- não consome licença de empresa;
+- não entra no contador da empresa;
+- não aparece na listagem de sessões que ocupam licença.
+
+Essa regra foi testada e homologada manualmente.
+
+---
+
+# Commands de Sessões
+
+## Diagnóstico
+
+Arquivo:
+
+```text
+Backend\accounts\management\commands\diagnosticar_sessoes_empresa.py
+```
+
+Execução:
+
+```powershell
+python manage.py diagnosticar_sessoes_empresa --empresa-id <id>
+```
+
+Pode apresentar:
+
+- ID da sessão;
+- usuário;
+- device ID;
+- estado;
+- última atividade;
+- token existente;
+- token revogado;
+- validade;
+- motivo da não validade.
+
+Não exibe token bruto.
+
+## Reconciliação
+
+Arquivo:
+
+```text
+Backend\accounts\management\commands\reconciliar_sessoes_ativas.py
+```
+
+Execução:
+
+```powershell
+python manage.py reconciliar_sessoes_ativas --empresa-id <id> --dry-run
+python manage.py reconciliar_sessoes_ativas --empresa-id <id> --apply
+```
+
+O `dry-run` não altera dados.
+
+O `apply`:
+
+- preserva histórico;
+- encerra sessões inválidas;
+- revoga tokens restantes;
+- não apaga registros.
 
 ---
 
@@ -607,27 +767,20 @@ Backend\accounts\permissions.py
 Responsabilidades:
 
 - acesso aos usuários;
-    
 - acesso aos perfis;
-    
 - permissão por módulo;
-    
 - nível VIEW ou EDIT;
-    
 - master;
-    
 - superusuário;
-    
 - isolamento por empresa.
-    
 
-Perfis passaram a utilizar:
+Perfis utilizam:
 
 ```text
 operacional
 ```
 
-em vez de depender do módulo:
+em vez de depender exclusivamente de:
 
 ```text
 configuracoes
@@ -658,25 +811,17 @@ Backend\accounts\serializers.py
 Responsabilidades:
 
 - validar empresa;
-    
 - validar perfil;
-    
-- validar lojas;
-    
+- validar estabelecimentos;
 - aplicar overrides;
-    
 - retornar permissão efetiva;
-    
 - validar módulos disponíveis;
-    
 - validar dependências;
-    
 - proteger campos internos;
-    
-- tratar redefinição e troca de senha.
-    
+- tratar redefinição e troca de senha;
+- serializar sessões.
 
-## Dependências de módulos
+## Dependências de Módulos
 
 A validação utiliza:
 
@@ -690,7 +835,7 @@ Um módulo com acesso diferente de `NONE` não pode possuir dependência em `NON
 
 Quando o frontend envia `HERDAR`, o backend deve remover o override correspondente.
 
-Não persistir `HERDAR` como um nível real do banco.
+Não persistir `HERDAR` como nível real do banco.
 
 ---
 
@@ -702,13 +847,13 @@ Arquivo:
 Backend\accounts\views.py
 ```
 
-Rotas registradas em:
+Rotas:
 
 ```text
 Backend\accounts\urls.py
 ```
 
-Endpoints relevantes incluem:
+Endpoints relevantes podem incluir:
 
 ```text
 POST /api/accounts/auth/token/
@@ -727,6 +872,36 @@ POST /api/accounts/sessoes/{id}/encerrar/
 ```
 
 Os caminhos exatos devem ser confirmados no arquivo de rotas antes de uso externo.
+
+---
+
+# Encerramento Individual de Sessão
+
+Implementação principal:
+
+```text
+Backend\accounts\views.py
+Backend\accounts\services\sessions.py
+```
+
+Fluxo:
+
+```text
+validar executor
+→ validar empresa
+→ localizar sessão
+→ close_session
+→ revogar token
+→ liberar vaga
+→ Auditoria
+→ atualizar resposta
+```
+
+O frontend deve atualizar:
+
+- listagem;
+- contador;
+- quantidade disponível.
 
 ---
 
@@ -757,7 +932,7 @@ Evento consolidado:
 USER_SESSIONS_CLOSED
 ```
 
-A resposta informa:
+A resposta pode informar:
 
 ```text
 sessoes_encerradas
@@ -828,21 +1003,13 @@ Payload:
 Fluxo:
 
 - valida senha atual;
-    
 - valida nova senha;
-    
 - aplica validadores Django;
-    
 - limpa `deve_trocar_senha`;
-    
 - encerra outras sessões;
-    
 - mantém a sessão atual;
-    
 - registra `USER_PASSWORD_CHANGED`;
-    
 - libera o acesso aos módulos.
-    
 
 ---
 
@@ -857,27 +1024,16 @@ Backend\cadastros
 Responsabilidades:
 
 - empresas;
-    
 - contratos;
-    
 - módulos;
-    
 - estabelecimentos;
-    
 - clientes;
-    
 - fornecedores;
-    
 - funcionários;
-    
 - naturezas;
-    
 - planos;
-    
 - formas de pagamento;
-    
 - tabelas auxiliares.
-    
 
 Arquivos principais:
 
@@ -920,29 +1076,17 @@ Loja
 Campos relevantes:
 
 - status;
-    
 - vigência;
-    
 - plano completo;
-    
 - master;
-    
 - limite de sessões;
-    
 - versão das permissões;
-    
 - motivo da suspensão;
-    
 - observação da suspensão;
-    
 - data da suspensão;
-    
 - responsável pela suspensão;
-    
 - data da reativação;
-    
 - responsável pela reativação.
-    
 
 Motivos de suspensão:
 
@@ -967,7 +1111,7 @@ Backend\cadastros\migrations\0020_modulo_auditoria.py
 Backend\cadastros\migrations\0021_empresacontrato_motivo_suspensao_and_more.py
 ```
 
-Existe também migration posterior do fechamento final tornando:
+Existe migration posterior tornando:
 
 ```text
 Loja.empresa
@@ -975,15 +1119,15 @@ Loja.empresa
 
 obrigatória.
 
-Confirmar o nome exato dessa migration no diretório antes de referenciá-la em scripts ou deploys.
+Confirmar o nome exato no diretório antes de citar em script ou deploy.
 
 Não editar migrations aplicadas.
 
 ---
 
-# Diagnóstico de Lojas sem Empresa
+# Diagnóstico de Estabelecimentos sem Empresa
 
-Command criado no backend:
+Command:
 
 ```text
 diagnosticar_lojas_sem_empresa
@@ -1028,8 +1172,6 @@ Somente superusuário executa essas ações.
 
 ## Suspensão
 
-Fluxo técnico:
-
 ```text
 transaction.atomic
 → select_for_update no contrato
@@ -1042,15 +1184,13 @@ transaction.atomic
 → commit
 ```
 
-Código de bloqueio:
+Código:
 
 ```text
 CONTRACT_SUSPENDED
 ```
 
 ## Reativação
-
-Fluxo:
 
 ```text
 transaction.atomic
@@ -1104,7 +1244,7 @@ O nome exato da ForeignKey e seus parâmetros devem ser verificados no model ant
 
 # Actions de Estabelecimento
 
-Endpoints implementados:
+Endpoints podem incluir:
 
 ```text
 POST /api/cadastros/lojas/{id}/ativar/
@@ -1115,24 +1255,47 @@ GET  /api/cadastros/lojas/{id}/usuarios/
 GET  /api/cadastros/lojas/indicadores/
 ```
 
-Confirmar os caminhos exatos em `cadastros/urls.py` e no router.
+Confirmar os caminhos exatos no router.
 
 Responsabilidades:
 
 - ciclo de vida;
-    
 - impedimentos;
-    
 - usuários vinculados;
-    
 - indicadores;
-    
 - isolamento por empresa;
-    
-- isolamento por loja;
-    
+- isolamento por estabelecimento;
 - permissão operacional.
-    
+
+---
+
+# Sessions da Empresa
+
+Implementação envolve:
+
+```text
+Backend\cadastros\views.py
+Backend\accounts\services\sessions.py
+Backend\accounts\serializers.py
+```
+
+A tela de Empresas utiliza:
+
+```text
+Ver Sessões
+```
+
+O endpoint deve retornar somente sessões válidas que ocupam licença da empresa.
+
+A regra obrigatória é:
+
+```text
+contador da empresa
+=
+quantidade de sessões válidas retornadas
+```
+
+Superusuário não aparece nessa lista.
 
 ---
 
@@ -1217,7 +1380,18 @@ USER_OPERATION_DENIED
 PASSWORD_CHANGE_REQUIRED_ACCESS_DENIED
 ```
 
-Antes de adicionar nova ação, confirmar o catálogo real em:
+## Sessões
+
+```text
+USER_LOGIN
+USER_LOGOUT
+SESSION_REPLACED
+SESSION_CLOSED
+SESSION_TIMEOUT
+SESSION_LIMIT_REACHED
+```
+
+Os nomes exatos devem ser confirmados no catálogo real:
 
 ```text
 Backend\auditoria\models.py
@@ -1232,23 +1406,14 @@ Ação não cadastrada gera erro de validação.
 Operações principais:
 
 - suspensão;
-    
 - reativação;
-    
 - redefinição de senha;
-    
 - troca obrigatória de senha;
-    
 - encerramento consolidado de sessões;
-    
 - perfil padrão;
-    
 - alteração de permissão;
-    
 - transferência de master;
-    
 - exclusão administrativa.
-    
 
 Método principal:
 
@@ -1278,7 +1443,59 @@ src\app\core\permission.service.ts
 src\app\core\services\access-control.service.ts
 ```
 
-Os caminhos reais devem ser confirmados antes de editar, pois alguns services podem estar organizados em subpastas diferentes.
+Os caminhos devem ser confirmados antes de editar.
+
+---
+
+# Frontend — Auth Service
+
+Arquivo principal:
+
+```text
+Frontend\sysvar\src\app\core\auth.service.ts
+```
+
+Responsabilidades:
+
+- login;
+- logout;
+- token;
+- contexto do usuário;
+- sessão;
+- heartbeat;
+- troca obrigatória de senha;
+- limpeza do contexto;
+- comunicação entre abas.
+
+No logout:
+
+- chamar o backend antes de limpar o token;
+- aguardar a resposta;
+- interromper heartbeat;
+- limpar contexto;
+- redirecionar.
+
+---
+
+# Frontend — Shell
+
+Arquivo:
+
+```text
+Frontend\sysvar\src\app\layout\shell\shell.component.ts
+```
+
+Responsabilidades:
+
+- menu lateral;
+- ações globais;
+- logout;
+- exibição por permissão;
+- agrupamento do Operacional.
+
+Não implementar logout paralelo no Shell.
+
+O Shell deve delegar ao `AuthService`.
 
 ---
 
@@ -1296,33 +1513,70 @@ Service relacionado:
 Frontend\sysvar\src\app\core\services\empresas.service.ts
 ```
 
-Responsabilidades da tela:
+Responsabilidades:
 
 - listar empresas;
-    
 - consultar contrato;
-    
 - mostrar status;
-    
+- mostrar limite;
 - mostrar sessões ativas;
-    
+- mostrar acessos disponíveis;
 - suspender;
-    
 - reativar;
-    
-- controlar ações por superusuário;
-    
-- impedir master e usuário comum de executar ações comerciais.
-    
+- abrir `Ver Sessões`;
+- encerrar sessão;
+- controlar ações por superusuário.
 
-Métodos esperados no service:
+Métodos podem incluir:
 
 ```text
 suspender
 reativar
+listarSessoes
+encerrarSessao
 ```
 
-Confirmar os nomes reais antes de reutilizar.
+Confirmar os nomes atuais no código.
+
+---
+
+# Modal Ver Sessões
+
+A implementação está relacionada à feature Empresas.
+
+Responsabilidades:
+
+- carregar sessões válidas;
+- tratar resposta direta;
+- tratar resposta paginada;
+- exibir somente as linhas retornadas;
+- comparar contador e quantidade de linhas;
+- mostrar estado vazio correto;
+- permitir encerramento;
+- atualizar indicadores.
+
+Formatos esperados:
+
+```json
+[
+  {}
+]
+```
+
+ou:
+
+```json
+{
+  "count": 1,
+  "results": [
+    {}
+  ]
+}
+```
+
+A normalização deve ficar no service.
+
+Não espalhar tratamento no componente.
 
 ---
 
@@ -1343,27 +1597,17 @@ Frontend\sysvar\src\app\core\services\lojas.service.ts
 Responsabilidades:
 
 - paginação;
-    
 - filtros;
-    
 - indicadores;
-    
 - formulário;
-    
 - ativação;
-    
 - inativação;
-    
 - encerramento;
-    
 - reabertura;
-    
 - usuários vinculados;
-    
 - permissão VIEW e EDIT.
-    
 
-A rota não deve conter dependência obrigatória de:
+A rota não deve depender obrigatoriamente de:
 
 ```text
 Diretor
@@ -1386,7 +1630,7 @@ Caminho:
 Frontend\sysvar\src\app\features\usuarios
 ```
 
-Services relacionados:
+Service relacionado:
 
 ```text
 Frontend\sysvar\src\app\core\services\users.service.ts
@@ -1395,33 +1639,20 @@ Frontend\sysvar\src\app\core\services\users.service.ts
 Responsabilidades:
 
 - listagem;
-    
 - paginação;
-    
 - indicadores;
-    
 - perfil principal;
-    
 - tipo funcional;
-    
-- loja principal;
-    
-- lojas permitidas;
-    
+- estabelecimento principal;
+- estabelecimentos permitidos;
 - matriz Perfil/Override/Efetivo;
-    
 - sessões;
-    
 - redefinição de senha;
-    
 - ativação;
-    
 - inativação;
-    
 - encerramento das sessões.
-    
 
-Métodos esperados:
+Métodos podem incluir:
 
 ```text
 listarSessoes
@@ -1457,38 +1688,22 @@ roles: ['Admin']
 Responsabilidades:
 
 - listar perfis;
-    
 - criar;
-    
 - editar;
-    
 - inativar;
-    
 - definir padrão;
-    
 - carregar módulos do backend;
-    
 - apresentar dependências;
-    
 - configurar NONE, VIEW e EDIT.
-    
 
 ---
 
 # Frontend — Troca Obrigatória de Senha
 
-Feature criada para o fluxo obrigatório.
-
-Localizar em:
+Local relacionado:
 
 ```text
-Frontend\sysvar\src\app\features
-```
-
-Nome relacionado:
-
-```text
-change-password-required
+Frontend\sysvar\src\app\features\change-password-required
 ```
 
 Rota:
@@ -1506,34 +1721,19 @@ change-password-required.component.css
 change-password-required.component.spec.ts
 ```
 
-Confirmar o caminho exato no repositório antes de editar.
-
 Responsabilidades:
 
 - senha atual;
-    
 - nova senha;
-    
 - confirmação;
-    
 - validação;
-    
 - chamada ao backend;
-    
 - atualização de `/api/me/`;
-    
 - liberação do sistema.
-    
 
 ---
 
 # Frontend — Guard de Troca de Senha
-
-Guard central criado para impedir acesso aos módulos enquanto:
-
-```text
-deve_trocar_senha = true
-```
 
 Localizar em:
 
@@ -1545,15 +1745,10 @@ Frontend\sysvar\src\app\guards
 O guard deve:
 
 - permitir a rota de troca;
-    
 - permitir logout;
-    
 - redirecionar outras rotas;
-    
 - não criar loop;
-    
 - consultar o contexto de autenticação.
-    
 
 O backend continua sendo a autoridade final.
 
@@ -1568,6 +1763,7 @@ Principais:
 ```text
 CONTRACT_SUSPENDED
 PASSWORD_CHANGE_REQUIRED
+CONCURRENT_SESSION_LIMIT_REACHED
 ```
 
 Não tratar todos os erros 403 da mesma forma.
@@ -1577,24 +1773,27 @@ Não tratar todos os erros 403 da mesma forma.
 Deve:
 
 - limpar sessão local;
-    
 - interromper heartbeat;
-    
 - direcionar ao login;
-    
 - mostrar mensagem segura.
-    
 
 ## PASSWORD_CHANGE_REQUIRED
 
 Deve:
 
 - preservar a sessão;
-    
 - direcionar para troca obrigatória;
-    
 - não executar logout automático.
-    
+
+## CONCURRENT_SESSION_LIMIT_REACHED
+
+Deve:
+
+- permanecer na tela de login;
+- não salvar token;
+- não salvar sessão;
+- não iniciar heartbeat;
+- exibir mensagem de limite.
 
 ---
 
@@ -1618,8 +1817,6 @@ Rotas principais:
 ```
 
 Os caminhos exatos devem ser confirmados no arquivo.
-
-Regras:
 
 ## Empresas
 
@@ -1674,15 +1871,10 @@ Operacional
 Itens:
 
 - Empresas;
-    
 - Estabelecimento;
-    
 - Usuários;
-    
 - Perfis de acesso;
-    
 - Auditoria.
-    
 
 A exibição deve utilizar permissões efetivas.
 
@@ -1700,42 +1892,43 @@ Backend\cadastros\tests.py
 Backend\auditoria\tests.py
 ```
 
-Cobertura adicionada no fechamento:
+Cobertura adicionada:
 
 - contrato suspenso;
-    
 - login bloqueado;
-    
-- encerramento de sessões;
-    
+- login acima do limite;
+- login bloqueado sem sessão fantasma;
+- logout;
+- liberação de vaga;
+- substituição no mesmo dispositivo;
+- usuários diferentes no mesmo dispositivo;
+- superusuário sem consumo de licença;
+- sessão revogada;
+- contador central;
+- sessões por empresa;
+- sessões por usuário;
+- encerramento individual;
+- encerramento consolidado;
 - rollback de sessões;
-    
-- evento consolidado;
-    
 - redefinição de senha;
-    
 - rollback da redefinição;
-    
 - troca obrigatória;
-    
 - bloqueio de endpoints;
-    
 - liberação após troca;
-    
-- rollback da troca;
-    
 - dependências de módulos;
-    
 - empresa obrigatória em Loja;
-    
-- permissões do Operacional.
-    
+- permissões do Operacional;
+- Auditoria.
 
-Resultado final informado:
+Rodada registrada durante a centralização:
 
 ```text
-50 testes backend aprovados
+59 testes backend aprovados
 ```
+
+Testes posteriores foram adicionados.
+
+O total atual deve ser confirmado executando a suíte.
 
 ---
 
@@ -1746,35 +1939,38 @@ Arquivos relevantes incluem:
 ```text
 src\app\app.routes.spec.ts
 src\app\core\permission.service.spec.ts
+src\app\core\auth.service.spec.ts
 src\app\features\auditoria\auditoria.component.spec.ts
 ```
 
 Também foram adicionados ou ampliados testes para:
 
 - rotas do Operacional;
-    
 - Estabelecimentos sem roles antigas;
-    
 - Perfis usando Operacional;
-    
 - troca obrigatória de senha;
-    
 - guard;
-    
 - componente de alteração;
-    
 - tratamento dos códigos de erro;
-    
-- permissões visuais.
-    
+- permissões visuais;
+- logout antes da limpeza local;
+- superusuário;
+- modal `Ver Sessões`;
+- resposta em array;
+- resposta paginada;
+- contador;
+- estado vazio;
+- encerramento e atualização.
 
-Resultado final informado:
+Rodada registrada durante a centralização:
 
 ```text
-33 testes frontend aprovados
+37 testes frontend aprovados
 ```
 
-Confirmar os nomes exatos dos novos arquivos no repositório antes de alterá-los.
+Testes posteriores foram adicionados.
+
+O total atual deve ser confirmado executando a suíte.
 
 ---
 
@@ -1789,17 +1985,15 @@ python manage.py check
 python manage.py makemigrations --check --dry-run
 python manage.py migrate
 python manage.py diagnosticar_lojas_sem_empresa
+python manage.py diagnosticar_sessoes_empresa --empresa-id <id>
+python manage.py reconciliar_sessoes_ativas --empresa-id <id> --dry-run
 python manage.py test accounts -v 2 --noinput
 python manage.py test cadastros -v 2 --noinput
 python manage.py test auditoria -v 2 --noinput
 python manage.py test -v 2 --noinput
 ```
 
-Resultado final:
-
-```text
-50 testes aprovados
-```
+Não afirmar que os testes passaram sem executar.
 
 ## Frontend
 
@@ -1811,100 +2005,47 @@ ng build --configuration development
 ng test --watch=false --browsers=ChromeHeadless
 ```
 
-Resultado final:
-
-```text
-33 testes aprovados
-```
-
-Não afirmar que passaram sem executar.
+Não afirmar que os testes passaram sem executar.
 
 ---
 
-# Homologação Manual Pendente
+# Homologação Manual Concluída
 
-A implementação técnica está concluída.
+## Licenciamento
 
-Ainda precisa ser validado no navegador:
+Foi validado:
 
-## Suspensão
+- primeiro usuário logado;
+- segundo usuário logado;
+- bloqueio do terceiro acesso;
+- logout liberando vaga;
+- novo login após liberação;
+- contador correto;
+- quantidade disponível correta.
 
-- duas sessões abertas;
-    
-- suspensão;
-    
-- queda das sessões;
-    
-- tokens inválidos;
-    
-- login bloqueado;
-    
-- reativação;
-    
-- novo login.
-    
+## Superusuário
 
-## Troca de senha
+Foi validado:
 
-- redefinição administrativa;
-    
-- login com senha temporária;
-    
-- redirecionamento;
-    
-- bloqueio de `/home`;
-    
-- alteração;
-    
-- liberação;
-    
-- sessão atual mantida;
-    
-- demais sessões encerradas.
-    
+- superusuário logado;
+- contador da empresa em zero sem usuário cliente;
+- superusuário fora da listagem de licenças.
 
-## Estabelecimentos
+## Modal Ver Sessões
 
-- VIEW;
-    
-- EDIT;
-    
-- master;
-    
-- superusuário;
-    
-- criar;
-    
-- inativar;
-    
-- encerrar;
-    
-- reabrir.
-    
+Foi validado:
 
-## Usuários e Perfis
+- contador com uma sessão;
+- modal com uma linha;
+- ausência de divergência falsa;
+- ausência de estado vazio indevido;
+- sessão identificada corretamente;
+- controle de sessões funcionando.
 
-- perfil;
-    
-- HERDAR;
-    
-- override;
-    
-- efetivo;
-    
-- dependência;
-    
-- sessões;
-    
-- eventos de Auditoria.
-    
-
-Status correto:
+Status:
 
 ```text
-Implementado
-Validado automaticamente
-Homologação manual pendente
+OPERACIONAL HOMOLOGADO
 ```
 
 ---
@@ -1995,6 +2136,31 @@ app.routes.ts
 permission service
 ```
 
+## Sessões
+
+Backend:
+
+```text
+accounts\models.py
+accounts\views.py
+accounts\serializers.py
+accounts\services\sessions.py
+accounts\management\commands
+cadastros\views.py
+auditoria\services.py
+```
+
+Frontend:
+
+```text
+core\auth.service.ts
+layout\shell\shell.component.ts
+features\empresas
+features\usuarios
+core\services\empresas.service.ts
+core\services\users.service.ts
+```
+
 ## Senhas
 
 Backend:
@@ -2042,7 +2208,7 @@ core\services\audit.service.ts
 
 # Próxima Área Técnica
 
-Após a homologação manual do Operacional, a revisão seguirá para:
+A revisão seguirá para:
 
 ```text
 Cadastros
@@ -2060,36 +2226,36 @@ Apps e arquivos que provavelmente serão envolvidos:
 
 ```text
 Backend\cadastros
+Backend\auditoria
 Frontend\sysvar\src\app\features
 Frontend\sysvar\src\app\core\services
-Backend\auditoria
+Frontend\sysvar\src\app\app.routes.ts
+Frontend\sysvar\src\app\layout\shell
 ```
 
 Antes de criar qualquer prompt:
 
 1. conferir a ordem real do menu;
-    
 2. localizar componentes reais;
-    
-3. verificar models e serializers;
-    
-4. verificar isolamento;
-    
-5. verificar permissões;
-    
-6. verificar paginação;
-    
-7. verificar Auditoria;
-    
-8. verificar testes existentes.
-    
+3. verificar models;
+4. verificar serializers;
+5. verificar views;
+6. verificar endpoints;
+7. verificar isolamento;
+8. verificar permissões;
+9. verificar paginação;
+10. verificar Auditoria;
+11. verificar testes existentes;
+12. levantar melhorias funcionais;
+13. registrar riscos;
+14. somente depois preparar o prompt para o Codex.
 
 ---
 
 # Última Atualização
 
 ```text
-2026-08-05
+2026-08-06
 ```
 
 ---
@@ -2097,19 +2263,11 @@ Antes de criar qualquer prompt:
 # Notas Relacionadas
 
 - [[10 Projetos/Sysvar/Sysvar|Sysvar]]
-    
 - [[10 Projetos/Sysvar/Contexto do Projeto/Visão Geral|Visão Geral]]
-    
 - [[10 Projetos/Sysvar/Contexto do Projeto/Arquitetura|Arquitetura]]
-    
 - [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio|Modelo de Domínio]]
-    
 - [[10 Projetos/Sysvar/Contexto do Projeto/Workflows|Workflows]]
-    
 - [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados|Riscos e Cuidados]]
-    
 - [[10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas|ADR-001 - Licenciamento por Sessões Simultâneas]]
-    
 - [[10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR|ADR-002 - Princípios Arquiteturais do SISVAR]]
-    
 - [[10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR|ADR-003 - Auditoria Central do SISVAR]]
