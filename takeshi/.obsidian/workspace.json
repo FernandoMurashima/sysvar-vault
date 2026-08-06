@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "5f080221b278ec0a",
+        "id": "a39dae0cc43e4b78",
         "type": "tabs",
         "children": [
           {
-            "id": "baf156b1a9b7ac6b",
+            "id": "d23a72ad40c960d1",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -181,15 +181,15 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "baf156b1a9b7ac6b",
+  "active": "d23a72ad40c960d1",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Arquitetura.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Visão Geral.md",
     "10 Projetos/Sysvar/Sysvar.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Arquitetura.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR.md",
     "10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas.md",
