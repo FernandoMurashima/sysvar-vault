@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "13ede3530af312d1",
+        "id": "d348282c4bab64ef",
         "type": "tabs",
         "children": [
           {
-            "id": "428cff0260221df7",
+            "id": "075132ed08b601e8",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -181,8 +181,10 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "428cff0260221df7",
+  "active": "075132ed08b601e8",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Homologações/Homologação - Operacional.md",
+    "10 Projetos/Sysvar/Homologações",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
@@ -216,8 +218,6 @@
     "40 Arquivo/Fontes/atualizacao-producao-webfoto.txt",
     "40 Arquivo/Fontes",
     "90 Sistema",
-    "40 Arquivo",
-    "Projetos/Webfoto/Webfoto.md",
-    "Projetos/Webfoto/Atualização da Produção.md"
+    "Projetos/Webfoto/Webfoto.md"
   ]
 }
