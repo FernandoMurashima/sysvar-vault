@@ -1,4 +1,3 @@
-
 ---
 type: homologation
 status: approved
