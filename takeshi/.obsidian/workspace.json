@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "33b7995a6f9f646f",
+        "id": "1f2fd1741d37ff3a",
         "type": "tabs",
         "children": [
           {
-            "id": "a6b3166f6f33b7ea",
+            "id": "313d4bd8578f3499",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Fornecedores.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "Modelo de Domínio - Cadastros - Fornecedores"
+              "title": "Nova aba"
             }
           }
         ]
@@ -185,10 +181,11 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "a6b3166f6f33b7ea",
+  "active": "313d4bd8578f3499",
   "lastOpenFiles": [
-    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Fornecedores.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Fornecedores.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Operacao/Atualizacao do Sysvar no Viper-II.md",
     "10 Projetos/Sysvar/Operacao",
@@ -219,7 +216,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Clientes.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Clientes.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Clientes.md",
     "10 Projetos/Sysvar/Homologações",
     "Sem título.base",
     "10 Projetos/Sysvar/Decisões Técnicas"
