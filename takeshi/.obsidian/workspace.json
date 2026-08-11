@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Fornecedores.md",
+                "file": "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Fornecedores.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Homologação - Cadastros - Fornecedores"
+              "title": "Mapa Técnico - Cadastros - Fornecedores"
             }
           }
         ]
@@ -188,6 +188,7 @@
   "active": "a6b3166f6f33b7ea",
   "lastOpenFiles": [
     "10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Fornecedores.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Operacao/Atualizacao do Sysvar no Viper-II.md",
     "10 Projetos/Sysvar/Operacao",
     "10 Projetos/Bolao2026/Operação/Atualizacao Frontend.md",
@@ -220,7 +221,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Clientes.md",
     "10 Projetos/Sysvar/Homologações",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
     "Sem título.base",
     "10 Projetos/Sysvar/Decisões Técnicas"
   ]
