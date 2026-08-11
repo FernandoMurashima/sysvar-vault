@@ -11,10 +11,14 @@
             "id": "313d4bd8578f3499",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Fornecedores.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "Nova aba"
+              "title": "Riscos e Cuidados - Cadastros - Fornecedores"
             }
           }
         ]
@@ -183,6 +187,7 @@
   },
   "active": "313d4bd8578f3499",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Fornecedores.md",
@@ -215,7 +220,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Clientes.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Clientes.md",
     "10 Projetos/Sysvar/Homologações",
     "Sem título.base",
     "10 Projetos/Sysvar/Decisões Técnicas"
