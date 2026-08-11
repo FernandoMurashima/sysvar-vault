@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-06
+updated: 2026-08-11
 tags:
   - projeto
   - sysvar
@@ -12,6 +12,7 @@ tags:
   - operacional
   - cadastros
   - clientes
+  - fornecedores
   - auditoria
   - multiempresa
 ---
@@ -429,6 +430,10 @@ A Auditoria registra eventos relacionados a:
 - administração de sessões;
 - clientes;
 - ciclo de vida de clientes;
+- fornecedores;
+- ciclo de vida de fornecedores;
+- contatos de fornecedores;
+- endereços de fornecedores;
 - exclusões realizadas;
 - exclusões negadas.
 
@@ -443,7 +448,8 @@ Princípios:
 - proteção de dados sensíveis;
 - ausência de tokens brutos;
 - ausência de stack trace para usuários;
-- ausência de duplicação intencional de eventos.
+- ausência de duplicação intencional de eventos;
+- dados bancários sensíveis não devem ser replicados indevidamente nos logs.
 
 Documento técnico:
 
@@ -463,9 +469,9 @@ EM ANDAMENTO
 
 Sequência de revisão:
 
-1. Clientes;
-2. Fornecedores;
-3. Funcionários;
+1. Clientes — CONCLUÍDO;
+2. Fornecedores — CONCLUÍDO;
+3. Funcionários — PRÓXIMO;
 4. demais cadastros da barra lateral.
 
 ---
@@ -894,7 +900,7 @@ APROVADO
 
 ---
 
-# Testes Automatizados Registrados
+# Testes Automatizados Registrados - Clientes
 
 ## Backend
 
@@ -1039,29 +1045,1208 @@ Essas limitações não impedem o estado homologado atual.
 
 ---
 
-# Próxima Etapa
+# Cadastros - Fornecedores
 
-Próximo item do grupo Cadastros:
+Status:
 
 ~~~text
-Fornecedores
+IMPLEMENTADO
+TESTADO AUTOMATICAMENTE
+HOMOLOGADO MANUALMENTE
+DOCUMENTADO
+APROVADO
 ~~~
 
-O processo seguirá o mesmo padrão utilizado em Clientes:
+O cadastro de Fornecedores é o segundo módulo concluído do grupo Cadastros.
 
-1. análise funcional;
-2. revisão arquitetural;
-3. revisão do backend;
-4. revisão do frontend;
-5. revisão de layout;
-6. revisão de permissões;
-7. revisão da Auditoria;
-8. análise de vínculos;
-9. implementação pelo Codex;
-10. revisão dos commits;
-11. testes automatizados;
-12. homologação manual;
-13. documentação completa no Obsidian.
+A Fase 1 contempla cadastro, gestão operacional, integração com compras e financeiro, ciclo de vida, segurança bancária, histórico e auditoria.
+
+---
+
+# Escopo Concluído de Fornecedores
+
+Foram concluídos:
+
+- Pessoa Física;
+- Pessoa Jurídica;
+- fornecedor sem documento;
+- CPF/CNPJ validado quando informado;
+- documento único por empresa;
+- mesmo documento permitido em empresas distintas;
+- alerta de possível duplicidade por nome/apelido;
+- múltiplas categorias;
+- múltiplos contatos;
+- múltiplos endereços;
+- contato principal por tipo;
+- endereço principal por tipo;
+- inativação e reativação de contatos;
+- inativação e reativação de endereços;
+- telefone e WhatsApp com máscara brasileira;
+- dados fiscais;
+- contribuinte ICMS estruturado;
+- dados comerciais;
+- prazo padrão estruturado;
+- conta contábil padrão estruturada;
+- natureza financeira padrão;
+- dados bancários;
+- tipo de conta bancária estruturado;
+- proteção específica de dados bancários;
+- ativação;
+- inativação;
+- bloqueio;
+- desbloqueio;
+- exclusão protegida;
+- integração operacional;
+- restrição de fornecedor inativo;
+- restrição de fornecedor bloqueado;
+- consulta detalhada;
+- Compras;
+- Financeiro;
+- Histórico;
+- indicadores comerciais;
+- Audit Central;
+- isolamento multiempresa;
+- paginação server-side;
+- filtros server-side.
+
+---
+
+# Regras Centrais de Fornecedores
+
+## Empresa
+
+Todo Fornecedor pertence obrigatoriamente a uma Empresa.
+
+Regra conceitual:
+
+~~~text
+fornecedor.empresa_id == empresa atual
+~~~
+
+Não existe fornecedor global.
+
+---
+
+## Tipo de Pessoa
+
+Tipos:
+
+~~~text
+PF
+PJ
+~~~
+
+Quando o documento é informado:
+
+- PF → CPF válido;
+- PJ → CNPJ válido.
+
+---
+
+## Documento Funcional
+
+Campo preferencial:
+
+~~~text
+documento
+~~~
+
+Campo legado temporário:
+
+~~~text
+cnpj
+~~~
+
+O documento pode ser nulo.
+
+---
+
+## Unicidade
+
+Regra:
+
+~~~text
+empresa + documento
+~~~
+
+Consequências:
+
+- documento duplicado na mesma empresa é rejeitado;
+- o mesmo documento em empresa diferente é permitido;
+- vários fornecedores sem documento são permitidos.
+
+---
+
+# Fornecedor sem Documento
+
+Fornecedor sem CPF/CNPJ é permitido.
+
+Não deve ser criado documento artificial.
+
+A ausência de documento, isoladamente, não impede novas operações.
+
+Para utilização, o fornecedor deve estar:
+
+~~~text
+ATIVO
+E
+NÃO BLOQUEADO
+E
+PERTENCER À EMPRESA
+~~~
+
+além de atender ao contexto operacional aplicável.
+
+---
+
+# Possível Duplicidade por Nome
+
+Nome e apelido semelhantes geram aviso.
+
+Não são bloqueio rígido.
+
+Fluxo:
+
+~~~text
+Possível duplicidade
+→ Avisar
+→ Usuário pode cancelar
+OU
+→ Confirmar e continuar
+~~~
+
+Documento, quando informado, continua sendo o critério rígido.
+
+---
+
+# Categorias de Fornecedor
+
+Categorias:
+
+~~~text
+MATERIA_PRIMA
+AVIAMENTO
+REVENDA
+FACCAO
+PRESTADOR
+TRANSPORTADORA
+OUTROS
+~~~
+
+Um fornecedor pode possuir múltiplas categorias simultaneamente.
+
+Estrutura preferencial:
+
+~~~text
+FornecedorCategoria
+~~~
+
+O campo legado `categoria` não deve ser usado como base para novas expansões.
+
+---
+
+# Uso Operacional das Categorias
+
+Categorias servem principalmente para:
+
+- classificação;
+- filtro;
+- sugestão;
+- priorização;
+- contexto.
+
+Exemplos:
+
+~~~text
+Facção → FACCAO
+Compra de revenda → REVENDA
+Matéria-prima → MATERIA_PRIMA
+Transporte → TRANSPORTADORA
+~~~
+
+Não transformar categoria em bloqueio universal sem regra específica da operação.
+
+---
+
+# Contatos de Fornecedor
+
+O fornecedor possui múltiplos contatos.
+
+Tipos:
+
+~~~text
+COMERCIAL
+FINANCEIRO
+FISCAL
+PRODUCAO_FACCAO
+LOGISTICA
+OUTRO
+~~~
+
+Cada contato pode possuir:
+
+- nome;
+- função;
+- telefone;
+- WhatsApp;
+- e-mail;
+- observação;
+- principal;
+- ativo/inativo.
+
+---
+
+# Contato Principal
+
+Regra:
+
+~~~text
+Somente um contato ativo principal por tipo
+~~~
+
+A alteração do principal é protegida transacionalmente.
+
+---
+
+# Endereços de Fornecedor
+
+O fornecedor possui múltiplos endereços.
+
+Tipos funcionais:
+
+- Fiscal;
+- Comercial;
+- Cobrança;
+- Retirada/Coleta;
+- Entrega;
+- Unidade Fabril;
+- Outro.
+
+Regra:
+
+~~~text
+Somente um endereço ativo principal por tipo
+~~~
+
+---
+
+# Telefones
+
+A validação utiliza quantidade de dígitos, não pontuação rígida.
+
+Aceitos:
+
+~~~text
+10 dígitos
+11 dígitos
+vazio
+~~~
+
+Exemplos visuais:
+
+~~~text
+(21) 3324-4000
+(21) 99008-7565
+~~~
+
+Persistência/envio preferencial:
+
+~~~text
+2133244000
+21990087565
+~~~
+
+---
+
+# Dados Fiscais de Fornecedor
+
+Campos:
+
+- Inscrição Estadual;
+- Inscrição Municipal;
+- Contribuinte ICMS.
+
+Contribuinte ICMS:
+
+~~~text
+SIM
+NAO
+ISENTO
+~~~
+
+A interface apresenta:
+
+- Sim;
+- Não;
+- Isento;
+- Não informado.
+
+---
+
+# Inscrição Estadual
+
+Situação:
+
+~~~text
+PENDÊNCIA CONHECIDA
+NÃO BLOQUEIA FASE 1
+~~~
+
+Atualmente:
+
+- opcional;
+- texto livre;
+- sem validação específica por UF.
+
+---
+
+# Inscrição Municipal
+
+Situação:
+
+~~~text
+PENDÊNCIA CONHECIDA
+NÃO BLOQUEIA FASE 1
+~~~
+
+Atualmente:
+
+- opcional;
+- texto livre;
+- sem validação municipal específica.
+
+---
+
+# Prazo Padrão do Fornecedor
+
+Estrutura:
+
+~~~text
+financeiro.PrazoPagamento
+~~~
+
+Campo funcional:
+
+~~~text
+prazo_padrao_pagamento_ref
+~~~
+
+Campo legado:
+
+~~~text
+prazo_padrao_pagamento
+~~~
+
+Regra:
+
+- prazo da mesma empresa;
+- prazo ativo para nova seleção.
+
+---
+
+# Conta Contábil Padrão
+
+Estrutura:
+
+~~~text
+cadastros.PlanoContabil
+~~~
+
+Campo funcional:
+
+~~~text
+conta_contabil_padrao
+~~~
+
+Campo legado:
+
+~~~text
+conta_contabil
+~~~
+
+A conta deve ser:
+
+- da mesma empresa;
+- ativa;
+- analítica.
+
+---
+
+# Natureza Financeira Padrão
+
+Estrutura:
+
+~~~text
+cadastros.Nat_Lancamento
+~~~
+
+Campo:
+
+~~~text
+natureza_padrao
+~~~
+
+A natureza deve:
+
+- pertencer à mesma empresa;
+- estar ativa.
+
+---
+
+# Regra dos Padrões
+
+Prazo, conta e natureza são padrões sugeridos.
+
+Não devem ser interpretados automaticamente como travamentos universais.
+
+A operação específica define se o valor pode ser alterado.
+
+---
+
+# Dados Bancários
+
+Campos homologados:
+
+- Banco;
+- Agência;
+- Conta;
+- Tipo de conta;
+- Chave PIX;
+- Favorecido;
+- Documento do favorecido;
+- Observação bancária.
+
+---
+
+# Tipo de Conta
+
+Valores internos:
+
+~~~text
+CORRENTE
+POUPANCA
+PAGAMENTO
+OUTRA
+~~~
+
+Interface:
+
+- Conta corrente;
+- Conta poupança;
+- Conta de pagamento;
+- Outra.
+
+---
+
+# Segurança Bancária
+
+Permissão específica:
+
+~~~text
+fornecedor.dados_bancarios
+~~~
+
+Usuário autorizado:
+
+- recebe;
+- visualiza;
+- pode editar conforme demais permissões.
+
+Usuário não autorizado:
+
+- não recebe os valores sensíveis;
+- não deve conseguir recuperá-los por chamada manual da API.
+
+Proteção obrigatoriamente no backend.
+
+---
+
+# Banco Oficial
+
+Situação:
+
+~~~text
+PENDENTE
+NÃO BLOQUEIA FASE 1
+~~~
+
+Ainda não existe cadastro oficial BACEN integrado.
+
+Futuramente deverá ser analisado:
+
+- código COMPE;
+- ISPB;
+- nome oficial;
+- atualização da lista;
+- identificador interno definitivo.
+
+---
+
+# Ciclo de Vida de Fornecedores
+
+Ações:
+
+~~~text
+Ativar
+Inativar
+Bloquear
+Desbloquear
+~~~
+
+Os campos de lifecycle não devem virar simples checkboxes livres no formulário.
+
+---
+
+# Fornecedor Ativo
+
+Pode ser utilizado quando:
+
+- não bloqueado;
+- pertence à empresa;
+- atende ao contexto operacional.
+
+---
+
+# Fornecedor Inativo
+
+- permanece cadastrado;
+- preserva histórico;
+- não pode participar de nova operação;
+- pode ser reativado.
+
+---
+
+# Fornecedor Bloqueado
+
+- permanece cadastrado;
+- preserva histórico;
+- não pode participar de nova operação;
+- registra motivo;
+- registra observação;
+- registra usuário;
+- registra data/hora;
+- pode ser desbloqueado.
+
+---
+
+# Fornecedor Utilizável
+
+Regra conceitual:
+
+~~~text
+Fornecedor utilizável =
+empresa correta
+AND ativo
+AND não bloqueado
+AND contexto operacional válido
+~~~
+
+A segurança não pode depender apenas do frontend.
+
+---
+
+# Exclusão de Fornecedor
+
+## Sem Vínculos
+
+Pode ser excluído fisicamente.
+
+## Com Vínculos
+
+Não pode ser excluído.
+
+Mensagem funcional:
+
+~~~text
+Este fornecedor possui compras ou outros registros vinculados e não pode ser excluído. Utilize a inativação.
+~~~
+
+A preservação histórica possui prioridade sobre exclusão física.
+
+---
+
+# Consulta do Fornecedor
+
+Abas:
+
+~~~text
+Dados cadastrais
+Compras
+Financeiro
+Histórico
+~~~
+
+A consulta é somente leitura.
+
+---
+
+# Indicadores Comerciais do Fornecedor
+
+Indicadores homologados:
+
+~~~text
+Última compra
+Total comprado
+Quantidade de compras
+Ticket médio
+Saldo a pagar
+~~~
+
+Os cálculos são responsabilidade do backend.
+
+---
+
+# Compras do Fornecedor
+
+A aba Compras pode apresentar registros:
+
+- concluídos;
+- abertos;
+- cancelados.
+
+O status deve estar identificado.
+
+Para os indicadores:
+
+- cancelados não entram;
+- rascunhos não entram;
+- abertos não concluídos não entram;
+- somente operações válidas participam.
+
+---
+
+# Ticket Médio de Fornecedor
+
+Regra:
+
+~~~text
+Ticket médio =
+Total comprado
+/
+Quantidade de compras válidas
+~~~
+
+Deve existir tratamento para quantidade zero.
+
+---
+
+# Financeiro do Fornecedor
+
+A aba Financeiro apresenta, quando aplicável:
+
+- documento/origem;
+- emissão;
+- vencimento;
+- valor original;
+- valor pago;
+- saldo;
+- status;
+- natureza;
+- loja.
+
+Somente registros:
+
+~~~text
+do fornecedor
++
+da empresa atual
+~~~
+
+---
+
+# Saldo a Pagar
+
+Regras:
+
+- título aberto entra;
+- pagamento parcial entra pelo saldo restante;
+- título totalmente pago fica com saldo zero;
+- título cancelado não compõe o saldo.
+
+Histórico e saldo atual são conceitos diferentes.
+
+---
+
+# Histórico de Fornecedor
+
+Eventos incluem:
+
+- criação;
+- edição;
+- ativação;
+- inativação;
+- bloqueio;
+- desbloqueio;
+- contatos;
+- endereços;
+- alteração de principal;
+- demais eventos relevantes.
+
+---
+
+# Auditoria de Fornecedor
+
+Eventos relevantes também aparecem na Audit Central.
+
+A auditoria deve preservar:
+
+- empresa;
+- usuário;
+- data/hora;
+- ação;
+- contexto.
+
+Não deve armazenar desnecessariamente dados bancários sensíveis.
+
+---
+
+# Paginação e Filtros de Fornecedor
+
+A paginação é:
+
+~~~text
+SERVER-SIDE
+~~~
+
+Os filtros principais também são processados pelo backend.
+
+Não reintroduzir:
+
+~~~text
+page_size=2000
+~~~
+
+como estratégia de listagem.
+
+---
+
+# Homologação Manual de Fornecedores
+
+Foram concluídos:
+
+~~~text
+30 ITENS
+~~~
+
+Resultado:
+
+~~~text
+30/30 APROVADOS
+~~~
+
+Itens homologados:
+
+1. abertura da tela;
+2. paginação server-side;
+3. filtros server-side;
+4. cadastro PF;
+5. cadastro PJ;
+6. fornecedor sem documento;
+7. documento inválido;
+8. documento duplicado na mesma empresa;
+9. mesmo documento em empresas diferentes;
+10. múltiplas categorias;
+11. múltiplos contatos;
+12. múltiplos endereços;
+13. endereço principal por tipo;
+14. contato principal por tipo;
+15. inativação/reativação de contato;
+16. inativação/reativação de endereço;
+17. dados fiscais, comerciais, contábeis e financeiros;
+18. dados bancários e permissões;
+19. exclusão protegida;
+20. ativação/inativação;
+21. bloqueio/desbloqueio;
+22. restrição operacional de inativo/bloqueado;
+23. Histórico e Audit Central;
+24. indicadores comerciais;
+25. aba Compras;
+26. aba Financeiro;
+27. possível duplicidade por nome/apelido;
+28. uso operacional das categorias;
+29. fornecedor sem documento em operação;
+30. regressão final.
+
+---
+
+# Testes Automatizados Registrados - Fornecedores
+
+Resultado mais recente registrado na Fase 1:
+
+## Backend
+
+~~~text
+manage.py check: OK
+makemigrations --check --dry-run: OK
+FornecedorFase1Tests: 14 OK
+Cadastros: 56 OK
+Auditoria: 21 OK
+Suíte geral: 111 OK
+~~~
+
+## Frontend
+
+~~~text
+TypeScript: OK
+Karma: 114 SUCCESS
+Build development: OK
+~~~
+
+Esses números são resultados registrados durante a implementação e não representam nova execução após a documentação.
+
+---
+
+# Commits Homologados de Fornecedores
+
+## Implementação parcial inicial
+
+Backend:
+
+~~~text
+0454e49318a15613d45de1c09d745b9406925c25
+~~~
+
+Frontend:
+
+~~~text
+fdcf7770c17dbe1034f69039f79223ea97979d27
+~~~
+
+## Conclusão da Fase 1
+
+Backend:
+
+~~~text
+993f473ca793193a7590327964b4f3a20e5780e7
+~~~
+
+Frontend:
+
+~~~text
+a573d068e8bb031ea7aae0ebc0196c9bbf7ad78c
+~~~
+
+## Correção de Contatos e Endereços
+
+Backend:
+
+~~~text
+c65e0e737a725741907cc298e52c314cf93efab8
+~~~
+
+Frontend:
+
+~~~text
+8e767bda4e70efd826497526dea70aaf903e860c
+~~~
+
+## Correção de Telefones
+
+Frontend:
+
+~~~text
+a3fe7235f5999652d47cb54589000b59a6b5da5b
+~~~
+
+## Padrões Fiscais e Financeiros
+
+Backend:
+
+~~~text
+a2b192b60a31b0f38db2e2ab4b0c9c9aca3c10ee
+~~~
+
+Frontend:
+
+~~~text
+37e68377bcecfc4ef35032cbb942d7a463ab58c6
+~~~
+
+---
+
+# Migration de Referência - Fornecedores
+
+Migration criada durante os ajustes fiscais e financeiros:
+
+~~~text
+cadastros/migrations/0025_fornecedor_conta_contabil_padrao_and_more.py
+~~~
+
+Inclui:
+
+- conta contábil padrão;
+- prazo padrão estruturado;
+- choices de contribuinte ICMS.
+
+Migrations já aplicadas não devem ser editadas.
+
+Novas alterações exigem nova migration.
+
+---
+
+# Documentação Específica de Fornecedores
+
+## Homologação
+
+- [[10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Fornecedores|Homologação - Cadastros - Fornecedores]]
+
+## Mapa Técnico
+
+- [[10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Fornecedores|Mapa Técnico - Cadastros - Fornecedores]]
+
+## Modelo de Domínio
+
+- [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Fornecedores|Modelo de Domínio - Cadastros - Fornecedores]]
+
+## Workflows
+
+- [[10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Fornecedores|Workflows - Cadastros - Fornecedores]]
+
+## Riscos e Cuidados
+
+- [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Fornecedores|Riscos e Cuidados - Cadastros - Fornecedores]]
+
+---
+
+# Limitações e Pendências Conhecidas de Fornecedores
+
+## Inscrição Estadual
+
+~~~text
+PENDENTE
+~~~
+
+Futuramente avaliar validação por UF.
+
+## Inscrição Municipal
+
+~~~text
+PENDENTE
+~~~
+
+Futuramente avaliar estratégia de validação.
+
+## Cadastro Oficial de Bancos
+
+~~~text
+PENDENTE
+~~~
+
+Futuramente integrar estrutura padronizada baseada em fonte oficial.
+
+## UX de Dados Bancários Restritos
+
+~~~text
+MELHORIA FUTURA
+~~~
+
+Atualmente os valores são protegidos, mas a estrutura dos campos pode permanecer visível vazia para usuário sem permissão.
+
+Essas pendências não impedem o estado homologado da Fase 1.
+
+---
+
+# Fornecedores - Fase 2
+
+A Fase 2 está reservada para inteligência e avaliação.
+
+Não faz parte da Fase 1 concluída.
+
+Escopo planejado:
+
+- avaliações estruturadas;
+- avaliação por categoria;
+- histórico de avaliações;
+- pesos configuráveis;
+- Score Geral;
+- Score por Categoria;
+- peso de recência;
+- classificação;
+- alertas;
+- filtro por score;
+- ordenação por score;
+- comparação de fornecedores.
+
+---
+
+# Critérios Planejados para Avaliação
+
+Escala prevista:
+
+~~~text
+1 a 5
+~~~
+
+Critérios:
+
+- Qualidade;
+- Prazo;
+- Custo-benefício;
+- Atendimento;
+- Confiabilidade;
+- Qualidade da entrega;
+- Problemas/Devoluções.
+
+Pesos padrão planejados:
+
+~~~text
+Qualidade: 25%
+Prazo: 20%
+Confiabilidade: 15%
+Custo-benefício: 15%
+Qualidade da entrega: 10%
+Atendimento: 10%
+Problemas/Devoluções: 5%
+~~~
+
+Soma:
+
+~~~text
+100%
+~~~
+
+---
+
+# Score Planejado
+
+Faixa:
+
+~~~text
+0 a 100
+~~~
+
+Classificação prevista:
+
+~~~text
+90–100 → Excelente
+75–89 → Bom
+60–74 → Regular
+<60 → Ruim
+~~~
+
+Sem avaliação:
+
+~~~text
+Não avaliado
+~~~
+
+Score ruim não deve bloquear automaticamente o fornecedor.
+
+---
+
+# Peso de Recência Planejado
+
+Últimas cinco avaliações:
+
+~~~text
+1ª mais recente → 35%
+2ª → 25%
+3ª → 20%
+4ª → 12%
+5ª → 8%
+~~~
+
+Quando existirem menos avaliações, os pesos deverão ser normalizados.
+
+---
+
+# Separação entre Score e Lifecycle
+
+Regra arquitetural futura:
+
+~~~text
+Score ≠ Bloqueio
+~~~
+
+Score representa desempenho.
+
+Bloqueio representa decisão operacional/administrativa.
+
+Fornecedor com score ruim poderá gerar:
+
+- alerta;
+- confirmação adicional;
+
+mas não deve ser bloqueado automaticamente apenas pelo score.
+
+---
+
+# Estratégia de Uso do Codex
+
+Durante a homologação de Fornecedores foi identificado consumo relevante de tokens em tarefas amplas.
+
+A estratégia foi revista.
+
+## Responsabilidade do Usuário
+
+- decisão funcional;
+- teste manual;
+- homologação.
+
+## Responsabilidade do ChatGPT
+
+- análise;
+- leitura do GitHub;
+- investigação;
+- arquitetura;
+- localização da causa;
+- definição da correção;
+- criação do prompt;
+- revisão do commit.
+
+## Responsabilidade do Codex
+
+- implementação;
+- alteração dos arquivos;
+- testes necessários;
+- commit.
+
+---
+
+# Regra de Economia de Codex
+
+Para correção localizada:
+
+~~~text
+ANALISAR ANTES
+LOCALIZAR CAUSA
+DEFINIR ARQUIVOS
+ENVIAR PROMPT CIRÚRGICO
+EXECUTAR TESTES ESPECÍFICOS
+HOMOLOGAR
+~~~
+
+Evitar solicitar ao Codex:
+
+~~~text
+Investigue todo o projeto
+~~~
+
+quando a causa já puder ser determinada anteriormente.
+
+---
+
+# Estratégia de Testes
+
+Correção pequena:
+
+- testes específicos;
+- validação técnica necessária;
+- homologação manual.
+
+Checkpoint relevante:
+
+- suíte ampla;
+- build;
+- regressão;
+- homologação.
+
+Fechamento de módulo:
+
+- testes automatizados relevantes;
+- regressão;
+- homologação completa;
+- documentação.
 
 ---
 
@@ -1080,6 +2265,52 @@ HOMOLOGAÇÃO
 DOCUMENTAÇÃO
 APROVAÇÃO
 ~~~
+
+---
+
+# Próxima Etapa
+
+O próximo item do grupo Cadastros é:
+
+~~~text
+FUNCIONÁRIOS
+~~~
+
+Status:
+
+~~~text
+PRÓXIMO ITEM
+~~~
+
+Antes de implementação deverá ocorrer:
+
+1. análise funcional;
+2. levantamento das regras atuais;
+3. leitura do backend;
+4. leitura do frontend;
+5. análise dos vínculos existentes;
+6. análise multiempresa;
+7. análise de permissões;
+8. análise de auditoria;
+9. definição do escopo funcional;
+10. somente então implementação.
+
+O novo método de economia de Codex deve ser utilizado desde o início.
+
+---
+
+# Próximos Cadastros
+
+Ordem atual:
+
+~~~text
+1. Clientes → CONCLUÍDO
+2. Fornecedores → CONCLUÍDO
+3. Funcionários → PRÓXIMO
+4. Demais cadastros → A DEFINIR
+~~~
+
+A ordem dos demais cadastros poderá ser revisada conforme dependências funcionais.
 
 ---
 
@@ -1102,10 +2333,49 @@ APROVAÇÃO
 ~~~text
 GRUPO OPERACIONAL
 → CONCLUÍDO
+→ HOMOLOGADO
+→ DOCUMENTADO
 
 CADASTROS > CLIENTES
 → CONCLUÍDO
+→ 23/23 ITENS HOMOLOGADOS
+→ DOCUMENTADO
 
 CADASTROS > FORNECEDORES
+→ CONCLUÍDO
+→ FASE 1 HOMOLOGADA
+→ 30/30 ITENS APROVADOS
+→ DOCUMENTADO
+
+CADASTROS > FUNCIONÁRIOS
 → PRÓXIMO ITEM
 ~~~
+
+---
+
+# Estado do Projeto em 11/08/2026
+
+A estrutura operacional central está concluída e homologada.
+
+O grupo Cadastros possui atualmente dois módulos formalmente encerrados:
+
+~~~text
+CLIENTES
+FORNECEDORES
+~~~
+
+O desenvolvimento deverá prosseguir para:
+
+~~~text
+FUNCIONÁRIOS
+~~~
+
+preservando:
+
+- regras multiempresa;
+- permissões;
+- auditoria;
+- integridade histórica;
+- documentação;
+- homologação item a item;
+- uso econômico do Codex.
