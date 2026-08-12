@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-11
+updated: 2026-08-12
 tags:
   - projeto
   - sysvar
@@ -13,6 +13,7 @@ tags:
   - cadastros
   - clientes
   - fornecedores
+  - funcionários
   - auditoria
   - multiempresa
 ---
@@ -434,6 +435,17 @@ A Auditoria registra eventos relacionados a:
 - ciclo de vida de fornecedores;
 - contatos de fornecedores;
 - endereços de fornecedores;
+- funcionários;
+- cargos;
+- mudanças de cargo;
+- mudanças de loja de funcionário;
+- abrangência operacional;
+- afastamentos;
+- retornos;
+- desligamentos;
+- recontratações;
+- alterações de comissão;
+- vínculo e desvínculo entre Funcionário e Usuário;
 - exclusões realizadas;
 - exclusões negadas.
 
@@ -449,7 +461,8 @@ Princípios:
 - ausência de tokens brutos;
 - ausência de stack trace para usuários;
 - ausência de duplicação intencional de eventos;
-- dados bancários sensíveis não devem ser replicados indevidamente nos logs.
+- dados bancários sensíveis não devem ser replicados indevidamente nos logs;
+- salário e demais dados pessoais sensíveis de funcionários não devem ser replicados indevidamente nos logs.
 
 Documento técnico:
 
@@ -471,8 +484,8 @@ Sequência de revisão:
 
 1. Clientes — CONCLUÍDO;
 2. Fornecedores — CONCLUÍDO;
-3. Funcionários — PRÓXIMO;
-4. demais cadastros da barra lateral.
+3. Funcionários — CONCLUÍDO;
+4. demais cadastros da barra lateral — A DEFINIR.
 
 ---
 
@@ -1018,7 +1031,7 @@ Frontend:
 
 ## Modelo de Domínio
 
-- [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Clientes|Modelo de Domínio - Cadastros - Clientes]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Cliente|Modelo de Domínio - Cadastros - Cliente]]
 
 ## Workflows
 
@@ -2171,9 +2184,1232 @@ mas não deve ser bloqueado automaticamente apenas pelo score.
 
 ---
 
+# Cadastros - Funcionários
+
+Status:
+
+~~~text
+IMPLEMENTADO
+TESTADO
+HOMOLOGADO MANUALMENTE
+DOCUMENTADO
+APROVADO
+~~~
+
+O cadastro de Funcionários é o terceiro módulo concluído do grupo Cadastros.
+
+A Fase 1 representa o Funcionário como entidade operacional da empresa.
+
+Não representa um módulo de RH ou Departamento Pessoal.
+
+Resultado da homologação manual:
+
+~~~text
+17/17 ITENS APROVADOS
+~~~
+
+---
+
+# Objetivo de Funcionários
+
+Funcionários identifica as pessoas que participam operacionalmente da empresa.
+
+A funcionalidade permite representar:
+
+- Vendedores;
+- Caixas;
+- Gerentes;
+- Supervisores;
+- Assistentes;
+- Auxiliares;
+- Compradores;
+- Estoquistas;
+- Almoxarifes;
+- Conferentes;
+- Recebedores;
+- funcionários administrativos;
+- funcionários financeiros;
+- funcionários de produção;
+- demais funções definidas pela empresa.
+
+---
+
+# Separações Fundamentais de Funcionários
+
+A arquitetura homologada estabelece:
+
+~~~text
+Funcionário ≠ Usuário
+
+Cargo ≠ Perfil de Acesso
+
+Cargo ≠ Permissão
+
+Loja supervisionada ≠ Loja permitida do Usuário
+
+Situação do Funcionário ≠ User.is_active
+
+Comissão básica ≠ Motor completo de comissão
+
+Histórico operacional ≠ AuditLog
+~~~
+
+Essas separações devem ser preservadas.
+
+---
+
+# Empresa do Funcionário
+
+Todo Funcionário pertence a uma Empresa.
+
+Regra conceitual:
+
+~~~text
+funcionario.empresa_id == empresa atual
+~~~
+
+Também devem pertencer à mesma Empresa:
+
+- Cargo;
+- Loja Principal;
+- lojas supervisionadas;
+- Usuário vinculado.
+
+Não existe Funcionário global.
+
+---
+
+# CPF do Funcionário
+
+CPF é obrigatório funcionalmente para novos Funcionários.
+
+Regras:
+
+- obrigatório;
+- validado;
+- normalizado;
+- único dentro da Empresa;
+- mesmo CPF permitido em empresas diferentes.
+
+Regra:
+
+~~~text
+empresa + cpf
+~~~
+
+Registros legados sem CPF podem ser preservados.
+
+Não devem ser criados CPFs artificiais.
+
+---
+
+# Matrícula
+
+Todo Funcionário possui matrícula.
+
+Regras:
+
+- obrigatória;
+- única por Empresa;
+- pode ser gerada automaticamente;
+- pode ser informada manualmente;
+- permanece estável;
+- não é reutilizada;
+- não muda em afastamento;
+- não muda em desligamento;
+- não muda em recontratação.
+
+Sequência automática inicial:
+
+~~~text
+000001
+000002
+000003
+...
+~~~
+
+---
+
+# Cargo
+
+Funcionários utiliza Cargo estruturado.
+
+Estrutura:
+
+~~~text
+cadastros.Cargo
+~~~
+
+Cargo pertence à Empresa.
+
+Regra:
+
+~~~text
+funcionario.empresa == cargo.empresa
+~~~
+
+Cargo é cadastro aberto.
+
+Não é enumeração fechada.
+
+---
+
+# Cargos Básicos
+
+O sistema disponibiliza configuração inicial contendo:
+
+~~~text
+VENDEDOR
+CAIXA
+GERENTE
+SUPERVISOR
+ASSISTENTE
+AUXILIAR
+AUXADM
+ASSADM
+ASSFIN
+AUXFIN
+COMPRADOR
+ESTOQUISTA
+ALMOX
+CONFERENTE
+RECEBEDOR
+COSTUREIRA
+AUXPROD
+~~~
+
+Esses Cargos não representam limite funcional.
+
+Cada Empresa pode cadastrar outros.
+
+Exemplos:
+
+~~~text
+Analista Financeiro
+Analista de Operações
+Coordenador de Estoque
+Modelista
+Encarregado de Produção
+~~~
+
+---
+
+# Cargo e Permissões
+
+Cargo representa função operacional.
+
+Não concede acesso ao sistema.
+
+Exemplo:
+
+~~~text
+Cargo:
+Assistente Financeiro
+~~~
+
+não significa automaticamente:
+
+~~~text
+Financeiro = EDIT
+~~~
+
+Permissões permanecem controladas por:
+
+- Usuário;
+- Perfil de Acesso;
+- permissões de módulo;
+- overrides;
+- demais regras do app `accounts`.
+
+---
+
+# Características de Cargo
+
+Cargo possui características estruturadas como:
+
+- participa de vendas;
+- permite comissão;
+- autoridade operacional de loja;
+- permite múltiplas lojas;
+- gerencial;
+- ativo.
+
+Novas regras devem preferir características estruturadas e não comparar apenas o texto da descrição do Cargo.
+
+---
+
+# Vendedor
+
+Configuração inicial:
+
+~~~text
+participa_vendas = true
+permite_comissao = true
+autoridade_operacional_loja = true
+permite_multiplas_lojas = false
+gerencial = false
+~~~
+
+---
+
+# Caixa
+
+Configuração inicial:
+
+~~~text
+participa_vendas = false
+permite_comissao = false
+autoridade_operacional_loja = true
+permite_multiplas_lojas = false
+gerencial = false
+~~~
+
+---
+
+# Gerente
+
+Configuração inicial homologada:
+
+~~~text
+participa_vendas = false
+permite_comissao = true
+autoridade_operacional_loja = true
+permite_multiplas_lojas = false
+gerencial = true
+~~~
+
+Gerente pode ser comissionado.
+
+A regra de cálculo avançada não pertence a Funcionários.
+
+---
+
+# Supervisor
+
+Configuração inicial homologada:
+
+~~~text
+participa_vendas = false
+permite_comissao = true
+autoridade_operacional_loja = true
+permite_multiplas_lojas = true
+gerencial = true
+~~~
+
+Supervisor pode ser comissionado e pode possuir abrangência multi-loja.
+
+---
+
+# Categoria Legada
+
+Campo legado:
+
+~~~text
+categoria
+~~~
+
+Fonte funcional atual:
+
+~~~text
+cargo
+~~~
+
+Novas funcionalidades não devem voltar a utilizar `categoria` como definição principal de função.
+
+O campo legado deve ser removido somente após análise completa de dependências.
+
+---
+
+# Situação Operacional do Funcionário
+
+Estados:
+
+~~~text
+ATIVO
+AFASTADO
+DESLIGADO
+~~~
+
+A situação é a referência funcional de lifecycle.
+
+---
+
+# Funcionário Ativo
+
+Pode participar de novas operações compatíveis com:
+
+- Empresa;
+- Cargo;
+- Loja;
+- participação em vendas;
+- demais regras da operação.
+
+---
+
+# Funcionário Afastado
+
+- permanece cadastrado;
+- preserva matrícula;
+- preserva CPF;
+- preserva histórico;
+- não deve participar normalmente de novas operações;
+- pode retornar.
+
+---
+
+# Funcionário Desligado
+
+- permanece cadastrado;
+- preserva matrícula;
+- preserva CPF;
+- preserva vendas;
+- preserva histórico;
+- não deve participar de novas operações;
+- pode ser recontratado.
+
+---
+
+# Ciclo Operacional
+
+Fluxo homologado:
+
+~~~text
+ATIVO
+  ↓
+AFASTADO
+  ↓
+ATIVO
+  ↓
+DESLIGADO
+  ↓
+ATIVO
+~~~
+
+Ações:
+
+~~~text
+Afastar
+Retornar
+Desligar
+Recontratar
+~~~
+
+---
+
+# Recontratação
+
+Recontratação reutiliza o mesmo Funcionário.
+
+Não deve criar outro cadastro.
+
+Preserva:
+
+- ID;
+- matrícula;
+- CPF;
+- histórico;
+- vínculos anteriores.
+
+---
+
+# Campo ativo Legado
+
+O model possui campo legado:
+
+~~~text
+ativo
+~~~
+
+A direção funcional atual utiliza:
+
+~~~text
+situacao
+~~~
+
+Não criar dois ciclos de vida independentes.
+
+---
+
+# Loja Principal
+
+Campo técnico legado:
+
+~~~text
+idloja
+~~~
+
+Funcionalmente representa:
+
+~~~text
+Loja Principal
+~~~
+
+A Loja deve pertencer à mesma Empresa.
+
+---
+
+# Obrigatoriedade de Loja
+
+A necessidade de Loja Principal depende da característica do Cargo.
+
+Não deve ser baseada apenas no texto do nome do Cargo.
+
+Cargos administrativos podem existir sem Loja Principal quando configurados dessa forma.
+
+---
+
+# Abrangência Multi-Loja
+
+Estruturas:
+
+~~~text
+lojas_supervisionadas
+todas_lojas_da_empresa
+~~~
+
+Representam responsabilidade operacional do Funcionário.
+
+Supervisor é o principal caso atual.
+
+---
+
+# Regra Multi-Loja
+
+Somente Cargo com:
+
+~~~text
+permite_multiplas_lojas = true
+~~~
+
+pode manter abrangência de múltiplas lojas.
+
+Todas as Lojas devem pertencer à mesma Empresa.
+
+---
+
+# Abrangência Operacional versus Acesso
+
+Não confundir:
+
+~~~text
+Funcionarios.lojas_supervisionadas
+~~~
+
+com:
+
+~~~text
+User.lojas
+~~~
+
+A primeira representa responsabilidade operacional.
+
+A segunda representa autorização de acesso do Usuário.
+
+Não devem ser sincronizadas automaticamente.
+
+---
+
+# Participação em Vendas
+
+Campo:
+
+~~~text
+participa_vendas
+~~~
+
+Indica participação comercial do Funcionário.
+
+Não concede permissão de acesso ao módulo Vendas.
+
+---
+
+# Funcionário Comissionado
+
+Campo:
+
+~~~text
+comissionado
+~~~
+
+Indica se o Funcionário utiliza comissão básica.
+
+O Cargo precisa permitir comissão.
+
+---
+
+# Comissão Básica
+
+Campo:
+
+~~~text
+comissao_percentual
+~~~
+
+O percentual pertence ao Funcionário.
+
+Cargo apenas informa:
+
+~~~text
+permite_comissao
+~~~
+
+Funcionários do mesmo Cargo podem possuir percentuais diferentes.
+
+---
+
+# Comissão de Gerente e Supervisor
+
+Regra homologada:
+
+~~~text
+GERENTE.permite_comissao = true
+
+SUPERVISOR.permite_comissao = true
+~~~
+
+A forma efetiva de cálculo será responsabilidade futura do módulo de Planejamento/Ação de Vendas.
+
+---
+
+# Meta Legada
+
+Campo existente:
+
+~~~text
+meta
+~~~
+
+não faz mais parte do cadastro funcional de Funcionários.
+
+Não deve ser utilizado em:
+
+- formulário;
+- filtro;
+- nova regra de comissão;
+- novo relatório;
+- novas funcionalidades.
+
+Metas pertencem ao futuro módulo de Planejamento/Ação de Vendas.
+
+---
+
+# Vínculo Funcionário × Usuário
+
+Relacionamento:
+
+~~~text
+Funcionarios.usuario
+~~~
+
+é opcional e OneToOne com:
+
+~~~text
+accounts.User
+~~~
+
+O Funcionário pode existir sem Usuário.
+
+---
+
+# Regras do Vínculo com Usuário
+
+O Usuário:
+
+- deve pertencer à mesma Empresa;
+- não pode estar vinculado a outro Funcionário;
+- pode ser vinculado;
+- pode ser substituído;
+- pode ser desvinculado.
+
+Vincular não altera automaticamente:
+
+- Cargo;
+- Perfil;
+- permissões;
+- tipo do Usuário;
+- lojas de acesso;
+- sessões.
+
+---
+
+# Situação do Funcionário versus Login
+
+Afastar ou desligar Funcionário não executa automaticamente:
+
+~~~text
+User.is_active = false
+~~~
+
+Essa independência foi mantida conscientemente na Fase 1.
+
+Uma política automática futura exigirá decisão funcional específica.
+
+---
+
+# Dados Complementares
+
+Campos opcionais homologados incluem:
+
+- apelido;
+- telefone;
+- WhatsApp;
+- e-mail;
+- data de nascimento;
+- endereço;
+- observações.
+
+Esses dados são cadastrais.
+
+Não representam módulo de RH.
+
+---
+
+# Salário
+
+Campo:
+
+~~~text
+salario
+~~~
+
+foi preservado.
+
+Não existe folha de pagamento na Fase 1.
+
+O valor é uma informação protegida.
+
+Permissão:
+
+~~~text
+funcionario.salario
+~~~
+
+O backend deve proteger visualização e alteração.
+
+---
+
+# Funcionários Não é RH/DP
+
+Não pertencem à Fase 1:
+
+- folha de pagamento;
+- férias;
+- benefícios;
+- ponto;
+- banco de horas;
+- CTPS;
+- PIS;
+- dependentes;
+- encargos;
+- rescisão trabalhista detalhada;
+- prontuário de RH;
+- documentos de pessoal.
+
+Caso sejam necessários futuramente, devem compor domínio próprio.
+
+---
+
+# Histórico Operacional de Funcionário
+
+Estrutura:
+
+~~~text
+FuncionarioHistorico
+~~~
+
+Eventos incluem:
+
+- mudança de Cargo;
+- mudança de Loja;
+- mudança de abrangência;
+- afastamento;
+- retorno;
+- desligamento;
+- recontratação.
+
+O histórico preserva a trajetória operacional do Funcionário.
+
+---
+
+# Histórico versus Auditoria
+
+~~~text
+FuncionarioHistorico
+→ histórico funcional
+
+AuditLog
+→ rastreabilidade técnica e de segurança
+~~~
+
+As duas estruturas são complementares.
+
+---
+
+# Exclusão de Funcionário
+
+## Sem Uso Operacional
+
+Pode ser excluído quando não existem vínculos impeditivos.
+
+## Com Uso Operacional
+
+Não pode ser fisicamente excluído.
+
+Mensagem homologada:
+
+~~~text
+Funcionário já utilizado em operações. Desligue o funcionário em vez de excluí-lo.
+~~~
+
+A tentativa negada deve permanecer auditável.
+
+---
+
+# Integração com VendaPdv
+
+Venda mantém:
+
+~~~text
+VendaPdv.vendedor
+→ Funcionarios
+~~~
+
+Também mantém:
+
+~~~text
+VendaPdv.criado_por
+→ User
+~~~
+
+Os conceitos são diferentes.
+
+---
+
+# Vendedor versus Operador
+
+~~~text
+vendedor
+= pessoa responsável comercialmente pela venda
+
+criado_por
+= usuário que operou o sistema
+~~~
+
+Podem representar pessoas diferentes.
+
+Essa separação deve ser preservada.
+
+---
+
+# Funcionário Elegível para Nova Venda
+
+Conceitualmente deve:
+
+~~~text
+pertencer à Empresa
+AND estar ATIVO
+AND participar de vendas
+AND ser compatível com a Loja
+~~~
+
+Funcionário AFASTADO ou DESLIGADO não deve ser utilizado normalmente em nova venda.
+
+---
+
+# Comissão Histórica
+
+A implementação atual ainda possui pontos que consultam:
+
+~~~text
+funcionario.comissao_percentual
+~~~
+
+Isso não é suficiente para um motor definitivo de comissão histórica.
+
+Futuramente a venda/apuração deverá preservar a regra efetivamente aplicada.
+
+---
+
+# Paginação e Filtros de Funcionários
+
+A listagem utiliza:
+
+~~~text
+PAGINAÇÃO SERVER-SIDE
+~~~
+
+Filtros também são processados no backend.
+
+Busca inclui informações como:
+
+- matrícula;
+- nome;
+- apelido;
+- CPF.
+
+Filtros incluem:
+
+- Cargo;
+- Loja;
+- situação;
+- participa de vendas;
+- comissionado.
+
+Não reintroduzir carregamento massivo para filtragem Angular.
+
+---
+
+# Homologação Manual de Funcionários
+
+Foram concluídos:
+
+~~~text
+17 ITENS
+~~~
+
+Resultado:
+
+~~~text
+17/17 APROVADOS
+~~~
+
+Itens:
+
+1. abertura e estrutura da tela;
+2. paginação server-side;
+3. filtros server-side;
+4. Cargos;
+5. Funcionário com Cargo administrativo;
+6. CPF;
+7. matrícula;
+8. ciclo operacional;
+9. Loja Principal;
+10. Supervisor e multi-loja;
+11. comissão básica;
+12. Funcionário × Usuário;
+13. histórico operacional;
+14. exclusão protegida;
+15. salário protegido;
+16. dados complementares;
+17. regressão e fechamento geral.
+
+---
+
+# Correções Surgidas na Homologação de Funcionários
+
+## Cargos Livres
+
+Inicialmente a interface poderia transmitir a ideia de que os Cargos estavam restritos a funções comerciais.
+
+Foi corrigido para deixar explícito que Cargo é cadastro livre por Empresa.
+
+---
+
+## Cargos Administrativos e Operacionais
+
+Foram incluídos defaults adicionais como:
+
+- Assistente;
+- Auxiliar;
+- Auxiliar Administrativo;
+- Assistente Administrativo;
+- Assistente Financeiro;
+- Auxiliar Financeiro;
+- Comprador;
+- Estoquista;
+- Almoxarife;
+- Conferente;
+- Recebedor;
+- Costureira;
+- Auxiliar de Produção.
+
+---
+
+## Comissão de Gerente e Supervisor
+
+Foi corrigida a configuração para permitir comissão em:
+
+~~~text
+GERENTE
+SUPERVISOR
+~~~
+
+---
+
+## Usuário Vinculado
+
+O relacionamento já existia no backend.
+
+Durante homologação foi identificada ausência do campo correspondente no frontend.
+
+A interface passou a permitir:
+
+- vincular;
+- trocar;
+- remover;
+- consultar;
+
+o Usuário relacionado.
+
+---
+
+# Testes Automatizados Registrados - Funcionários
+
+Durante a implementação foram registrados:
+
+## Backend
+
+~~~text
+manage.py check: OK
+manage.py makemigrations --check: OK
+FuncionariosFase1Tests: OK
+Conjunto relacionado inicial: 40 testes OK
+Correções posteriores: testes direcionados OK
+~~~
+
+Esses resultados correspondem às execuções registradas durante a implementação e correções.
+
+Não representam uma nova suíte integral executada durante a documentação.
+
+## Frontend
+
+~~~text
+TypeScript: OK
+Build development: OK
+~~~
+
+As verificações foram repetidas nas correções relevantes.
+
+---
+
+# Commits Homologados de Funcionários
+
+## Implementação Backend
+
+~~~text
+056dfdee7545b725f94f6396bb5bff2f58be2397
+Conclui fase 1 do cadastro de funcionarios
+~~~
+
+## Implementação Frontend
+
+~~~text
+7fd39d0c86d070bc92ff8ff38dee99cc723b23dc
+Conclui fase 1 da interface de funcionarios
+~~~
+
+## Ampliação dos Cargos
+
+Backend:
+
+~~~text
+2ba369f3c1cb076b65bdd6b625fa051e8dd7f351
+Amplia cadastro de cargos de funcionarios
+~~~
+
+Frontend:
+
+~~~text
+d847d20b2dcbb94f8f0f450c53e308e4ba0afd7a
+Permite cargos livres no cadastro de funcionarios
+~~~
+
+## Comissão de Gerente e Supervisor
+
+Backend:
+
+~~~text
+b7b10bf5d5095d49ec9cbe1a7329f46c3efa6331
+Corrige comissao de gerente e supervisor
+~~~
+
+## Vínculo de Usuário no Frontend
+
+Frontend:
+
+~~~text
+0a71c638a7c6b1db324fa978ff69e035c4fc51dc
+Adiciona vinculo de usuario ao funcionario
+~~~
+
+---
+
+# Migrations de Referência - Funcionários
+
+## Estrutura Principal
+
+~~~text
+cadastros/migrations/0026_cargo_funcionariohistorico_funcionarios_comissionado_and_more.py
+~~~
+
+Inclui:
+
+- Cargo;
+- FuncionarioHistorico;
+- matrícula;
+- situação;
+- comissão;
+- multi-loja;
+- vínculo com Usuário;
+- dados complementares;
+- migração de categoria;
+- normalização necessária;
+- constraints;
+- índices.
+
+## Cargos Básicos
+
+~~~text
+cadastros/migrations/0027_cargos_funcionarios_basicos.py
+~~~
+
+Cria Cargos básicos em empresas existentes.
+
+## Comissão de Gerente e Supervisor
+
+~~~text
+cadastros/migrations/0028_corrige_comissao_gerente_supervisor.py
+~~~
+
+Corrige:
+
+~~~text
+GERENTE.permite_comissao = true
+SUPERVISOR.permite_comissao = true
+~~~
+
+Migrations aplicadas não devem ser modificadas.
+
+Novas mudanças exigem nova migration.
+
+---
+
+# Documentação Específica de Funcionários
+
+## Homologação
+
+- [[10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Funcionários|Homologação - Cadastros - Funcionários]]
+
+## Mapa Técnico
+
+- [[10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Funcionários|Mapa Técnico - Cadastros - Funcionários]]
+
+## Modelo de Domínio
+
+- [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Funcionários|Modelo de Domínio - Cadastros - Funcionários]]
+
+## Workflows
+
+- [[10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Funcionários|Workflows - Cadastros - Funcionários]]
+
+## Riscos e Cuidados
+
+- [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Funcionários|Riscos e Cuidados - Cadastros - Funcionários]]
+
+---
+
+# Limitações e Evoluções Futuras de Funcionários
+
+## Comissão Histórica
+
+~~~text
+EVOLUÇÃO FUTURA
+~~~
+
+A regra aplicada à venda deverá futuramente possuir snapshot histórico adequado.
+
+## Planejamento/Ação de Vendas
+
+~~~text
+FUTURO MÓDULO
+~~~
+
+Deverá tratar:
+
+- metas;
+- campanhas;
+- bônus;
+- faixas;
+- políticas de comissão;
+- comissão de Gerente;
+- comissão de Supervisor;
+- comissão por produto;
+- comissão por grupo;
+- comissão por coleção;
+- regras temporais.
+
+## Combo de Usuários
+
+~~~text
+MELHORIA FUTURA DE ESCALABILIDADE
+~~~
+
+Em empresas muito grandes poderá ser necessário substituir carregamento amplo por:
+
+- autocomplete;
+- busca remota;
+- paginação.
+
+## Campos Legados
+
+Permanecem para compatibilidade:
+
+- `categoria`;
+- `meta`;
+- `ativo`;
+- `idloja` com nomenclatura legada.
+
+A remoção deverá ser planejada somente depois da migração de todos os consumidores.
+
+## RH/DP
+
+~~~text
+FORA DO ESCOPO ATUAL
+~~~
+
+Não existe decisão atual de desenvolver:
+
+- folha;
+- férias;
+- benefícios;
+- ponto;
+- DP.
+
+Essas limitações não impedem o estado homologado da Fase 1.
+
+---
+
+# Regra de Ouro de Funcionários
+
+Preservar:
+
+~~~text
+Funcionário é identidade operacional.
+
+Cargo é função operacional.
+
+Usuário é identidade de acesso.
+
+Perfil define permissão.
+
+Loja Principal define contexto operacional.
+
+Abrangência define responsabilidade operacional.
+
+Situação define disponibilidade operacional.
+
+Histórico preserva trajetória.
+
+Auditoria preserva rastreabilidade.
+
+Comissão básica não é o motor completo de comissão.
+~~~
+
+---
+
 # Estratégia de Uso do Codex
 
-Durante a homologação de Fornecedores foi identificado consumo relevante de tokens em tarefas amplas.
+Durante a homologação dos Cadastros foi identificado consumo relevante de tokens em tarefas amplas.
 
 A estratégia foi revista.
 
@@ -2270,16 +3506,26 @@ APROVAÇÃO
 
 # Próxima Etapa
 
-O próximo item do grupo Cadastros é:
+Os três primeiros cadastros revisados foram concluídos:
 
 ~~~text
+CLIENTES
+FORNECEDORES
 FUNCIONÁRIOS
 ~~~
+
+O próximo cadastro do grupo ainda deve ser definido conforme:
+
+- ordem da barra lateral;
+- dependências funcionais;
+- impacto sobre outros módulos;
+- prioridade do produto.
 
 Status:
 
 ~~~text
-PRÓXIMO ITEM
+PRÓXIMO CADASTRO
+A DEFINIR
 ~~~
 
 Antes de implementação deverá ocorrer:
@@ -2295,7 +3541,7 @@ Antes de implementação deverá ocorrer:
 9. definição do escopo funcional;
 10. somente então implementação.
 
-O novo método de economia de Codex deve ser utilizado desde o início.
+O método de economia de Codex deve continuar sendo utilizado.
 
 ---
 
@@ -2306,11 +3552,11 @@ Ordem atual:
 ~~~text
 1. Clientes → CONCLUÍDO
 2. Fornecedores → CONCLUÍDO
-3. Funcionários → PRÓXIMO
+3. Funcionários → CONCLUÍDO
 4. Demais cadastros → A DEFINIR
 ~~~
 
-A ordem dos demais cadastros poderá ser revisada conforme dependências funcionais.
+A ordem dos demais cadastros deverá ser definida conforme dependências funcionais.
 
 ---
 
@@ -2348,34 +3594,132 @@ CADASTROS > FORNECEDORES
 → DOCUMENTADO
 
 CADASTROS > FUNCIONÁRIOS
-→ PRÓXIMO ITEM
+→ CONCLUÍDO
+→ FASE 1 HOMOLOGADA
+→ 17/17 ITENS APROVADOS
+→ DOCUMENTADO
+
+PRÓXIMO CADASTRO
+→ A DEFINIR
 ~~~
 
 ---
 
-# Estado do Projeto em 11/08/2026
+# Estado do Projeto em 12/08/2026
 
 A estrutura operacional central está concluída e homologada.
 
-O grupo Cadastros possui atualmente dois módulos formalmente encerrados:
+O grupo Cadastros possui atualmente três módulos formalmente encerrados:
 
 ~~~text
 CLIENTES
 FORNECEDORES
-~~~
-
-O desenvolvimento deverá prosseguir para:
-
-~~~text
 FUNCIONÁRIOS
 ~~~
 
-preservando:
+Resultados:
 
-- regras multiempresa;
-- permissões;
-- auditoria;
+~~~text
+CLIENTES
+23/23 HOMOLOGADOS
+
+FORNECEDORES
+30/30 HOMOLOGADOS
+
+FUNCIONÁRIOS
+17/17 HOMOLOGADOS
+~~~
+
+O próximo cadastro deverá ser definido antes de iniciar uma nova implementação.
+
+O desenvolvimento deve continuar preservando:
+
+- isolamento multiempresa;
+- regras de tenant no backend;
+- perfis e permissões;
+- Auditoria Central;
 - integridade histórica;
-- documentação;
+- proteção de dados sensíveis;
+- separação dos domínios;
+- paginação e filtros server-side;
+- compatibilidade com integrações existentes;
+- documentação estruturada no Obsidian;
 - homologação item a item;
 - uso econômico do Codex.
+
+---
+
+# Estado Documental do Grupo Cadastros
+
+## Clientes
+
+~~~text
+Homologação
+Mapa Técnico
+Modelo de Domínio
+Workflows
+Riscos e Cuidados
+Sysvar.md atualizado
+~~~
+
+Status:
+
+~~~text
+DOCUMENTAÇÃO CONCLUÍDA
+~~~
+
+## Fornecedores
+
+~~~text
+Homologação
+Mapa Técnico
+Modelo de Domínio
+Workflows
+Riscos e Cuidados
+Sysvar.md atualizado
+~~~
+
+Status:
+
+~~~text
+DOCUMENTAÇÃO CONCLUÍDA
+~~~
+
+## Funcionários
+
+~~~text
+Homologação
+Mapa Técnico
+Modelo de Domínio
+Workflows
+Riscos e Cuidados
+Sysvar.md atualizado
+~~~
+
+Status:
+
+~~~text
+DOCUMENTAÇÃO CONCLUÍDA
+~~~
+
+---
+
+# Marco Atual
+
+Em 12/08/2026 o projeto atingiu o seguinte marco:
+
+~~~text
+INFRAESTRUTURA OPERACIONAL
+CONCLUÍDA E HOMOLOGADA
+
+CLIENTES
+CONCLUÍDO E HOMOLOGADO
+
+FORNECEDORES
+FASE 1 CONCLUÍDA E HOMOLOGADA
+
+FUNCIONÁRIOS
+FASE 1 CONCLUÍDA E HOMOLOGADA
+~~~
+
+O grupo Cadastros permanece em andamento até que os demais cadastros relevantes sejam revisados.
