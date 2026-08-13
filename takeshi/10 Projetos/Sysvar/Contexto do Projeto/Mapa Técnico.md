@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-06
+updated: 2026-08-13
 tags:
   - sysvar
   - contexto
@@ -12,6 +12,12 @@ tags:
   - backend
   - frontend
   - operacional
+  - cadastros
+  - produtos
+  - produto-venda
+  - sku
+  - estoque
+  - produção
   - auditoria
   - sessões
   - licenciamento
@@ -22,7 +28,7 @@ tags:
 
 ## Objetivo
 
-Este documento indica onde estão as principais responsabilidades técnicas do SISVAR.
+Este documento indica onde estão as principais responsabilidades técnicas do [[Sysvar]].
 
 Ele deve ser utilizado para localizar rapidamente:
 
@@ -38,7 +44,8 @@ Ele deve ser utilizado para localizar rapidamente:
 - guards;
 - interceptors;
 - testes;
-- infraestrutura transversal.
+- infraestrutura transversal;
+- documentação técnica específica de cada domínio.
 
 Este arquivo não substitui a leitura do código atual.
 
@@ -51,20 +58,25 @@ Antes de qualquer alteração:
 5. verificar migrations;
 6. verificar impacto no frontend;
 7. verificar impacto na Auditoria;
-8. verificar a documentação relacionada.
+8. verificar isolamento multiempresa;
+9. verificar permissões;
+10. verificar a documentação relacionada.
 
 ---
 
 # Situação Técnica Atual
 
-O grupo Operacional está:
+## Grupo Operacional
 
-```text
+Status:
+
+~~~text
 IMPLEMENTADO
 TESTADO AUTOMATICAMENTE
 HOMOLOGADO MANUALMENTE
 DOCUMENTADO
-```
+APROVADO
+~~~
 
 Foram concluídos:
 
@@ -87,17 +99,177 @@ Foram concluídos:
 - Troca obrigatória de senha;
 - Auditoria Central.
 
-Próximo grupo:
+Documentação principal:
 
-```text
-Cadastros
-```
+- [[10 Projetos/Sysvar/Homologações/Homologação - Operacional|Homologação - Operacional]]
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas|ADR-001 - Licenciamento por Sessões Simultâneas]]
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR|ADR-002 - Princípios Arquiteturais do SISVAR]]
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR|ADR-003 - Auditoria Central do SISVAR]]
 
-Primeiros itens:
+---
+
+## Grupo Cadastros
+
+Status do escopo revisado:
+
+~~~text
+IMPLEMENTADO
+TESTADO AUTOMATICAMENTE
+HOMOLOGADO MANUALMENTE
+DOCUMENTADO
+APROVADO
+~~~
+
+Cadastros fechados individualmente:
 
 1. Clientes;
 2. Fornecedores;
 3. Funcionários.
+
+Outros cadastros auxiliares permanecem no sistema e poderão receber revisão específica quando seus respectivos processos forem trabalhados.
+
+### Clientes
+
+Status:
+
+~~~text
+CONCLUÍDO
+HOMOLOGADO
+DOCUMENTADO
+~~~
+
+Documentação:
+
+- [[Mapa Técnico - Cadastros - Clientes]]
+- [[Workflows - Cadastros - Clientes]]
+- [[Modelo de Domínio - Cadastros - Clientes]]
+- [[Riscos e Cuidados - Cadastros - Clientes]]
+
+### Fornecedores
+
+Status:
+
+~~~text
+CONCLUÍDO
+HOMOLOGADO
+DOCUMENTADO
+~~~
+
+Documentação específica do domínio deve permanecer vinculada ao projeto e aos processos de Compras e Financeiro.
+
+### Funcionários
+
+Status:
+
+~~~text
+CONCLUÍDO
+HOMOLOGADO
+DOCUMENTADO
+17/17 ITENS APROVADOS
+~~~
+
+Documentação:
+
+- [[Homologação - Cadastros - Funcionários]]
+- [[Mapa Técnico - Cadastros - Funcionários]]
+- [[Workflows - Cadastros - Funcionários]]
+- [[Modelo de Domínio - Cadastros - Funcionários]]
+- [[Riscos e Cuidados - Cadastros - Funcionários]]
+
+---
+
+# Grupo Produtos
+
+Status atual:
+
+~~~text
+EM ANDAMENTO
+~~~
+
+Primeiro domínio consolidado:
+
+**Produto Venda**
+
+Produto Venda contempla:
+
+~~~text
+Produto Venda
+├── Revenda
+└── Fabricação Própria
+~~~
+
+Códigos internos:
+
+~~~text
+1 = Revenda
+3 = Fabricação Própria
+~~~
+
+Produto Uso e Consumo não faz parte do fechamento atual de Produto Venda.
+
+---
+
+# Produto Venda
+
+Status:
+
+~~~text
+IMPLEMENTADO
+TESTADO AUTOMATICAMENTE
+HOMOLOGADO MANUALMENTE
+DOCUMENTADO
+APROVADO
+~~~
+
+Homologação manual:
+
+~~~text
+19/19 itens aprovados
+~~~
+
+Produto Venda é o cadastro estrutural dos produtos comercializáveis do [[Sysvar]].
+
+Abrange:
+
+- Produto;
+- classificação;
+- Referência;
+- Grade;
+- Cores;
+- SKUs;
+- EAN;
+- Lojas;
+- Estoque por Loja × SKU;
+- custos;
+- preços relacionados;
+- Dados fiscais;
+- imagens;
+- Histórico Funcional;
+- Auditoria Central;
+- ativação/inativação;
+- bloqueio/desbloqueio de venda;
+- exclusão protegida;
+- filtros;
+- paginação;
+- consulta consolidada;
+- integração com Compras;
+- integração com Produção.
+
+---
+
+# Documentação de Produto Venda
+
+Conjunto documental homologado:
+
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
+Esses documentos formam o núcleo documental específico de Produto Venda.
+
+Devem permanecer vinculados entre si e ao [[Sysvar]].
 
 ---
 
@@ -105,33 +277,33 @@ Primeiros itens:
 
 Projeto:
 
-```text
+~~~text
 C:\SysvarProjeto
-```
+~~~
 
 Backend:
 
-```text
+~~~text
 C:\SysvarProjeto\Backend
-```
+~~~
 
 Frontend:
 
-```text
+~~~text
 C:\SysvarProjeto\Frontend\sysvar
-```
+~~~
 
 Vault Obsidian:
 
-```text
+~~~text
 C:\takeshi\takeshi
-```
+~~~
 
 Documentação no projeto:
 
-```text
+~~~text
 C:\SysvarProjeto\docs
-```
+~~~
 
 ---
 
@@ -139,42 +311,44 @@ C:\SysvarProjeto\docs
 
 Backend:
 
-```text
+~~~text
 FernandoMurashima/sysvarbackend
-```
+~~~
 
 Frontend:
 
-```text
+~~~text
 FernandoMurashima/sysvarfrontend
-```
+~~~
 
 Vault:
 
-```text
+~~~text
 FernandoMurashima/sysvar-vault
-```
+~~~
 
 Branch principal:
 
-```text
+~~~text
 main
-```
+~~~
 
-Os hashes não devem ser mantidos como referência permanente neste arquivo, porque novas correções podem substituí-los.
+Os hashes de commits não devem ser considerados referência permanente neste mapa central porque novas correções podem substituí-los.
+
+Os documentos de homologação específicos podem registrar commits de fechamento.
 
 Para consultar os commits atuais:
 
-```powershell
+~~~powershell
 cd C:\SysvarProjeto\Backend
 git log -5 --oneline
 
 cd C:\SysvarProjeto\Frontend\sysvar
 git log -5 --oneline
 
-cd C:\takeshi
+cd C:\takeshi\takeshi
 git log -5 --oneline
-```
+~~~
 
 ---
 
@@ -197,10 +371,19 @@ git log -5 --oneline
 - Git;
 - GitHub.
 
+## Infraestrutura
+
+- Ubuntu;
+- Docker;
+- Nginx;
+- serviços auxiliares conforme ambiente.
+
 ## Documentação
 
 - Obsidian;
-- Markdown.
+- Markdown;
+- Git;
+- GitHub.
 
 ---
 
@@ -208,56 +391,56 @@ git log -5 --oneline
 
 ## Backend
 
-```text
+~~~text
 Backend\manage.py
 Backend\Varejo\settings.py
 Backend\Varejo\urls.py
 Backend\requirements.txt
-```
+~~~
 
 ## Frontend
 
-```text
+~~~text
 Frontend\sysvar\package.json
 Frontend\sysvar\angular.json
 Frontend\sysvar\src\app
 Frontend\sysvar\src\app\app.routes.ts
 Frontend\sysvar\src\app\layout\shell
-```
+~~~
 
 ---
 
-# Grupo Operacional
+# Grupo Operacional — Estrutura
 
-Estrutura do menu:
+Menu conceitual:
 
-```text
+~~~text
 Operacional
 ├── Empresas
 ├── Estabelecimento
 ├── Usuários
 ├── Perfis de acesso
 └── Auditoria
-```
+~~~
 
-Apps principais envolvidos:
+Apps principais:
 
-```text
+~~~text
 accounts
 cadastros
 auditoria
-```
+~~~
 
-Features principais do frontend:
+Features frontend principais:
 
-```text
+~~~text
 features\empresas
 features\lojas
 features\usuarios
 features\perfis-acesso
 features\auditoria
 features\change-password-required
-```
+~~~
 
 ---
 
@@ -265,9 +448,9 @@ features\change-password-required
 
 Caminho:
 
-```text
+~~~text
 Backend\accounts
-```
+~~~
 
 Responsabilidades:
 
@@ -287,7 +470,7 @@ Responsabilidades:
 
 Arquivos principais:
 
-```text
+~~~text
 Backend\accounts\models.py
 Backend\accounts\serializers.py
 Backend\accounts\views.py
@@ -296,45 +479,39 @@ Backend\accounts\authentication.py
 Backend\accounts\urls.py
 Backend\accounts\apps.py
 Backend\accounts\tests.py
-```
+~~~
 
 Services:
 
-```text
+~~~text
 Backend\accounts\services\effective_access.py
 Backend\accounts\services\sessions.py
-```
+~~~
 
 Commands:
 
-```text
+~~~text
 Backend\accounts\management\commands
-```
+~~~
 
 ---
 
 # Accounts — Models
 
-Arquivo:
-
-```text
-Backend\accounts\models.py
-```
-
 Entidades principais:
 
-```text
+~~~text
 User
 PerfilAcesso
 PerfilModuloPermissao
 UserModulePermission
 SessaoUsuario
 SessionToken
-```
+~~~
 
 ## User
 
-Campos e responsabilidades relevantes:
+Responsabilidades relevantes:
 
 - empresa;
 - perfil principal;
@@ -346,19 +523,11 @@ Campos e responsabilidades relevantes:
 - situação ativa;
 - `deve_trocar_senha`.
 
-O campo:
-
-```text
-deve_trocar_senha
-```
-
-controla o fluxo obrigatório de alteração após redefinição administrativa.
-
 ## PerfilAcesso
 
 Responsável por:
 
-- perfil da empresa;
+- perfil da Empresa;
 - nome;
 - descrição;
 - situação;
@@ -369,23 +538,29 @@ Responsável por:
 
 Relaciona:
 
-```text
+~~~text
 Perfil
 → ModuloSistema
 → NONE, VIEW ou EDIT
-```
+~~~
 
 ## UserModulePermission
 
-Representa o override individual.
+Representa override individual.
 
-No frontend, `HERDAR` significa ausência desse registro.
+No frontend:
+
+~~~text
+HERDAR
+=
+ausência de override específico
+~~~
 
 ## SessaoUsuario
 
 Responsável por:
 
-- empresa;
+- Empresa;
 - usuário;
 - estabelecimento;
 - dispositivo;
@@ -395,621 +570,243 @@ Responsável por:
 - motivo;
 - situação ativa.
 
-A sessão do superusuário pode permanecer sem empresa.
-
 ## SessionToken
 
 Responsável pelo token vinculado à sessão.
 
-O token bruto não é persistido.
-
----
-
-# Accounts — Migrations
-
-Migrations relevantes:
-
-```text
-Backend\accounts\migrations\0009_usermodulepermission_auditoria_choice.py
-Backend\accounts\migrations\0010_user_deve_trocar_senha.py
-```
-
-A migration `0010` adicionou:
-
-```text
-User.deve_trocar_senha
-```
-
-Não editar migrations aplicadas.
-
-Novas mudanças devem gerar nova migration.
+Token bruto não deve ser persistido.
 
 ---
 
 # Accounts — Authentication
 
-Arquivo:
-
-```text
-Backend\accounts\authentication.py
-```
-
 Componente principal:
 
-```text
-CompanyTokenAuthentication
-```
+`CompanyTokenAuthentication`
 
 Responsável por validar:
 
-- cabeçalho de autenticação;
+- autenticação;
 - token;
-- hash;
 - sessão;
 - expiração;
 - usuário;
-- empresa;
+- Empresa;
 - contrato;
 - suspensão;
 - troca obrigatória de senha.
 
-Código de bloqueio da troca obrigatória:
+Código de troca obrigatória:
 
-```text
+~~~text
 PASSWORD_CHANGE_REQUIRED
-```
+~~~
 
-Mensagem:
-
-```text
-Você precisa alterar sua senha antes de continuar.
-```
-
-Caminhos conhecidos permitidos durante a troca obrigatória:
-
-```text
-/api/me/
-/api/accounts/users/me/
-/api/accounts/change-required-password/
-/api/accounts/auth/logout/
-/api/auth/logout/
-/api/accounts/sessoes/heartbeat/
-```
-
-Antes de criar novo endpoint necessário nesse fluxo, revisar conscientemente essa lista.
+Caminhos necessários durante esse fluxo devem permanecer explicitamente controlados.
 
 ---
 
 # Accounts — Effective Access
 
-Arquivo:
-
-```text
-Backend\accounts\services\effective_access.py
-```
-
 Serviço:
 
-```text
-EffectiveAccessService
-```
+`EffectiveAccessService`
+
+Arquivo:
+
+~~~text
+Backend\accounts\services\effective_access.py
+~~~
 
 Responsável por:
 
-- verificar empresa;
-- verificar contrato;
-- verificar módulos;
-- verificar perfil;
-- verificar overrides;
-- identificar master;
-- identificar superusuário;
-- calcular permissões efetivas;
-- retornar contexto para `/api/me/`.
+- Empresa;
+- contrato;
+- módulos;
+- perfil;
+- overrides;
+- master;
+- superusuário;
+- permissões efetivas;
+- contexto utilizado pelo frontend.
 
-A permissão final não deve ser calculada independentemente no frontend.
+A permissão final não deve ser recalculada independentemente no navegador.
+
+Produto Venda utiliza esse modelo de permissão nas ações sensíveis.
+
+Exemplo conceitual:
+
+~~~text
+EffectiveAccessService(user)
+    .has_module_access("produtos", EDIT)
+~~~
 
 ---
 
 # Accounts — Sessions
 
-Arquivo:
-
-```text
-Backend\accounts\services\sessions.py
-```
-
 Serviço:
 
-```text
-ConcurrentSessionService
-```
+`ConcurrentSessionService`
+
+Arquivo:
+
+~~~text
+Backend\accounts\services\sessions.py
+~~~
 
 Responsabilidades:
 
 - criar sessão;
 - validar token;
 - controlar limite simultâneo;
-- substituir sessão do mesmo usuário e dispositivo;
+- substituir sessão apropriada;
 - encerrar sessão;
 - revogar token;
-- fechar sessões expiradas;
+- fechar expiradas;
 - heartbeat;
 - liberar licença;
 - listar sessões válidas;
-- calcular validade;
-- centralizar a contagem.
+- centralizar contagem.
 
-Métodos centrais:
+Não criar contagem paralela baseada somente em:
 
-```text
-ConcurrentSessionService.valid_sessions_queryset
-ConcurrentSessionService.active_sessions_queryset
-ConcurrentSessionService.count_active_sessions
-ConcurrentSessionService.session_validity
-ConcurrentSessionService.is_session_valid
-```
-
-Método de encerramento:
-
-```text
-close_session(...)
-```
-
-Pode possuir controle:
-
-```text
-audit=True
-audit=False
-```
-
-`audit=False` só deve ser utilizado quando o fluxo registrar auditoria equivalente de forma explícita.
+~~~text
+SessaoUsuario.objects.filter(ativa=True)
+~~~
 
 ---
 
 # Regra Central de Sessão Válida
 
-Uma sessão ocupa licença quando atende aos critérios do serviço central, incluindo:
+Uma sessão ocupa licença quando satisfaz os critérios do serviço central.
 
-- `ativa=True`;
-- `encerrada_em` nulo;
-- sessão não expirada;
-- usuário ativo;
-- empresa válida;
-- contrato válido;
-- token existente;
-- token não revogado.
-
-A mesma regra deve ser utilizada por:
+A mesma regra deve alimentar:
 
 - login;
-- bloqueio por limite;
-- contador da empresa;
+- limite;
+- contador;
 - quantidade disponível;
 - heartbeat;
-- listagem por empresa;
-- listagem por usuário;
+- listagem;
 - encerramento;
 - diagnóstico;
 - reconciliação.
-
-Não criar contagem paralela baseada somente em:
-
-```python
-SessaoUsuario.objects.filter(ativa=True)
-```
 
 ---
 
 # Login e Limite Simultâneo
 
-O fluxo técnico deve manter:
+Fluxo conceitual:
 
-```text
+~~~text
 transaction.atomic
 → validação do usuário
 → validação do contrato
 → encerramento de expiradas
-→ substituição do mesmo usuário e device_id
+→ substituição válida
 → bloqueio do contrato
-→ contagem de sessões válidas
+→ contagem central
 → verificação do limite
 → criação da sessão
 → criação do token
 → commit
-```
+~~~
 
-Código de limite atingido:
+Código de limite:
 
-```text
+~~~text
 CONCURRENT_SESSION_LIMIT_REACHED
-```
-
-Login bloqueado não deve criar:
-
-- sessão válida;
-- token utilizável;
-- contexto local de autenticação.
-
----
-
-# Mesmo Dispositivo
-
-## Mesmo Usuário
-
-```text
-mesmo usuário + mesmo device_id
-→ substitui a sessão anterior
-```
-
-## Usuários Diferentes
-
-```text
-usuários diferentes + mesmo device_id
-→ sessões independentes
-```
-
-Não substituir sessão apenas porque os usuários utilizaram o mesmo navegador.
+~~~
 
 ---
 
 # Logout
 
-Arquivos principais:
-
-```text
-Backend\accounts\views.py
-Backend\accounts\services\sessions.py
-Frontend\sysvar\src\app\core\auth.service.ts
-Frontend\sysvar\src\app\layout\shell\shell.component.ts
-```
-
 Ordem correta:
 
-```text
-frontend mantém o token
-→ frontend chama o backend
-→ backend identifica SessionToken
-→ backend identifica SessaoUsuario
-→ backend encerra a sessão
-→ backend revoga o token
-→ backend libera a vaga
-→ backend registra Auditoria
-→ frontend limpa o token
-→ frontend interrompe o heartbeat
-→ frontend redireciona
-```
+~~~text
+frontend mantém token
+→ chama backend
+→ backend identifica sessão
+→ encerra sessão
+→ revoga token
+→ libera licença
+→ registra Auditoria
+→ frontend limpa contexto
+→ interrompe heartbeat
+→ redireciona
+~~~
 
 Não limpar o token antes da chamada ao backend.
-
-Esse erro já ocorreu e foi corrigido.
 
 ---
 
 # Superusuário e Licenciamento
 
-O superusuário:
+Superusuário:
 
-- cria sessão;
-- cria token;
-- permanece sem empresa cliente;
-- não consome licença de empresa;
-- não entra no contador da empresa;
-- não aparece na listagem de sessões que ocupam licença.
-
-Essa regra foi testada e homologada manualmente.
+- possui sessão própria;
+- não consome licença da Empresa cliente;
+- não entra no contador da Empresa;
+- não deve aparecer como sessão consumindo licença de cliente.
 
 ---
 
-# Commands de Sessões
+# Diagnóstico e Reconciliação de Sessões
 
-## Diagnóstico
+Commands relevantes:
 
-Arquivo:
+~~~text
+diagnosticar_sessoes_empresa
+reconciliar_sessoes_ativas
+~~~
 
-```text
-Backend\accounts\management\commands\diagnosticar_sessoes_empresa.py
-```
+O diagnóstico não deve mostrar token bruto.
 
-Execução:
+Reconciliação deve:
 
-```powershell
-python manage.py diagnosticar_sessoes_empresa --empresa-id <id>
-```
-
-Pode apresentar:
-
-- ID da sessão;
-- usuário;
-- device ID;
-- estado;
-- última atividade;
-- token existente;
-- token revogado;
-- validade;
-- motivo da não validade.
-
-Não exibe token bruto.
-
-## Reconciliação
-
-Arquivo:
-
-```text
-Backend\accounts\management\commands\reconciliar_sessoes_ativas.py
-```
-
-Execução:
-
-```powershell
-python manage.py reconciliar_sessoes_ativas --empresa-id <id> --dry-run
-python manage.py reconciliar_sessoes_ativas --empresa-id <id> --apply
-```
-
-O `dry-run` não altera dados.
-
-O `apply`:
-
-- preserva histórico;
-- encerra sessões inválidas;
-- revoga tokens restantes;
-- não apaga registros.
+- preservar histórico;
+- encerrar inválidas;
+- revogar tokens;
+- não apagar registros.
 
 ---
 
 # Accounts — Permissions
 
-Arquivo:
+Regra geral:
 
-```text
-Backend\accounts\permissions.py
-```
-
-Responsabilidades:
-
-- acesso aos usuários;
-- acesso aos perfis;
-- permissão por módulo;
-- nível VIEW ou EDIT;
-- master;
-- superusuário;
-- isolamento por empresa.
-
-Perfis utilizam:
-
-```text
-operacional
-```
-
-em vez de depender exclusivamente de:
-
-```text
-configuracoes
-```
-
-Regra:
-
-```text
-GET, HEAD e OPTIONS
+~~~text
+GET, HEAD, OPTIONS
 → VIEW
 
-POST, PUT, PATCH e DELETE
+POST, PUT, PATCH, DELETE
 → EDIT
-```
+~~~
 
-Master e superusuário seguem regras próprias.
+Master e superusuário possuem regras específicas.
+
+O sistema utiliza permissões funcionais por módulo.
+
+Não depender exclusivamente de cargos ou roles antigas.
 
 ---
 
 # Accounts — Serializers
 
-Arquivo:
-
-```text
-Backend\accounts\serializers.py
-```
-
 Responsabilidades:
 
-- validar empresa;
+- validar Empresa;
 - validar perfil;
 - validar estabelecimentos;
 - aplicar overrides;
 - retornar permissão efetiva;
-- validar módulos disponíveis;
+- validar módulos;
 - validar dependências;
 - proteger campos internos;
-- tratar redefinição e troca de senha;
+- tratar senhas;
 - serializar sessões.
-
-## Dependências de Módulos
-
-A validação utiliza:
-
-```text
-ModuloSistema.dependencias
-```
-
-Um módulo com acesso diferente de `NONE` não pode possuir dependência em `NONE`.
-
-## HERDAR
-
-Quando o frontend envia `HERDAR`, o backend deve remover o override correspondente.
-
-Não persistir `HERDAR` como nível real do banco.
-
----
-
-# Accounts — Views e Endpoints
-
-Arquivo:
-
-```text
-Backend\accounts\views.py
-```
-
-Rotas:
-
-```text
-Backend\accounts\urls.py
-```
-
-Endpoints relevantes podem incluir:
-
-```text
-POST /api/accounts/auth/token/
-POST /api/accounts/auth/logout/
-GET  /api/me/
-GET  /api/accounts/users/
-GET  /api/accounts/users/{id}/
-POST /api/accounts/users/{id}/ativar/
-POST /api/accounts/users/{id}/inativar/
-GET  /api/accounts/users/{id}/sessoes/
-POST /api/accounts/users/{id}/encerrar-sessoes/
-POST /api/accounts/users/{id}/redefinir-senha/
-POST /api/accounts/change-required-password/
-POST /api/accounts/sessoes/heartbeat/
-POST /api/accounts/sessoes/{id}/encerrar/
-```
-
-Os caminhos exatos devem ser confirmados no arquivo de rotas antes de uso externo.
-
----
-
-# Encerramento Individual de Sessão
-
-Implementação principal:
-
-```text
-Backend\accounts\views.py
-Backend\accounts\services\sessions.py
-```
-
-Fluxo:
-
-```text
-validar executor
-→ validar empresa
-→ localizar sessão
-→ close_session
-→ revogar token
-→ liberar vaga
-→ Auditoria
-→ atualizar resposta
-```
-
-O frontend deve atualizar:
-
-- listagem;
-- contador;
-- quantidade disponível.
-
----
-
-# Encerramento Consolidado de Sessões
-
-Implementação principal:
-
-```text
-Backend\accounts\views.py
-Backend\accounts\services\sessions.py
-```
-
-Fluxo esperado:
-
-```text
-transaction.atomic
-→ select_for_update no usuário
-→ select_for_update nas sessões
-→ close_session(audit=False)
-→ revogação dos tokens
-→ AuditService.required_success
-→ commit
-```
-
-Evento consolidado:
-
-```text
-USER_SESSIONS_CLOSED
-```
-
-A resposta pode informar:
-
-```text
-sessoes_encerradas
-```
-
-Falha da Auditoria provoca rollback das sessões e tokens.
-
----
-
-# Redefinição Administrativa de Senha
-
-Implementação principal:
-
-```text
-Backend\accounts\views.py
-Backend\accounts\serializers.py
-```
-
-Fluxo:
-
-```text
-bloqueia usuário
-→ altera senha
-→ deve_trocar_senha = true
-→ encerra sessões
-→ revoga tokens
-→ auditoria obrigatória
-→ commit
-```
-
-Evento:
-
-```text
-USER_PASSWORD_RESET
-```
-
-Não registrar senha.
-
----
-
-# Troca Obrigatória de Senha
-
-Implementação principal:
-
-```text
-Backend\accounts\authentication.py
-Backend\accounts\views.py
-Backend\accounts\serializers.py
-Backend\accounts\urls.py
-```
-
-Endpoint:
-
-```text
-POST /api/accounts/change-required-password/
-```
-
-Payload:
-
-```json
-{
-  "senha_atual": "...",
-  "nova_senha": "...",
-  "confirmacao": "..."
-}
-```
-
-Fluxo:
-
-- valida senha atual;
-- valida nova senha;
-- aplica validadores Django;
-- limpa `deve_trocar_senha`;
-- encerra outras sessões;
-- mantém a sessão atual;
-- registra `USER_PASSWORD_CHANGED`;
-- libera o acesso aos módulos.
 
 ---
 
@@ -1017,192 +814,58 @@ Fluxo:
 
 Caminho:
 
-```text
+~~~text
 Backend\cadastros
-```
+~~~
 
 Responsabilidades:
 
-- empresas;
+- Empresas;
 - contratos;
 - módulos;
-- estabelecimentos;
-- clientes;
-- fornecedores;
-- funcionários;
-- naturezas;
+- Estabelecimentos;
+- Clientes;
+- Fornecedores;
+- Funcionários;
+- Naturezas;
 - planos;
 - formas de pagamento;
-- tabelas auxiliares.
+- cadastros auxiliares.
 
 Arquivos principais:
 
-```text
+~~~text
 Backend\cadastros\models.py
 Backend\cadastros\serializers.py
 Backend\cadastros\views.py
 Backend\cadastros\urls.py
 Backend\cadastros\tests.py
-```
-
-Commands:
-
-```text
-Backend\cadastros\management\commands
-```
+~~~
 
 ---
 
-# Cadastros — Empresa e Contrato
+# Cadastros — Empresas e Contratos
 
-Arquivo principal:
+Entidades relevantes:
 
-```text
-Backend\cadastros\models.py
-```
-
-Entidades:
-
-```text
+~~~text
 Empresa
 EmpresaContrato
 ModuloSistema
 EmpresaModulo
 Loja
-```
+~~~
 
-## EmpresaContrato
-
-Campos relevantes:
+O contrato controla aspectos como:
 
 - status;
 - vigência;
-- plano completo;
+- módulos;
 - master;
 - limite de sessões;
-- versão das permissões;
-- motivo da suspensão;
-- observação da suspensão;
-- data da suspensão;
-- responsável pela suspensão;
-- data da reativação;
-- responsável pela reativação.
-
-Motivos de suspensão:
-
-```text
-INADIMPLENCIA
-SOLICITACAO_CLIENTE
-RISCO_SEGURANCA
-ENCERRAMENTO_CONTRATO
-BLOQUEIO_ADMINISTRATIVO
-OUTRO
-```
-
----
-
-# Cadastros — Migrations do Operacional
-
-Migrations relevantes:
-
-```text
-Backend\cadastros\migrations\0018_empresa_plano_completo_modulosistema_empresacontrato_and_more.py
-Backend\cadastros\migrations\0020_modulo_auditoria.py
-Backend\cadastros\migrations\0021_empresacontrato_motivo_suspensao_and_more.py
-```
-
-Existe migration posterior tornando:
-
-```text
-Loja.empresa
-```
-
-obrigatória.
-
-Confirmar o nome exato no diretório antes de citar em script ou deploy.
-
-Não editar migrations aplicadas.
-
----
-
-# Diagnóstico de Estabelecimentos sem Empresa
-
-Command:
-
-```text
-diagnosticar_lojas_sem_empresa
-```
-
-Execução:
-
-```powershell
-python manage.py diagnosticar_lojas_sem_empresa
-```
-
-Resultado executado durante o fechamento:
-
-```text
-lojas_sem_empresa=0
-```
-
-Nenhum saneamento foi necessário.
-
-O campo `Loja.empresa` foi posteriormente tornado obrigatório.
-
----
-
-# Cadastros — Suspensão e Reativação
-
-Implementação principal:
-
-```text
-Backend\cadastros\views.py
-Backend\cadastros\serializers.py
-Backend\cadastros\models.py
-```
-
-Endpoints:
-
-```text
-POST /api/cadastros/empresas/{id}/suspender/
-POST /api/cadastros/empresas/{id}/reativar/
-```
-
-Somente superusuário executa essas ações.
-
-## Suspensão
-
-```text
-transaction.atomic
-→ select_for_update no contrato
-→ status SUSPENSO
-→ motivo e observação
-→ encerramento das sessões
-→ revogação dos tokens
-→ incremento de permissions_version
-→ AuditService.required_success
-→ commit
-```
-
-Código:
-
-```text
-CONTRACT_SUSPENDED
-```
-
-## Reativação
-
-```text
-transaction.atomic
-→ select_for_update no contrato
-→ status ATIVO
-→ data e executor
-→ incremento de permissions_version
-→ Auditoria obrigatória
-→ commit
-```
-
-Sessões antigas não são restauradas.
+- versão de permissões;
+- suspensão;
+- reativação.
 
 ---
 
@@ -1210,92 +873,840 @@ Sessões antigas não são restauradas.
 
 Model:
 
-```text
-Loja
-```
+`Loja`
 
-Arquivos principais:
+Tipos existentes:
 
-```text
-Backend\cadastros\models.py
-Backend\cadastros\serializers.py
-Backend\cadastros\views.py
-Backend\cadastros\urls.py
-```
-
-Tipos:
-
-```text
+~~~text
 LOJA
 MATRIZ
 FABRICA
-```
+~~~
 
-Empresa:
+Loja pertence obrigatoriamente a uma Empresa.
 
-```text
-null=False
-blank=False
-```
+A estrutura é utilizada por vários domínios, incluindo Produto Venda e Estoque.
 
-O nome exato da ForeignKey e seus parâmetros devem ser verificados no model antes de nova alteração.
+Produto Venda pode inicializar estrutura de Estoque apenas nas Lojas selecionadas.
 
 ---
 
-# Actions de Estabelecimento
+# Cadastros — Clientes
 
-Endpoints podem incluir:
+Cadastro concluído e homologado.
 
-```text
-POST /api/cadastros/lojas/{id}/ativar/
-POST /api/cadastros/lojas/{id}/inativar/
-POST /api/cadastros/lojas/{id}/encerrar/
-POST /api/cadastros/lojas/{id}/reabrir/
-GET  /api/cadastros/lojas/{id}/usuarios/
-GET  /api/cadastros/lojas/indicadores/
-```
+Principais responsabilidades:
 
-Confirmar os caminhos exatos no router.
+- PF/PJ;
+- documento funcional;
+- Cliente sem documento;
+- Consumidor Final;
+- indicadores;
+- ciclo de vida;
+- Compras;
+- Histórico;
+- integração com PDV;
+- isolamento multiempresa.
+
+Mapa específico:
+
+[[Mapa Técnico - Cadastros - Clientes]]
+
+---
+
+# Cadastros — Fornecedores
+
+Cadastro concluído e homologado.
+
+Principais responsabilidades:
+
+- identificação;
+- documentos;
+- contatos;
+- endereços;
+- informações fiscais;
+- informações financeiras;
+- ciclo de vida;
+- integração com Compras;
+- integração com Financeiro;
+- isolamento multiempresa.
+
+Fornecedor é especialmente relevante ao fluxo:
+
+~~~text
+Produto Venda
+tipo Revenda
+    ↓
+Pedido de Compra
+    ↓
+Fornecedor
+~~~
+
+---
+
+# Cadastros — Funcionários
+
+Cadastro concluído e homologado.
+
+Resultado:
+
+~~~text
+17/17
+~~~
+
+Integrações principais:
+
+- Cargo;
+- Loja Principal;
+- Lojas supervisionadas;
+- Usuário;
+- comissão básica;
+- vendas;
+- Histórico;
+- Auditoria.
+
+Documentação:
+
+- [[Homologação - Cadastros - Funcionários]]
+- [[Mapa Técnico - Cadastros - Funcionários]]
+- [[Workflows - Cadastros - Funcionários]]
+- [[Modelo de Domínio - Cadastros - Funcionários]]
+- [[Riscos e Cuidados - Cadastros - Funcionários]]
+
+---
+
+# Backend — Produto
+
+Caminho principal:
+
+~~~text
+Backend\produto
+~~~
+
+Responsabilidades gerais:
+
+- Produtos;
+- ProdutoDetalhe;
+- SKU;
+- EAN;
+- Grade;
+- Tamanho;
+- Cor;
+- Coleção;
+- Grupo;
+- Subgrupo;
+- Unidade;
+- Material;
+- NCM;
+- Dados fiscais;
+- preços;
+- Estoque relacionado;
+- imagens;
+- Histórico Funcional do Produto Venda.
+
+Arquivos principais:
+
+~~~text
+Backend\produto\models.py
+Backend\produto\serializers.py
+Backend\produto\views.py
+Backend\produto\urls.py
+Backend\produto\permissions.py
+Backend\produto\tests.py
+~~~
+
+Sempre confirmar estrutura atual no repositório antes de editar.
+
+Mapa detalhado:
+
+[[Mapa Técnico - Produtos - Produto Venda]]
+
+---
+
+# Produto — Entidades Principais
+
+Para Produto Venda, as estruturas centrais são:
+
+~~~text
+Produto
+ProdutoDetalhe
+ProdutoVendaHistorico
+ProdutoImagem
+~~~
+
+Relacionamentos importantes:
+
+- Empresa;
+- Grupo;
+- Subgrupo;
+- Coleção;
+- Unidade;
+- Material;
+- Grade;
+- Cor;
+- Tamanho;
+- Loja;
+- Estoque;
+- Tabela de Preço;
+- Ficha Técnica;
+- Ordem de Produção;
+- AuditLog.
+
+Modelo conceitual completo:
+
+[[Modelo de Domínio - Produtos - Produto Venda]]
+
+---
+
+# Produto
+
+`Produto` representa o cadastro principal da mercadoria.
+
+Não representa uma variação individual.
+
+Exemplo:
+
+~~~text
+Produto
+Calça Jeans Feminina
+~~~
+
+Variações:
+
+~~~text
+Preta 38
+Preta 40
+Azul 38
+Azul 40
+~~~
+
+são representadas por `ProdutoDetalhe`.
+
+---
+
+# ProdutoDetalhe
+
+Representa o SKU.
+
+Identidade lógica:
+
+~~~text
+Produto + Cor + Tamanho
+~~~
 
 Responsabilidades:
 
-- ciclo de vida;
-- impedimentos;
-- usuários vinculados;
-- indicadores;
-- isolamento por empresa;
-- isolamento por estabelecimento;
-- permissão operacional.
+- variação;
+- EAN;
+- status;
+- custos;
+- relacionamento operacional com Estoque.
 
 ---
 
-# Sessions da Empresa
+# Produto Venda — Tipos
 
-Implementação envolve:
+Tipos homologados:
 
-```text
-Backend\cadastros\views.py
-Backend\accounts\services\sessions.py
-Backend\accounts\serializers.py
-```
+~~~text
+1 = Revenda
+3 = Fabricação Própria
+~~~
 
-A tela de Empresas utiliza:
+O tipo é imutável após criação.
 
-```text
-Ver Sessões
-```
+Não converter registros existentes entre esses tipos.
 
-O endpoint deve retornar somente sessões válidas que ocupam licença da empresa.
+---
 
-A regra obrigatória é:
+# Produto Venda — Referência
 
-```text
-contador da empresa
+Formato:
+
+~~~text
+AA-BB-CCDDD
+~~~
+
+Composição:
+
+~~~text
+AA = ano da Coleção
+BB = Estação
+CC = CodigoRef do Grupo
+DDD = sequência
+~~~
+
+Referência pertence ao Produto.
+
+EAN pertence ao SKU.
+
+Não confundir os dois identificadores.
+
+---
+
+# Produto Venda — Grade
+
+Grade é obrigatória.
+
+Após geração de SKUs:
+
+~~~text
+Grade = imutável
+~~~
+
+Não permitir alteração apenas por mudança de frontend.
+
+A proteção precisa existir no backend.
+
+---
+
+# Produto Venda — Cores e SKUs
+
+Fluxo:
+
+~~~text
+Produto
+   ↓
+Grade
+   ↓
+Cores
+   ↓
+Cor × Tamanho
+   ↓
+ProdutoDetalhe / SKU
+~~~
+
+Adicionar Cor:
+
+- cria SKU inexistente;
+- reativa SKU já existente quando aplicável.
+
+Remover Cor:
+
+- inativa SKU;
+- não apaga.
+
+Remover última Cor:
+
+- também precisa sincronizar;
+- todos os SKUs correspondentes ficam inativos.
+
+Reintroduzir Cor:
+
+- reativa SKU;
+- preserva EAN.
+
+Workflow completo:
+
+[[Workflows - Produtos - Produto Venda]]
+
+---
+
+# Produto Venda — EAN
+
+EAN pertence ao SKU.
+
+A geração utiliza a estrutura existente por Empresa.
+
+Princípios:
+
+- geração backend;
+- unicidade;
+- sequência protegida;
+- EAN preservado na inativação;
+- EAN preservado na reativação;
+- não reciclar EAN;
+- não criar gerador paralelo.
+
+---
+
+# Produto Venda — Estoque
+
+Granularidade:
+
+~~~text
+Loja × SKU
+~~~
+
+Não utilizar saldo único de Produto como substituto.
+
+Inicialização no cadastro:
+
+~~~text
+Loja selecionada
++
+SKU
 =
-quantidade de sessões válidas retornadas
-```
+estrutura de Estoque em zero
+~~~
 
-Superusuário não aparece nessa lista.
+Inicialização não significa entrada física.
+
+---
+
+# Produto Venda — Estoque Disponível
+
+Conceito atual:
+
+~~~text
+Disponível = Físico - Reserva
+~~~
+
+Produto Venda apresenta essa estrutura.
+
+Regras definitivas de:
+
+- reserva;
+- baixa;
+- saldo negativo;
+- disponibilidade comercial;
+
+permanecem nos domínios operacionais responsáveis.
+
+---
+
+# Produto Venda — Custos
+
+Conceitos existentes incluem:
+
+- custo original;
+- última compra;
+- custo médio.
+
+Para Revenda:
+
+~~~text
+Compra
+→ Recebimento
+→ Estoque
+→ Custos
+~~~
+
+Para Fabricação Própria:
+
+~~~text
+Ficha Técnica
+→ Ordem de Produção
+→ Produção
+→ Custos
+~~~
+
+Não criar atualização paralela sem considerar a origem do custo.
+
+---
+
+# Produto Venda — Preços
+
+Produto se relaciona com Tabelas de Preço.
+
+Não foi definido:
+
+~~~text
+Preço obrigatório diferente por SKU
+~~~
+
+nem:
+
+~~~text
+Tabela de Preço obrigatória por Loja
+~~~
+
+Preço comercial definitivo permanece no domínio correspondente.
+
+---
+
+# Produto Venda — Dados Fiscais
+
+Campos existentes incluem:
+
+- NCM;
+- Origem;
+- CST/CSOSN ICMS;
+- alíquota ICMS;
+- CFOP dentro;
+- CFOP fora;
+- CST PIS;
+- alíquota PIS;
+- CST COFINS;
+- alíquota COFINS;
+- situação IPI;
+- alíquota IPI.
+
+São editáveis.
+
+Alterações relevantes devem ser rastreadas.
+
+---
+
+# ProdutoVendaHistorico
+
+Responsabilidade:
+
+registrar eventos funcionais relevantes do Produto Venda.
+
+Exemplos:
+
+- alteração cadastral;
+- alteração fiscal;
+- ativação;
+- inativação;
+- bloqueio de venda;
+- desbloqueio.
+
+Não substituir a Auditoria Central.
+
+---
+
+# ProdutoImagem
+
+Responsabilidade:
+
+imagens associadas ao Produto.
+
+Regras homologadas:
+
+~~~text
+0..3 imagens
+~~~
+
+- opcionais;
+- no máximo três;
+- no máximo uma principal;
+- imagem pertence ao Produto;
+- não existe imagem por Cor;
+- não existe imagem por SKU.
+
+---
+
+# Imagem Reduzida
+
+A interface pode priorizar:
+
+~~~text
+imagem_reduzida_url
+~~~
+
+e utilizar:
+
+~~~text
+imagem_url
+~~~
+
+como fallback.
+
+Ainda não foram definidos:
+
+- largura;
+- altura;
+- resolução;
+- formato;
+- qualidade;
+- compressão.
+
+Não inventar esses parâmetros.
+
+Referência:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
+---
+
+# Produto Venda — Ciclo do Produto
+
+Situação cadastral:
+
+~~~text
+ATIVO
+  ↓
+INATIVO
+  ↓
+ATIVO
+~~~
+
+Bloqueio comercial:
+
+~~~text
+LIBERADO
+   ↓
+BLOQUEADO
+   ↓
+LIBERADO
+~~~
+
+Os dois estados são independentes.
+
+---
+
+# Produto Venda — Exclusão
+
+Produto nunca utilizado e sem vínculos impeditivos pode ser excluído.
+
+Produto utilizado deve ser preservado.
+
+Alternativas:
+
+- Inativar;
+- Bloquear venda.
+
+Não transformar inativação em exclusão física.
+
+---
+
+# Produto Venda — Permissões
+
+Ações sensíveis utilizam acesso funcional.
+
+Estrutura relevante:
+
+~~~text
+CanToggleProductFlags
++
+EffectiveAccessService
+~~~
+
+Conceito:
+
+~~~text
+Produtos + EDIT
+~~~
+
+Não voltar a depender apenas de:
+
+~~~text
+is_staff
+~~~
+
+do Django Admin.
+
+---
+
+# Produto Venda — Motivo e Senha
+
+Ações que já exigem confirmação mantêm:
+
+- permissão;
+- motivo;
+- senha.
+
+Exemplo:
+
+~~~text
+Inativar
+→ EDIT
+→ motivo
+→ senha
+~~~
+
+~~~text
+Bloquear venda
+→ EDIT
+→ motivo
+→ senha
+~~~
+
+Permissão não substitui senha.
+
+Senha não substitui permissão.
+
+---
+
+# Produto Venda — Filtros
+
+Filtros processados no backend incluem conceitos como:
+
+- busca;
+- Referência;
+- Código;
+- Grupo;
+- Coleção;
+- Tipo;
+- Status;
+- Bloqueado;
+- combinações.
+
+Não concatenar filtros distintos indevidamente.
+
+---
+
+# Produto Venda — Paginação
+
+Paginação é server-side.
+
+Fluxo:
+
+~~~text
+Frontend
+→ page
+→ page_size
+→ filtros
+→ ordering
+→ Backend
+→ count + results
+~~~
+
+O frontend apresenta indicador:
+
+~~~text
+Mostrando X–Y de Z
+~~~
+
+---
+
+# Produto Venda — Consulta Consolidada
+
+Consulta é somente leitura.
+
+Pode reunir:
+
+- Produto;
+- classificação;
+- Dados fiscais;
+- SKUs;
+- status dos SKUs;
+- custos;
+- preço;
+- Margem %;
+- imagens;
+- Estoque Loja × SKU;
+- Histórico Funcional;
+- Ficha Técnica;
+- Ordens de Produção.
+
+Informações de Produção aparecem quando aplicáveis a Fabricação Própria.
+
+---
+
+# Produto Venda — Revenda
+
+Fluxo conceitual:
+
+~~~text
+Produto Venda
+tipo 1
+   ↓
+SKU
+   ↓
+Compra
+   ↓
+Recebimento
+   ↓
+Estoque
+   ↓
+Venda
+~~~
+
+Produto Venda não absorve Compras.
+
+---
+
+# Produto Venda — Fabricação Própria
+
+Fluxo conceitual:
+
+~~~text
+Produto Venda
+tipo 3
+   ↓
+SKU
+   ↓
+Ficha Técnica
+   ↓
+Ordem de Produção
+   ↓
+Produção
+   ↓
+Estoque
+   ↓
+Venda
+~~~
+
+Produto Venda não absorve Produção.
+
+---
+
+# Integração — Produto Venda e Compras
+
+Compras continua responsável por:
+
+- fornecedor;
+- Pedido de Compra;
+- itens;
+- aprovação;
+- recebimento;
+- parcelas;
+- integração financeira.
+
+Produto Venda fornece a identidade comercial dos Produtos/SKUs utilizados.
+
+---
+
+# Integração — Produto Venda e Produção
+
+Produção permanece responsável por:
+
+- Ficha Técnica;
+- Ordem de Produção;
+- consumo;
+- apontamento;
+- facção;
+- custos;
+- encerramento da produção.
+
+Produto Venda apenas participa como Produto produzido.
+
+---
+
+# Integração — Produto Venda e Estoque
+
+Estoque permanece responsável por:
+
+- saldo;
+- entradas;
+- saídas;
+- transferências;
+- reservas;
+- ajustes;
+- movimentações.
+
+Produto Venda não deve alterar livremente saldo.
+
+---
+
+# Integração — Produto Venda e Fiscal
+
+Produto mantém dados cadastrais fiscais.
+
+Fiscal permanece responsável por:
+
+- emissão;
+- documentos;
+- NFC-e;
+- NFe;
+- regras operacionais fiscais.
+
+---
+
+# Integração — Produto Venda e PDV
+
+PDV utiliza Produto/SKU.
+
+Condições relevantes incluem:
+
+~~~text
+Produto ativo
++
+Produto não bloqueado
++
+SKU ativo
++
+estoque conforme regra
++
+preço
++
+fiscal
+~~~
+
+Produto Venda não substitui validações do PDV.
 
 ---
 
@@ -1303,13 +1714,13 @@ Superusuário não aparece nessa lista.
 
 Caminho:
 
-```text
+~~~text
 Backend\auditoria
-```
+~~~
 
 Arquivos principais:
 
-```text
+~~~text
 Backend\auditoria\models.py
 Backend\auditoria\services.py
 Backend\auditoria\middleware.py
@@ -1319,11 +1730,11 @@ Backend\auditoria\serializers.py
 Backend\auditoria\urls.py
 Backend\auditoria\display.py
 Backend\auditoria\tests.py
-```
+~~~
 
-Componentes:
+Componentes principais:
 
-```text
+~~~text
 AuditLog
 AuditService
 AuditContextMiddleware
@@ -1332,96 +1743,44 @@ AuditCategory
 AuditResult
 AuditSeverity
 AuditOrigin
-```
+~~~
 
 ---
 
-# Ações de Auditoria do Operacional
+# Auditoria — Princípio Geral
 
-## Contratos
+Operações críticas devem utilizar Auditoria Central.
 
-```text
-CONTRACT_SUSPENDED
-CONTRACT_REACTIVATED
-CONTRACT_SUSPENSION_DENIED
-CONTRACT_REACTIVATION_DENIED
-```
+Quando auditoria for obrigatória para a operação:
 
-## Estabelecimentos
+~~~text
+transaction.atomic
+→ alteração
+→ AuditService.required_success
+→ commit
+~~~
 
-```text
-STORE_CREATED
-STORE_UPDATED
-STORE_ACTIVATED
-STORE_DEACTIVATED
-STORE_CLOSED
-STORE_REOPENED
-STORE_FISCAL_CONFIG_UPDATED
-STORE_NUMBERING_UPDATED
-STORE_NEGATIVE_STOCK_POLICY_UPDATED
-STORE_OPERATION_DENIED
-```
-
-## Usuários e Senhas
-
-```text
-USER_CREATED
-USER_UPDATED
-USER_ACTIVATED
-USER_INACTIVATED
-USER_PASSWORD_RESET
-USER_PASSWORD_CHANGED
-USER_PROFILE_CHANGED
-USER_STORE_ACCESS_CHANGED
-USER_OVERRIDE_CHANGED
-USER_SESSIONS_CLOSED
-USER_DELETED
-USER_OPERATION_DENIED
-PASSWORD_CHANGE_REQUIRED_ACCESS_DENIED
-```
-
-## Sessões
-
-```text
-USER_LOGIN
-USER_LOGOUT
-SESSION_REPLACED
-SESSION_CLOSED
-SESSION_TIMEOUT
-SESSION_LIMIT_REACHED
-```
-
-Os nomes exatos devem ser confirmados no catálogo real:
-
-```text
-Backend\auditoria\models.py
-```
-
-Ação não cadastrada gera erro de validação.
+Falha de Auditoria obrigatória deve impedir commit quando essa for a regra do processo.
 
 ---
 
-# Auditoria Obrigatória no Operacional
+# Produto Venda — Histórico versus Auditoria
 
-Operações principais:
+Separação:
 
-- suspensão;
-- reativação;
-- redefinição de senha;
-- troca obrigatória de senha;
-- encerramento consolidado de sessões;
-- perfil padrão;
-- alteração de permissão;
-- transferência de master;
-- exclusão administrativa.
+~~~text
+ProdutoVendaHistorico
+=
+histórico funcional
+~~~
 
-Método principal:
+~~~text
+AuditLog
+=
+auditoria técnica central
+~~~
 
-```text
-AuditService.required_success(...)
-```
-
-A chamada deve ocorrer dentro da mesma transação da operação principal.
+Não eliminar uma estrutura em favor da outra.
 
 ---
 
@@ -1429,31 +1788,25 @@ A chamada deve ocorrer dentro da mesma transação da operação principal.
 
 Caminho:
 
-```text
+~~~text
 Frontend\sysvar\src\app
-```
+~~~
 
 Arquivos centrais:
 
-```text
+~~~text
 src\app\app.routes.ts
 src\app\layout\shell\shell.component.ts
 src\app\core\auth.service.ts
 src\app\core\permission.service.ts
 src\app\core\services\access-control.service.ts
-```
+~~~
 
 Os caminhos devem ser confirmados antes de editar.
 
 ---
 
 # Frontend — Auth Service
-
-Arquivo principal:
-
-```text
-Frontend\sysvar\src\app\core\auth.service.ts
-```
 
 Responsabilidades:
 
@@ -1464,16 +1817,16 @@ Responsabilidades:
 - sessão;
 - heartbeat;
 - troca obrigatória de senha;
-- limpeza do contexto;
+- limpeza de contexto;
 - comunicação entre abas.
 
 No logout:
 
-- chamar o backend antes de limpar o token;
-- aguardar a resposta;
-- interromper heartbeat;
-- limpar contexto;
-- redirecionar.
+1. chamar backend;
+2. aguardar resposta;
+3. interromper heartbeat;
+4. limpar contexto;
+5. redirecionar.
 
 ---
 
@@ -1481,9 +1834,9 @@ No logout:
 
 Arquivo:
 
-```text
+~~~text
 Frontend\sysvar\src\app\layout\shell\shell.component.ts
-```
+~~~
 
 Responsabilidades:
 
@@ -1491,108 +1844,176 @@ Responsabilidades:
 - ações globais;
 - logout;
 - exibição por permissão;
-- agrupamento do Operacional.
+- grupos funcionais.
 
-Não implementar logout paralelo no Shell.
+Produto Venda deve aparecer com nomenclatura:
 
-O Shell deve delegar ao `AuthService`.
+~~~text
+Produto Venda
+~~~
+
+Não retornar à nomenclatura geral:
+
+~~~text
+Produtos Revenda
+~~~
+
+quando a tela incluir os dois tipos.
+
+---
+
+# Frontend — Produto Venda
+
+Feature principal:
+
+~~~text
+Frontend\sysvar\src\app\features\Produtos
+~~~
+
+Arquivos principais:
+
+~~~text
+produtos.component.ts
+produtos.component.html
+produtos.component.css
+produtos.component.spec.ts
+~~~
+
+Service:
+
+~~~text
+src\app\core\services\produtos.service.ts
+~~~
+
+Responsabilidades:
+
+- listagem;
+- filtros;
+- paginação;
+- cadastro;
+- edição;
+- consulta;
+- Cores;
+- Lojas;
+- SKUs;
+- fiscal;
+- imagens;
+- Histórico;
+- Estoque;
+- ações de ciclo de vida.
+
+Mapa específico:
+
+[[Mapa Técnico - Produtos - Produto Venda]]
+
+---
+
+# Frontend — Produto Venda — Lojas
+
+Utiliza seletor de Lojas.
+
+Recursos homologados:
+
+- seleção individual;
+- ação Todas;
+- Limpar;
+- confirmação.
+
+Seleção de Loja influencia a inicialização de Estoque.
+
+---
+
+# Frontend — Produto Venda — Cores
+
+Seleção de Cores influencia estruturalmente os SKUs.
+
+Não tratar como simples campo visual.
+
+Frontend envia seleção.
+
+Backend permanece autoridade para sincronização.
+
+---
+
+# Frontend — Produto Venda — Imagens
+
+Service contempla operações para:
+
+- listar;
+- criar;
+- marcar principal;
+- remover.
+
+Upload utiliza `FormData`.
+
+Máximo funcional:
+
+~~~text
+3
+~~~
+
+---
+
+# Frontend — Produto Venda — Dados Fiscais
+
+A interface apresenta seção:
+
+**Dados fiscais**
+
+Inclui os campos fiscais existentes do Produto.
+
+Esses campos não devem voltar a ficar parcialmente escondidos sem decisão funcional.
+
+---
+
+# Frontend — Produto Venda — Status do SKU
+
+A consulta apresenta:
+
+~~~text
+Ativo
+Inativo
+~~~
+
+em coluna própria.
+
+Mantém:
+
+~~~text
+Margem %
+~~~
+
+Não depender somente de cor visual para o Status.
 
 ---
 
 # Frontend — Empresas
 
-Caminho:
+Feature:
 
-```text
-Frontend\sysvar\src\app\features\empresas
-```
+~~~text
+features\empresas
+~~~
 
-Service relacionado:
+Responsabilidades principais:
 
-```text
-Frontend\sysvar\src\app\core\services\empresas.service.ts
-```
-
-Responsabilidades:
-
-- listar empresas;
-- consultar contrato;
-- mostrar status;
-- mostrar limite;
-- mostrar sessões ativas;
-- mostrar acessos disponíveis;
-- suspender;
-- reativar;
-- abrir `Ver Sessões`;
-- encerrar sessão;
-- controlar ações por superusuário.
-
-Métodos podem incluir:
-
-```text
-suspender
-reativar
-listarSessoes
-encerrarSessao
-```
-
-Confirmar os nomes atuais no código.
-
----
-
-# Modal Ver Sessões
-
-A implementação está relacionada à feature Empresas.
-
-Responsabilidades:
-
-- carregar sessões válidas;
-- tratar resposta direta;
-- tratar resposta paginada;
-- exibir somente as linhas retornadas;
-- comparar contador e quantidade de linhas;
-- mostrar estado vazio correto;
-- permitir encerramento;
-- atualizar indicadores.
-
-Formatos esperados:
-
-```json
-[
-  {}
-]
-```
-
-ou:
-
-```json
-{
-  "count": 1,
-  "results": [
-    {}
-  ]
-}
-```
-
-A normalização deve ficar no service.
-
-Não espalhar tratamento no componente.
+- empresas;
+- contrato;
+- sessões;
+- suspensão;
+- reativação;
+- indicadores;
+- ações administrativas.
 
 ---
 
 # Frontend — Estabelecimentos
 
-Caminho:
+Feature:
 
-```text
-Frontend\sysvar\src\app\features\lojas
-```
-
-Service:
-
-```text
-Frontend\sysvar\src\app\core\services\lojas.service.ts
-```
+~~~text
+features\lojas
+~~~
 
 Responsabilidades:
 
@@ -1604,122 +2025,61 @@ Responsabilidades:
 - inativação;
 - encerramento;
 - reabertura;
-- usuários vinculados;
-- permissão VIEW e EDIT.
-
-A rota não deve depender obrigatoriamente de:
-
-```text
-Diretor
-Gerente
-```
-
-O acesso utiliza:
-
-```text
-moduloEmpresa: operacional
-```
+- usuários;
+- permissões.
 
 ---
 
 # Frontend — Usuários
 
-Caminho:
+Feature:
 
-```text
-Frontend\sysvar\src\app\features\usuarios
-```
-
-Service relacionado:
-
-```text
-Frontend\sysvar\src\app\core\services\users.service.ts
-```
+~~~text
+features\usuarios
+~~~
 
 Responsabilidades:
 
 - listagem;
 - paginação;
-- indicadores;
-- perfil principal;
+- perfil;
 - tipo funcional;
 - estabelecimento principal;
 - estabelecimentos permitidos;
-- matriz Perfil/Override/Efetivo;
+- overrides;
+- permissões efetivas;
 - sessões;
-- redefinição de senha;
-- ativação;
-- inativação;
-- encerramento das sessões.
-
-Métodos podem incluir:
-
-```text
-listarSessoes
-encerrarSessao
-encerrarSessoes
-redefinirSenha
-```
-
-Confirmar os nomes atuais no arquivo real.
+- senha;
+- ciclo de vida.
 
 ---
 
-# Frontend — Perfis de Acesso
+# Frontend — Perfis
 
-Caminho:
+Feature:
 
-```text
-Frontend\sysvar\src\app\features\perfis-acesso
-```
-
-A rota utiliza:
-
-```text
-moduloEmpresa: operacional
-```
-
-Não deve depender exclusivamente de:
-
-```text
-roles: ['Admin']
-```
+~~~text
+features\perfis-acesso
+~~~
 
 Responsabilidades:
 
-- listar perfis;
-- criar;
-- editar;
-- inativar;
-- definir padrão;
-- carregar módulos do backend;
-- apresentar dependências;
-- configurar NONE, VIEW e EDIT.
+- perfis;
+- módulos;
+- dependências;
+- NONE;
+- VIEW;
+- EDIT.
 
 ---
 
 # Frontend — Troca Obrigatória de Senha
 
-Local relacionado:
-
-```text
-Frontend\sysvar\src\app\features\change-password-required
-```
-
 Rota:
 
-```text
+~~~text
 /change-password-required
-```
-
-Arquivos esperados:
-
-```text
-change-password-required.component.ts
-change-password-required.component.html
-change-password-required.component.css
-change-password-required.component.spec.ts
-```
+~~~
 
 Responsabilidades:
 
@@ -1727,250 +2087,159 @@ Responsabilidades:
 - nova senha;
 - confirmação;
 - validação;
-- chamada ao backend;
-- atualização de `/api/me/`;
+- backend;
+- atualização do contexto;
 - liberação do sistema.
 
 ---
 
-# Frontend — Guard de Troca de Senha
+# Interceptor
 
-Localizar em:
+Códigos relevantes incluem:
 
-```text
-Frontend\sysvar\src\app\core
-Frontend\sysvar\src\app\guards
-```
-
-O guard deve:
-
-- permitir a rota de troca;
-- permitir logout;
-- redirecionar outras rotas;
-- não criar loop;
-- consultar o contexto de autenticação.
-
-O backend continua sendo a autoridade final.
-
----
-
-# Frontend — Interceptor
-
-O interceptor deve tratar códigos específicos.
-
-Principais:
-
-```text
+~~~text
 CONTRACT_SUSPENDED
 PASSWORD_CHANGE_REQUIRED
 CONCURRENT_SESSION_LIMIT_REACHED
-```
+~~~
 
-Não tratar todos os erros 403 da mesma forma.
-
-## CONTRACT_SUSPENDED
-
-Deve:
-
-- limpar sessão local;
-- interromper heartbeat;
-- direcionar ao login;
-- mostrar mensagem segura.
-
-## PASSWORD_CHANGE_REQUIRED
-
-Deve:
-
-- preservar a sessão;
-- direcionar para troca obrigatória;
-- não executar logout automático.
-
-## CONCURRENT_SESSION_LIMIT_REACHED
-
-Deve:
-
-- permanecer na tela de login;
-- não salvar token;
-- não salvar sessão;
-- não iniciar heartbeat;
-- exibir mensagem de limite.
+Não tratar todos os 403 da mesma forma.
 
 ---
 
-# Frontend — Rotas do Operacional
+# Segurança Transversal
 
-Arquivo:
+Princípios:
 
-```text
-Frontend\sysvar\src\app\app.routes.ts
-```
-
-Rotas principais:
-
-```text
-/empresas
-/lojas
-/usuarios
-/config/perfis
-/config/auditoria
-/change-password-required
-```
-
-Os caminhos exatos devem ser confirmados no arquivo.
-
-## Empresas
-
-```text
-operacional
-```
-
-Ações críticas somente para superusuário.
-
-## Estabelecimentos
-
-```text
-operacional
-```
-
-Sem bloqueio exclusivo por roles antigas.
-
-## Usuários
-
-```text
-operacional
-```
-
-## Perfis
-
-```text
-operacional
-```
-
-## Auditoria
-
-```text
-auditoria
-```
+1. backend é autoridade;
+2. tenant no backend;
+3. frontend não substitui autorização;
+4. VIEW e EDIT precisam ser respeitados;
+5. ações sensíveis possuem proteção adicional quando definida;
+6. IDs recebidos devem ser validados;
+7. relações cross-tenant devem ser recusadas;
+8. Auditoria deve preservar rastreabilidade;
+9. dados sensíveis não devem ser logados indevidamente.
 
 ---
 
-# Frontend — Menu Lateral
+# Multiempresa
 
-Arquivo:
+Regra transversal:
 
-```text
-Frontend\sysvar\src\app\layout\shell\shell.component.ts
-```
+~~~text
+Usuário
+  ↓
+Empresa atual
+  ↓
+QuerySet restrito
+  ↓
+Relacionamentos validados
+~~~
 
-Grupo:
+Aplica-se especialmente a:
 
-```text
-Operacional
-```
-
-Itens:
-
-- Empresas;
-- Estabelecimento;
-- Usuários;
-- Perfis de acesso;
-- Auditoria.
-
-A exibição deve utilizar permissões efetivas.
-
-Não reintroduzir listas baseadas somente em tipo funcional.
+- Clientes;
+- Fornecedores;
+- Funcionários;
+- Produtos;
+- Lojas;
+- Estoque;
+- Compras;
+- Financeiro;
+- Produção;
+- Fiscal.
 
 ---
 
 # Testes Backend
 
-Arquivos principais:
+Arquivos centrais incluem:
 
-```text
+~~~text
 Backend\accounts\tests.py
 Backend\cadastros\tests.py
 Backend\auditoria\tests.py
-```
+Backend\produto\tests.py
+~~~
 
-Cobertura adicionada:
+A suíte do grupo Operacional possui ampla cobertura para:
 
-- contrato suspenso;
-- login bloqueado;
-- login acima do limite;
-- login bloqueado sem sessão fantasma;
-- logout;
-- liberação de vaga;
-- substituição no mesmo dispositivo;
-- usuários diferentes no mesmo dispositivo;
-- superusuário sem consumo de licença;
-- sessão revogada;
-- contador central;
-- sessões por empresa;
-- sessões por usuário;
-- encerramento individual;
-- encerramento consolidado;
-- rollback de sessões;
-- redefinição de senha;
-- rollback da redefinição;
-- troca obrigatória;
-- bloqueio de endpoints;
-- liberação após troca;
-- dependências de módulos;
-- empresa obrigatória em Loja;
-- permissões do Operacional;
-- Auditoria.
+- autenticação;
+- contratos;
+- sessões;
+- licenciamento;
+- permissões;
+- Estabelecimentos;
+- Auditoria;
+- senhas.
 
-Rodada registrada durante a centralização:
+Cadastros adicionou cobertura para:
 
-```text
-59 testes backend aprovados
-```
+- Clientes;
+- Fornecedores;
+- Funcionários.
 
-Testes posteriores foram adicionados.
+Produto Venda adicionou cobertura direcionada para:
 
-O total atual deve ser confirmado executando a suíte.
+- tipo;
+- Grade;
+- sincronização de Cores;
+- última Cor;
+- reativação;
+- preservação de EAN;
+- exclusão;
+- tenant;
+- Histórico;
+- imagens;
+- fiscal;
+- permissões.
+
+No fechamento final de Produto Venda foram reportados:
+
+~~~text
+8 testes backend direcionados aprovados
+~~~
+
+Esse número não representa o total da suíte do projeto.
+
+O total atual deve sempre ser confirmado executando os testes.
 
 ---
 
 # Testes Frontend
 
-Arquivos relevantes incluem:
+Cobertura transversal inclui:
 
-```text
-src\app\app.routes.spec.ts
-src\app\core\permission.service.spec.ts
-src\app\core\auth.service.spec.ts
-src\app\features\auditoria\auditoria.component.spec.ts
-```
+- rotas;
+- permissões;
+- autenticação;
+- logout;
+- sessões;
+- modais;
+- filtros;
+- paginação;
+- componentes funcionais.
 
-Também foram adicionados ou ampliados testes para:
+Produto Venda possui testes direcionados para:
 
-- rotas do Operacional;
-- Estabelecimentos sem roles antigas;
-- Perfis usando Operacional;
-- troca obrigatória de senha;
-- guard;
-- componente de alteração;
-- tratamento dos códigos de erro;
-- permissões visuais;
-- logout antes da limpeza local;
-- superusuário;
-- modal `Ver Sessões`;
-- resposta em array;
-- resposta paginada;
-- contador;
-- estado vazio;
-- encerramento e atualização.
+- nomenclatura;
+- filtros;
+- paginação;
+- seleção de Lojas;
+- ação Todas;
+- Dados fiscais;
+- imagens;
+- Status do SKU;
+- ações de ciclo de vida.
 
-Rodada registrada durante a centralização:
+No fechamento final foram reportados:
 
-```text
-37 testes frontend aprovados
-```
+~~~text
+11 testes frontend direcionados aprovados
+~~~
 
-Testes posteriores foram adicionados.
-
-O total atual deve ser confirmado executando a suíte.
+Esse número não representa a suíte total.
 
 ---
 
@@ -1978,75 +2247,131 @@ O total atual deve ser confirmado executando a suíte.
 
 ## Backend
 
-```powershell
+~~~powershell
 cd C:\SysvarProjeto\Backend
 
 python manage.py check
 python manage.py makemigrations --check --dry-run
-python manage.py migrate
-python manage.py diagnosticar_lojas_sem_empresa
-python manage.py diagnosticar_sessoes_empresa --empresa-id <id>
-python manage.py reconciliar_sessoes_ativas --empresa-id <id> --dry-run
+~~~
+
+Quando pertinente:
+
+~~~powershell
 python manage.py test accounts -v 2 --noinput
 python manage.py test cadastros -v 2 --noinput
 python manage.py test auditoria -v 2 --noinput
-python manage.py test -v 2 --noinput
-```
+python manage.py test produto -v 2 --noinput
+~~~
 
-Não afirmar que os testes passaram sem executar.
+Executar a suíte completa somente em checkpoint adequado:
+
+~~~powershell
+python manage.py test -v 2 --noinput
+~~~
+
+Não afirmar que testes passaram sem executar.
 
 ## Frontend
 
-```powershell
+~~~powershell
 cd C:\SysvarProjeto\Frontend\sysvar
 
 npx tsc -p tsconfig.app.json --noEmit
 ng build --configuration development
-ng test --watch=false --browsers=ChromeHeadless
-```
+~~~
 
-Não afirmar que os testes passaram sem executar.
+Quando pertinente:
+
+~~~powershell
+ng test --watch=false --browsers=ChromeHeadless
+~~~
+
+Utilizar testes direcionados para correções localizadas.
+
+Executar suíte ampla em checkpoints relevantes.
 
 ---
 
-# Homologação Manual Concluída
+# Homologação Manual Concluída — Operacional
 
-## Licenciamento
+Foram homologados:
 
-Foi validado:
-
-- primeiro usuário logado;
-- segundo usuário logado;
-- bloqueio do terceiro acesso;
-- logout liberando vaga;
-- novo login após liberação;
-- contador correto;
-- quantidade disponível correta.
-
-## Superusuário
-
-Foi validado:
-
-- superusuário logado;
-- contador da empresa em zero sem usuário cliente;
-- superusuário fora da listagem de licenças.
-
-## Modal Ver Sessões
-
-Foi validado:
-
-- contador com uma sessão;
-- modal com uma linha;
-- ausência de divergência falsa;
-- ausência de estado vazio indevido;
-- sessão identificada corretamente;
-- controle de sessões funcionando.
+- licenciamento;
+- limite simultâneo;
+- liberação de vaga;
+- superusuário;
+- contador;
+- sessões;
+- encerramento;
+- segurança;
+- Auditoria.
 
 Status:
 
-```text
+~~~text
 OPERACIONAL HOMOLOGADO
-```
+~~~
+
+---
+
+# Homologação Manual Concluída — Cadastros
+
+Cadastros revisados:
+
+~~~text
+Clientes
+Fornecedores
+Funcionários
+~~~
+
+Status do escopo atual:
+
+~~~text
+HOMOLOGADO
+DOCUMENTADO
+~~~
+
+Funcionários:
+
+~~~text
+17/17 itens aprovados
+~~~
+
+---
+
+# Homologação Manual Concluída — Produto Venda
+
+Resultado:
+
+~~~text
+19/19 itens aprovados
+~~~
+
+Foram homologados:
+
+1. cadastro e obrigatoriedades;
+2. tipo imutável;
+3. Grade imutável;
+4. descrição reduzida;
+5. Grupo/Subgrupo;
+6. remoção de Cor;
+7. remoção da última Cor;
+8. reativação e preservação de EAN;
+9. exclusão de Produto nunca utilizado;
+10. proteção de Produto utilizado;
+11. Histórico cadastral;
+12. fiscal;
+13. imagens;
+14. Estoque Loja × SKU;
+15. consulta de Fabricação Própria;
+16. filtros;
+17. Inativar/Ativar;
+18. Bloquear/Desbloquear venda;
+19. paginação.
+
+Documento:
+
+[[Homologação - Produtos - Produto Venda]]
 
 ---
 
@@ -2056,7 +2381,7 @@ OPERACIONAL HOMOLOGADO
 
 Backend:
 
-```text
+~~~text
 cadastros\models.py
 cadastros\serializers.py
 cadastros\views.py
@@ -2064,83 +2389,91 @@ accounts\authentication.py
 accounts\services\sessions.py
 auditoria\models.py
 auditoria\services.py
-```
+~~~
 
 Frontend:
 
-```text
+~~~text
 features\empresas
 core\services\empresas.service.ts
 interceptor
 auth service
-```
+~~~
+
+---
 
 ## Estabelecimentos
 
 Backend:
 
-```text
+~~~text
 cadastros\models.py
 cadastros\serializers.py
 cadastros\views.py
 cadastros\urls.py
 cadastros\tests.py
-```
+~~~
 
 Frontend:
 
-```text
+~~~text
 features\lojas
 core\services\lojas.service.ts
 app.routes.ts
 layout\shell
-```
+~~~
+
+---
 
 ## Usuários
 
 Backend:
 
-```text
+~~~text
 accounts\models.py
 accounts\serializers.py
 accounts\views.py
 accounts\permissions.py
 accounts\tests.py
-```
+~~~
 
 Frontend:
 
-```text
+~~~text
 features\usuarios
 core\services\users.service.ts
 permission service
 auth service
-```
+~~~
+
+---
 
 ## Perfis
 
 Backend:
 
-```text
+~~~text
 accounts\models.py
 accounts\serializers.py
 accounts\permissions.py
 accounts\services\effective_access.py
-```
+~~~
 
 Frontend:
 
-```text
+~~~text
 features\perfis-acesso
 app.routes.ts
 permission service
-```
+~~~
+
+---
 
 ## Sessões
 
 Backend:
 
-```text
+~~~text
 accounts\models.py
 accounts\views.py
 accounts\serializers.py
@@ -2148,126 +2481,450 @@ accounts\services\sessions.py
 accounts\management\commands
 cadastros\views.py
 auditoria\services.py
-```
+~~~
 
 Frontend:
 
-```text
+~~~text
 core\auth.service.ts
 layout\shell\shell.component.ts
 features\empresas
 features\usuarios
 core\services\empresas.service.ts
 core\services\users.service.ts
-```
+~~~
+
+---
 
 ## Senhas
 
 Backend:
 
-```text
+~~~text
 accounts\authentication.py
 accounts\serializers.py
 accounts\views.py
 accounts\urls.py
 accounts\tests.py
-```
+~~~
 
 Frontend:
 
-```text
+~~~text
 features\change-password-required
 guards
 interceptors
 auth service
 app.routes.ts
-```
+~~~
+
+---
 
 ## Auditoria
 
 Backend:
 
-```text
+~~~text
 auditoria\models.py
 auditoria\services.py
 auditoria\middleware.py
 auditoria\signals.py
 auditoria\views.py
 auditoria\tests.py
-```
+~~~
 
 Frontend:
 
-```text
+~~~text
 features\auditoria
 core\models\audit.ts
 core\services\audit.service.ts
-```
+~~~
+
+---
+
+## Clientes
+
+Principalmente:
+
+~~~text
+Backend\cadastros
+Backend\auditoria
+Frontend\sysvar\src\app\features
+Frontend\sysvar\src\app\core\services
+~~~
+
+Antes de alterar:
+
+[[Mapa Técnico - Cadastros - Clientes]]
+
+---
+
+## Funcionários
+
+Principalmente:
+
+~~~text
+Backend\cadastros
+Backend\accounts
+Backend\auditoria
+Frontend\sysvar\src\app\features
+Frontend\sysvar\src\app\core\services
+~~~
+
+Antes de alterar:
+
+- [[Mapa Técnico - Cadastros - Funcionários]]
+- [[Modelo de Domínio - Cadastros - Funcionários]]
+- [[Workflows - Cadastros - Funcionários]]
+- [[Riscos e Cuidados - Cadastros - Funcionários]]
+
+---
+
+## Produto Venda
+
+Backend:
+
+~~~text
+Backend\produto\models.py
+Backend\produto\serializers.py
+Backend\produto\views.py
+Backend\produto\urls.py
+Backend\produto\permissions.py
+Backend\produto\tests.py
+~~~
+
+Integrações possíveis:
+
+~~~text
+Backend\cadastros
+Backend\accounts
+Backend\auditoria
+Backend\compras
+Backend\fiscal
+estruturas de Estoque
+estruturas de Produção
+estruturas de Preços
+~~~
+
+Frontend:
+
+~~~text
+Frontend\sysvar\src\app\features\Produtos
+Frontend\sysvar\src\app\core\services\produtos.service.ts
+Frontend\sysvar\src\app\layout\shell
+componentes auxiliares de Loja e Cor
+~~~
+
+Antes de alterar Produto Venda, consultar obrigatoriamente:
+
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
+---
+
+# Dependências Principais de Produto Venda
+
+~~~text
+Empresa
+   ↓
+Produto Venda
+   ↓
+Produto
+   ↓
+ProdutoDetalhe / SKU
+   ├── Cor
+   ├── Tamanho
+   ├── EAN
+   └── Estoque
+        ↓
+      Loja
+~~~
+
+Classificação:
+
+~~~text
+Produto
+├── Coleção
+├── Grupo
+├── Subgrupo
+├── Unidade
+├── Material
+└── Grade
+~~~
+
+Domínios relacionados:
+
+~~~text
+Produto Venda
+├── Compras
+├── Estoque
+├── Preços
+├── Fiscal
+├── Produção
+├── Vendas / PDV
+└── Auditoria
+~~~
+
+---
+
+# Regras Técnicas Críticas de Produto Venda
+
+Não devem regredir:
+
+1. tenant no backend;
+2. tipo imutável;
+3. Referência automática;
+4. Grade imutável após SKU;
+5. SKU = Produto × Cor × Tamanho;
+6. remoção de Cor inativa SKU;
+7. remoção da última Cor precisa funcionar;
+8. reentrada de Cor reativa SKU;
+9. EAN preservado;
+10. Estoque Loja × SKU;
+11. inicialização de Estoque não é entrada;
+12. Produto utilizado não pode ser excluído;
+13. Inativo não é excluído;
+14. Bloqueado não é Inativo;
+15. fiscal é editável e rastreado;
+16. Histórico Funcional não substitui AuditLog;
+17. máximo de três imagens;
+18. uma imagem principal;
+19. sem imagem por Cor;
+20. sem imagem por SKU;
+21. filtros server-side;
+22. paginação server-side;
+23. ações sensíveis usam permissão funcional;
+24. senha e motivo continuam quando exigidos.
+
+Detalhamento:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
+---
+
+# Fluxo Técnico Geral do Produto Venda
+
+~~~text
+Usuário
+   ↓
+Frontend Produto Venda
+   ↓
+API Produto
+   ↓
+Tenant
+   ↓
+Validações
+   ↓
+Produto
+   ↓
+SKUs
+   ↓
+EAN
+   ↓
+Loja × SKU
+   ↓
+Estoque
+~~~
+
+Em paralelo:
+
+~~~text
+Produto
+├── Dados fiscais
+├── Imagens
+├── Preços
+├── Histórico Funcional
+└── Auditoria Central
+~~~
+
+Fluxo completo:
+
+[[Workflows - Produtos - Produto Venda]]
 
 ---
 
 # Próxima Área Técnica
 
-A revisão seguirá para:
+Situação atual:
 
-```text
-Cadastros
-```
+~~~text
+Operacional
+→ CONCLUÍDO
 
-Primeiros itens:
+Cadastros revisados
+→ CONCLUÍDOS NO ESCOPO ATUAL
 
-```text
-Clientes
-Fornecedores
-Funcionários
-```
+Produtos
+→ EM ANDAMENTO
 
-Apps e arquivos que provavelmente serão envolvidos:
+Produto Venda
+→ CONCLUÍDO
+~~~
 
-```text
-Backend\cadastros
-Backend\auditoria
-Frontend\sysvar\src\app\features
-Frontend\sysvar\src\app\core\services
-Frontend\sysvar\src\app\app.routes.ts
-Frontend\sysvar\src\app\layout\shell
-```
+O próximo item do grupo Produtos deve ser definido antes de iniciar nova implementação/homologação.
 
-Antes de criar qualquer prompt:
+Produto Uso e Consumo continua separado de Produto Venda e não deve ser considerado homologado apenas pelo fechamento de Produto Venda.
 
-1. conferir a ordem real do menu;
-2. localizar componentes reais;
-3. verificar models;
-4. verificar serializers;
-5. verificar views;
-6. verificar endpoints;
-7. verificar isolamento;
+Antes de qualquer novo prompt para Codex:
+
+1. identificar exatamente o próximo cadastro/processo;
+2. verificar código atual;
+3. verificar integrações;
+4. levantar comportamento atual;
+5. definir regras funcionais;
+6. comparar com os padrões já homologados;
+7. verificar multiempresa;
 8. verificar permissões;
-9. verificar paginação;
-10. verificar Auditoria;
-11. verificar testes existentes;
-12. levantar melhorias funcionais;
-13. registrar riscos;
-14. somente depois preparar o prompt para o Codex.
+9. verificar Auditoria;
+10. verificar testes;
+11. registrar riscos;
+12. somente então criar prompt de implementação.
 
 ---
 
-# Última Atualização
+# Padrão de Trabalho Técnico
 
-```text
-2026-08-06
-```
+Fluxo recomendado:
+
+~~~text
+Decisão funcional
+        ↓
+Investigação do código atual
+        ↓
+Definição completa da solução
+        ↓
+Avaliação de impactos
+        ↓
+Prompt direcionado ao Codex
+        ↓
+Implementação
+        ↓
+Testes direcionados
+        ↓
+Revisão técnica
+        ↓
+Homologação manual
+        ↓
+Correções
+        ↓
+Reteste
+        ↓
+Documentação
+        ↓
+Fechamento
+~~~
+
+Evitar investigação ampla via Codex quando a análise puder ser feita previamente.
+
+Usar suíte completa apenas em checkpoints em que ela agregue valor.
 
 ---
 
-# Notas Relacionadas
+# Documentação e Grafo do Obsidian
 
-- [[10 Projetos/Sysvar/Sysvar|Sysvar]]
+Os documentos principais devem possuir links internos.
+
+Núcleo:
+
+[[Sysvar]]
+
+Contexto geral:
+
 - [[10 Projetos/Sysvar/Contexto do Projeto/Visão Geral|Visão Geral]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Arquitetura|Arquitetura]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio|Modelo de Domínio]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Workflows|Workflows]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados|Riscos e Cuidados]]
+
+Produto Venda:
+
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
+Os links não existem apenas para navegação textual.
+
+Eles também preservam as relações entre documentos no Graph View do Obsidian.
+
+---
+
+# Última Atualização
+
+~~~text
+2026-08-13
+~~~
+
+---
+
+# Estado do Documento
+
+Este Mapa Técnico central representa a visão técnica consolidada atual do [[Sysvar]].
+
+Situação dos principais grupos trabalhados:
+
+~~~text
+OPERACIONAL
+→ HOMOLOGADO E DOCUMENTADO
+
+CADASTROS
+→ CLIENTES, FORNECEDORES E FUNCIONÁRIOS
+→ HOMOLOGADOS E DOCUMENTADOS
+
+PRODUTOS
+→ EM ANDAMENTO
+
+PRODUTO VENDA
+→ HOMOLOGADO E DOCUMENTADO
+→ 19/19
+~~~
+
+Qualquer desenvolvimento futuro deve consultar este mapa e, quando a alteração atingir um domínio já fechado, também consultar sua documentação específica.
+
+---
+
+# Notas Relacionadas
+
+## Projeto
+
+- [[10 Projetos/Sysvar/Sysvar|Sysvar]]
+
+## Contexto Geral
+
+- [[10 Projetos/Sysvar/Contexto do Projeto/Visão Geral|Visão Geral]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Arquitetura|Arquitetura]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio|Modelo de Domínio]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Workflows|Workflows]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados|Riscos e Cuidados]]
+
+## Operacional
+
+- [[10 Projetos/Sysvar/Homologações/Homologação - Operacional|Homologação - Operacional]]
 - [[10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas|ADR-001 - Licenciamento por Sessões Simultâneas]]
 - [[10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR|ADR-002 - Princípios Arquiteturais do SISVAR]]
 - [[10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR|ADR-003 - Auditoria Central do SISVAR]]
+
+## Cadastros — Clientes
+
+- [[Mapa Técnico - Cadastros - Clientes]]
+
+## Cadastros — Funcionários
+
+- [[Homologação - Cadastros - Funcionários]]
+- [[Mapa Técnico - Cadastros - Funcionários]]
+- [[Workflows - Cadastros - Funcionários]]
+- [[Modelo de Domínio - Cadastros - Funcionários]]
+- [[Riscos e Cuidados - Cadastros - Funcionários]]
+
+## Produtos — Produto Venda
+
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
