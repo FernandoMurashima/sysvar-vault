@@ -1,6 +1,6 @@
 ## 1. Identificação
 
-**Projeto:** Sysvar  
+**Projeto:** [[Sysvar]]  
 **Módulo:** Produtos  
 **Cadastro:** Produto Venda  
 **Escopo:** Revenda e Fabricação Própria  
@@ -8,11 +8,19 @@
 **Data de conclusão da homologação:** 13/08/2026  
 **Resultado:** 19/19 itens aprovados
 
+### Documentos relacionados
+
+- [[Sysvar]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
 ---
 
 ## 2. Objetivo
 
-O cadastro de **Produto Venda** do Sysvar representa os produtos destinados à comercialização pela empresa.
+O cadastro de **Produto Venda** do [[Sysvar]] representa os produtos destinados à comercialização pela empresa.
 
 O cadastro unifica funcionalmente dois tipos de produto:
 
@@ -91,6 +99,10 @@ O Produto concentra informações comuns às suas variações, entre elas:
 - tabelas de preço relacionadas.
 
 As variações comercializáveis são representadas pelos SKUs.
+
+A estrutura técnica correspondente está detalhada em:
+
+[[Modelo de Domínio - Produtos - Produto Venda]]
 
 ---
 
@@ -332,6 +344,10 @@ O sistema não deve gerar um novo EAN para a mesma variação já existente.
 
 Esse fluxo foi homologado.
 
+O fluxo completo está documentado em:
+
+[[Workflows - Produtos - Produto Venda]]
+
 ---
 
 ## 14. SKU
@@ -363,7 +379,7 @@ O SKU representa a unidade operacional de estoque e venda.
 
 ## 15. EAN
 
-Cada SKU recebe EAN de forma automática conforme a estrutura já existente no Sysvar.
+Cada SKU recebe EAN de forma automática conforme a estrutura já existente no [[Sysvar]].
 
 A geração e preservação de EAN foram mantidas.
 
@@ -485,7 +501,7 @@ A regra existente relacionada a estoque negativo foi preservada.
 
 Produto Venda não criou uma segunda lógica de estoque.
 
-Qualquer autorização ou bloqueio de estoque negativo deve continuar utilizando a configuração já existente no Sysvar.
+Qualquer autorização ou bloqueio de estoque negativo deve continuar utilizando a configuração já existente no [[Sysvar]].
 
 ---
 
@@ -679,6 +695,10 @@ Quando não estiver, a interface utiliza a imagem original como fallback.
 
 A definição definitiva de processamento de imagem permanece para decisão técnica específica futura.
 
+Esse ponto deve permanecer destacado em:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
 ---
 
 ## 28. Ativo e Inativo
@@ -747,7 +767,7 @@ A distinção entre inativação e bloqueio de venda deve ser preservada.
 
 ## 30. Segurança para ações sensíveis
 
-As ações sensíveis utilizam o modelo funcional de permissões do Sysvar.
+As ações sensíveis utilizam o modelo funcional de permissões do [[Sysvar]].
 
 A homologação identificou inicialmente um problema:
 
@@ -1031,6 +1051,10 @@ Durante o desenvolvimento e homologação de Produto Venda foram preservadas as 
 
 Nenhum desses módulos foi redesenhado como consequência da unificação do Produto Venda.
 
+A posição da funcionalidade dentro do projeto geral está registrada em:
+
+[[Sysvar]]
+
 ---
 
 ## 42. Itens homologados
@@ -1041,15 +1065,11 @@ Nenhum desses módulos foi redesenhado como consequência da unificação do Pro
 
 Foram validadas as obrigatoriedades principais do cadastro.
 
----
-
 ### Item 2 — Tipo imutável
 
 **Resultado:** OK
 
 Após criação, o tipo não pode ser alterado.
-
----
 
 ### Item 3 — Grade imutável após SKU
 
@@ -1057,15 +1077,11 @@ Após criação, o tipo não pode ser alterado.
 
 Produto com SKUs existentes não permite alteração da Grade.
 
----
-
 ### Item 4 — Descrição reduzida obrigatória
 
 **Resultado:** OK
 
 O sistema impede gravação sem descrição reduzida válida.
-
----
 
 ### Item 5 — Subgrupo obrigatório e coerente
 
@@ -1073,15 +1089,11 @@ O sistema impede gravação sem descrição reduzida válida.
 
 Subgrupo é obrigatório e deve estar associado corretamente ao Grupo.
 
----
-
 ### Item 6 — Remoção de uma cor
 
 **Resultado:** OK
 
 A cor pode ser retirada e os SKUs correspondentes são inativados, preservando histórico.
-
----
 
 ### Item 7 — Remoção da última cor
 
@@ -1089,15 +1101,11 @@ A cor pode ser retirada e os SKUs correspondentes são inativados, preservando h
 
 A retirada da última cor foi processada corretamente.
 
----
-
 ### Item 8 — Reativação de cor e preservação do EAN
 
 **Resultado:** OK
 
 Ao adicionar novamente a cor, os mesmos SKUs são reativados e os EANs anteriores são preservados.
-
----
 
 ### Item 9 — Exclusão de Produto nunca utilizado
 
@@ -1105,23 +1113,17 @@ Ao adicionar novamente a cor, os mesmos SKUs são reativados e os EANs anteriore
 
 Produto sem utilização impeditiva pode ser excluído.
 
----
-
 ### Item 10 — Proteção de exclusão de Produto utilizado
 
 **Resultado:** OK
 
 Produto com utilização relevante não pode ser apagado fisicamente.
 
----
-
 ### Item 11 — Histórico funcional de alteração cadastral
 
 **Resultado:** OK
 
 Alterações cadastrais relevantes aparecem no Histórico Funcional.
-
----
 
 ### Item 12 — Alteração fiscal e histórico
 
@@ -1136,8 +1138,6 @@ Após correção:
 - campos fiscais ficaram editáveis;
 - histórico fiscal permaneceu funcional;
 - auditoria permaneceu funcional.
-
----
 
 ### Item 13 — Imagens
 
@@ -1156,15 +1156,11 @@ Foram homologados:
 - visualização;
 - estado sem imagens.
 
----
-
 ### Item 14 — Estoque Loja × SKU
 
 **Resultado:** OK
 
 A consulta apresenta corretamente as combinações entre Loja e SKU e seus saldos.
-
----
 
 ### Item 15 — Consulta de Fabricação Própria
 
@@ -1172,15 +1168,11 @@ A consulta apresenta corretamente as combinações entre Loja e SKU e seus saldo
 
 A consulta apresenta informações relacionadas a Ficha Técnica e Ordem de Produção quando existentes.
 
----
-
 ### Item 16 — Filtros
 
 **Resultado:** OK
 
 Filtros individuais e combinados foram validados.
-
----
 
 ### Item 17 — Inativar/Ativar Produto
 
@@ -1192,8 +1184,6 @@ A autorização foi corrigida para utilizar o modelo funcional de permissões do
 
 O reteste foi aprovado.
 
----
-
 ### Item 18 — Bloquear/Desbloquear venda
 
 **Resultado:** OK após correção
@@ -1201,8 +1191,6 @@ O reteste foi aprovado.
 Apresentava a mesma falha de autorização do Item 17.
 
 Após correção, o fluxo foi retestado e aprovado.
-
----
 
 ### Item 19 — Paginação
 
@@ -1220,10 +1208,6 @@ Foram validados:
 ---
 
 ## 43. Correções identificadas durante a homologação
-
-A homologação manual identificou alguns pontos que não foram aceitos como concluídos até serem corrigidos.
-
-Foram eles:
 
 ### 43.1 Modal de lojas
 
@@ -1394,8 +1378,6 @@ Mensagem:
 
 `Corrige permissoes Produto Venda`
 
----
-
 ### Frontend
 
 Repositório:
@@ -1453,6 +1435,10 @@ Não deve ser criada regra arbitrária para esses parâmetros.
 
 Isso não impede o uso atual das imagens do Produto Venda.
 
+Ver também:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
 ---
 
 ## 48. Resultado final da homologação
@@ -1502,3 +1488,11 @@ Abrangência final homologada:
 - permissões funcionais.
 
 O cadastro **Produto Venda** está fechado e homologado no escopo atual.
+
+Documentação consolidada:
+
+- [[Sysvar]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
