@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-12
+updated: 2026-08-13
 tags:
   - projeto
   - sysvar
@@ -14,6 +14,15 @@ tags:
   - clientes
   - fornecedores
   - funcionários
+  - produtos
+  - produto-venda
+  - revenda
+  - fabricação-própria
+  - sku
+  - ean
+  - estoque
+  - fiscal
+  - produção
   - auditoria
   - multiempresa
 ---
@@ -102,25 +111,30 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 
 ## Produtos
 
-- Produtos de revenda;
-- produtos de uso e consumo;
+- Produto Venda;
+- Revenda;
+- Fabricação Própria;
+- Produtos de Uso e Consumo;
 - SKUs;
-- cores;
-- tamanhos;
-- grades;
-- packs;
-- coleções;
-- grupos;
-- subgrupos;
+- EAN;
+- Cores;
+- Tamanhos;
+- Grades;
+- Packs;
+- Coleções;
+- Grupos;
+- Subgrupos;
 - NCM;
-- unidades;
-- tabelas de preço.
+- Unidades;
+- Tabelas de Preço;
+- imagens;
+- Dados fiscais.
 
 ## Compras
 
 - pedidos de compra;
-- pedidos de revenda;
-- pedidos de uso e consumo;
+- pedidos de Revenda;
+- pedidos de Uso e Consumo;
 - aprovação;
 - cancelamento;
 - parcelas;
@@ -142,9 +156,11 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 - saídas;
 - transferências;
 - saldos;
-- estoque por empresa;
-- estoque por estabelecimento;
-- estoque por SKU.
+- estoque por Empresa;
+- estoque por Estabelecimento;
+- estoque por SKU;
+- reservas;
+- disponibilidade.
 
 ## Distribuição
 
@@ -152,18 +168,18 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 - distribuição manual;
 - distribuição percentual;
 - perfis de distribuição;
-- distribuição por grade;
-- distribuição de produto próprio;
-- distribuição de produto de revenda.
+- distribuição por Grade;
+- distribuição de Fabricação Própria;
+- distribuição de Revenda.
 
 ## Produção
 
-- ficha técnica;
-- ordem de produção;
+- Ficha Técnica;
+- Ordem de Produção;
 - facção;
 - matéria-prima;
-- retorno de produção;
-- custo de produção.
+- retorno de Produção;
+- custo de Produção.
 
 ## Vendas e PDV
 
@@ -171,7 +187,8 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 - fechamento de caixa;
 - vendas;
 - pagamentos;
-- clientes;
+- Clientes;
+- vendedores;
 - descontos;
 - NFC-e;
 - operação online;
@@ -190,9 +207,9 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 ## Relatórios e Dashboards
 
 - vendas;
-- estoque;
-- compras;
-- financeiro;
+- Estoque;
+- Compras;
+- Financeiro;
 - indicadores comerciais;
 - acompanhamento gerencial.
 
@@ -260,6 +277,25 @@ main
 
 ---
 
+# Documentação Central
+
+Os documentos gerais do projeto são:
+
+- [[Mapa Técnico]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Visão Geral|Visão Geral]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Arquitetura|Arquitetura]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio|Modelo de Domínio]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Workflows|Workflows]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados|Riscos e Cuidados]]
+
+Decisões arquiteturais:
+
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas|ADR-001 - Licenciamento por Sessões Simultâneas]]
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR|ADR-002 - Princípios Arquiteturais do SISVAR]]
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR|ADR-003 - Auditoria Central do SISVAR]]
+
+---
+
 # Situação Geral Atual
 
 ## Infraestrutura Estrutural
@@ -276,7 +312,7 @@ Inclui:
 
 - autenticação;
 - isolamento multiempresa;
-- isolamento por estabelecimento;
+- isolamento por Estabelecimento;
 - contratos;
 - módulos contratados;
 - usuário master;
@@ -329,11 +365,9 @@ Itens concluídos:
 - Troca obrigatória de senha;
 - Auditoria Central.
 
-Documento de homologação:
+Homologação:
 
-~~~text
-10 Projetos\Sysvar\Homologações\Homologação - Operacional.md
-~~~
+[[10 Projetos/Sysvar/Homologações/Homologação - Operacional|Homologação - Operacional]]
 
 ---
 
@@ -345,29 +379,33 @@ Status:
 HOMOLOGADO MANUALMENTE
 ~~~
 
-O SISVAR utiliza exclusivamente:
+O Sysvar utiliza:
 
 ~~~text
-Sessões simultâneas
+SESSÕES SIMULTÂNEAS
 ~~~
 
-O SISVAR não utiliza a quantidade de usuários cadastrados como consumo de licença.
+A quantidade de usuários cadastrados não representa consumo de licença.
 
 Regras homologadas:
 
-- criar usuário não consome licença;
-- ativar usuário não consome licença;
-- manter usuário cadastrado não consome licença;
+- criar Usuário não consome licença;
+- ativar Usuário não consome licença;
+- manter Usuário cadastrado não consome licença;
 - login válido consome licença;
 - logout libera licença;
 - timeout libera licença;
 - encerramento administrativo libera licença;
-- suspensão da empresa libera todas as vagas;
-- superusuário da plataforma não consome licença de nenhuma empresa;
+- suspensão da Empresa libera as vagas;
+- superusuário não consome licença de Empresa cliente;
 - usuários diferentes podem utilizar o mesmo dispositivo;
-- o mesmo usuário no mesmo dispositivo substitui apenas sua própria sessão;
-- login acima do limite contratado é recusado;
+- o mesmo usuário no mesmo dispositivo substitui sua sessão anterior;
+- login acima do limite é recusado;
 - contador e listagem utilizam a mesma regra central.
+
+Referência:
+
+[[10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas|ADR-001 - Licenciamento por Sessões Simultâneas]]
 
 ---
 
@@ -383,8 +421,8 @@ HOMOLOGADA
 
 É possível:
 
-- visualizar sessões por empresa;
-- visualizar sessões por usuário;
+- visualizar sessões por Empresa;
+- visualizar sessões por Usuário;
 - identificar navegador;
 - identificar dispositivo;
 - identificar sistema operacional;
@@ -392,13 +430,13 @@ HOMOLOGADA
 - visualizar início;
 - visualizar última atividade;
 - visualizar tempo conectado;
-- visualizar status;
+- visualizar Status;
 - encerrar uma sessão;
-- encerrar todas as sessões;
+- encerrar todas;
 - diagnosticar inconsistências;
 - reconciliar sessões inválidas.
 
-O contador de sessões e a listagem utilizam a mesma regra central de validação.
+O contador e a listagem utilizam a mesma regra central de sessão válida.
 
 ---
 
@@ -419,73 +457,68 @@ A Auditoria registra eventos relacionados a:
 - logout;
 - sessões;
 - contratos;
-- empresas;
-- usuários;
+- Empresas;
+- Usuários;
 - permissões;
-- estabelecimentos;
+- Estabelecimentos;
 - perfis;
 - módulos;
 - bloqueios;
 - suspensão;
 - reativação;
-- administração de sessões;
-- clientes;
-- ciclo de vida de clientes;
-- fornecedores;
-- ciclo de vida de fornecedores;
-- contatos de fornecedores;
-- endereços de fornecedores;
-- funcionários;
-- cargos;
-- mudanças de cargo;
-- mudanças de loja de funcionário;
-- abrangência operacional;
-- afastamentos;
-- retornos;
-- desligamentos;
-- recontratações;
-- alterações de comissão;
-- vínculo e desvínculo entre Funcionário e Usuário;
+- Clientes;
+- Fornecedores;
+- Funcionários;
+- Produtos;
+- ciclo de vida;
+- alterações cadastrais;
+- alterações fiscais;
 - exclusões realizadas;
-- exclusões negadas.
+- exclusões negadas;
+- demais eventos relevantes dos módulos.
 
 Princípios:
 
 - backend como autoridade;
-- registro de empresa;
-- registro de usuário;
-- resultado da operação;
-- origem;
+- Empresa registrada;
+- Usuário registrado;
+- resultado registrado;
+- origem registrada;
 - correlação quando disponível;
 - proteção de dados sensíveis;
 - ausência de tokens brutos;
+- ausência de senhas;
 - ausência de stack trace para usuários;
-- ausência de duplicação intencional de eventos;
-- dados bancários sensíveis não devem ser replicados indevidamente nos logs;
-- salário e demais dados pessoais sensíveis de funcionários não devem ser replicados indevidamente nos logs.
+- evitar duplicação intencional de eventos.
 
-Documento técnico:
+Referência:
 
-~~~text
-10 Projetos\Sysvar\Decisões Técnicas\ADR-003 - Auditoria Central do SISVAR.md
-~~~
+[[10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR|ADR-003 - Auditoria Central do SISVAR]]
 
 ---
 
 # Grupo Cadastros
 
-Status atual:
+Situação do escopo revisado:
 
 ~~~text
-EM ANDAMENTO
+CLIENTES
+→ CONCLUÍDO
+
+FORNECEDORES
+→ CONCLUÍDO
+
+FUNCIONÁRIOS
+→ CONCLUÍDO
 ~~~
 
-Sequência de revisão:
+Os três cadastros prioritários definidos para essa etapa foram:
 
-1. Clientes — CONCLUÍDO;
-2. Fornecedores — CONCLUÍDO;
-3. Funcionários — CONCLUÍDO;
-4. demais cadastros da barra lateral — A DEFINIR.
+1. Clientes;
+2. Fornecedores;
+3. Funcionários.
+
+Os demais cadastros auxiliares continuam existentes e poderão receber revisão própria quando forem necessários aos módulos seguintes.
 
 ---
 
@@ -501,45 +534,31 @@ DOCUMENTADO
 APROVADO
 ~~~
 
-O cadastro de Clientes foi o primeiro módulo concluído do grupo Cadastros.
+Homologação:
 
----
+~~~text
+23/23
+~~~
 
-## Escopo Concluído de Clientes
+O cadastro contempla:
 
-Foram concluídos:
-
-- cadastro de Pessoa Física;
-- cadastro de Pessoa Jurídica;
-- cadastro sem documento;
-- validação de CPF;
-- validação de CNPJ;
-- documento funcional único;
-- compatibilidade temporária com campo legado;
-- unicidade por empresa;
-- mesmo documento permitido em empresas diferentes;
-- cliente padrão por empresa;
+- PF;
+- PJ;
+- Cliente sem documento;
+- CPF/CNPJ;
+- documento funcional;
+- unicidade por Empresa;
 - Consumidor Final;
-- pesquisa;
 - filtros;
-- indicadores da listagem;
 - paginação;
-- consulta detalhada;
-- Dados cadastrais;
+- consulta;
 - Compras;
 - Histórico;
-- indicadores comerciais;
-- ativação;
-- inativação;
-- bloqueio;
-- desbloqueio;
-- exclusão sem vínculos;
-- exclusão negada com vínculos;
-- permissões VIEW e EDIT;
-- integração com o PDV;
-- integração com vendas;
-- integração com devoluções;
-- integração com a Auditoria Central;
+- indicadores;
+- ciclo de vida;
+- exclusão protegida;
+- PDV;
+- Auditoria Central;
 - isolamento multiempresa.
 
 ---
@@ -550,32 +569,20 @@ Foram concluídos:
 
 Todo Cliente pertence a uma Empresa.
 
-Regra:
-
 ~~~text
 cliente.empresa_id == empresa atual
 ~~~
 
-O cadastro de Cliente não é global.
-
----
-
-## Tipo de Pessoa
-
-Tipos permitidos:
+## Tipo
 
 ~~~text
 PF
 PJ
 ~~~
 
-O tipo é explícito e determina a validação do documento.
+## Documento
 
----
-
-## Documento Funcional
-
-Campo oficial:
+Campo funcional:
 
 ~~~text
 documento
@@ -587,44 +594,19 @@ Campo legado temporário:
 cpf
 ~~~
 
-O frontend utiliza apenas `documento`.
-
-O campo legado não deve ser reutilizado em novos recursos.
-
----
-
 ## Unicidade
 
-Regra:
-
 ~~~text
-empresa + documento
+Empresa + documento
 ~~~
 
-Consequências:
-
-- documento duplicado na mesma empresa é recusado;
-- mesmo documento em outra empresa é permitido;
-- mais de um cliente sem documento é permitido.
+Mais de um Cliente sem documento é permitido.
 
 ---
 
-## Cliente Sem Documento
+# Consumidor Final
 
-Cliente comum pode existir sem CPF ou CNPJ.
-
-O sistema não deve:
-
-- preencher documento artificialmente;
-- utilizar `00000000000`;
-- transformar o cliente em Consumidor Final;
-- bloquear um segundo cliente sem documento.
-
----
-
-# Cliente Padrão
-
-Cada empresa possui exatamente um:
+Cada Empresa possui seu próprio:
 
 ~~~text
 Consumidor Final
@@ -640,26 +622,18 @@ cliente_padrao: true
 
 Não existe Consumidor Final global.
 
----
+O Cliente padrão possui proteções contra:
 
-## Proteções do Cliente Padrão
-
-O Cliente padrão não pode ser:
-
-- excluído;
-- inativado;
-- bloqueado;
-- transferido;
-- convertido em PJ;
-- ter o documento alterado;
-- perder a marcação de cliente padrão;
-- ser criado em duplicidade manualmente.
+- exclusão;
+- inativação;
+- bloqueio;
+- mudança de documento;
+- mudança de tipo;
+- perda da condição de Cliente padrão.
 
 ---
 
 # Ciclo de Vida de Clientes
-
-O ciclo de vida utiliza ações próprias:
 
 ~~~text
 Ativar
@@ -668,34 +642,13 @@ Bloquear
 Desbloquear
 ~~~
 
-Não deve existir alteração direta dos estados pelo formulário comum.
+Cliente Inativo ou Bloqueado não deve ser utilizado em nova venda.
 
 ---
 
-## Cliente Ativo
+# Consulta de Clientes
 
-Pode ser utilizado no PDV quando não estiver bloqueado.
-
-## Cliente Inativo
-
-- permanece cadastrado;
-- preserva vínculos;
-- não pode ser utilizado em nova venda;
-- pode ser reativado.
-
-## Cliente Bloqueado
-
-- permanece cadastrado;
-- exige motivo;
-- pode possuir observação;
-- não pode ser utilizado em nova venda;
-- pode ser desbloqueado.
-
----
-
-# Consulta do Cliente
-
-A consulta está organizada em:
+Abas:
 
 ~~~text
 Dados cadastrais
@@ -703,57 +656,7 @@ Compras
 Histórico
 ~~~
 
-## Dados Cadastrais
-
-Apresenta:
-
-- identificação;
-- documento;
-- contatos;
-- endereço;
-- situação;
-- bloqueio;
-- indicadores comerciais.
-
-## Compras
-
-Origem:
-
-~~~text
-fiscal.VendaPdv
-~~~
-
-Apresenta:
-
-- data;
-- venda;
-- documento;
-- loja;
-- vendedor;
-- itens;
-- valores;
-- forma de pagamento;
-- situação;
-- paginação;
-- filtros.
-
-## Histórico
-
-Origem:
-
-~~~text
-AuditLog
-~~~
-
-Apresenta ações administrativas sobre o cadastro.
-
-Compras e Histórico são domínios distintos.
-
----
-
-# Indicadores Comerciais do Cliente
-
-Indicadores homologados:
+Indicadores:
 
 ~~~text
 Última compra
@@ -762,299 +665,51 @@ Quantidade de compras
 Ticket médio
 ~~~
 
-Regras:
-
-- somente vendas válidas participam;
-- vendas canceladas permanecem na consulta, mas não entram nos indicadores;
-- devoluções finalizadas reduzem o total;
-- os cálculos são realizados no backend;
-- o frontend apenas apresenta os valores;
-- os cálculos respeitam a empresa;
-- os joins não podem duplicar valores.
+Cálculos são feitos no backend.
 
 ---
 
-# Integração com o PDV
+# Clientes e PDV
 
-## Venda Sem Cliente Identificado
-
-O PDV utiliza:
+Venda sem Cliente identificado:
 
 ~~~text
-Consumidor Final da empresa atual
+Consumidor Final da Empresa
 ~~~
 
-A venda não fica sem cliente.
+Venda com Cliente identificado:
 
-## Venda com Cliente Identificado
+~~~text
+Cliente selecionado
+~~~
 
-O cliente selecionado substitui o Consumidor Final.
+Cliente Inativo ou Bloqueado deve ser recusado.
 
-A venda:
-
-- pertence ao cliente selecionado;
-- aparece em Compras;
-- atualiza os indicadores;
-- não atualiza o Consumidor Final.
-
-## Cliente Bloqueado ou Inativo
-
-O PDV deve recusar o uso.
-
-O sistema não deve:
-
-- criar a venda para o cliente;
-- trocar silenciosamente para Consumidor Final;
-- ignorar o estado;
-- alterar indicadores.
-
-## Cliente de Outra Empresa
-
-A operação deve ser recusada.
+Cliente de outra Empresa deve ser recusado.
 
 ---
 
 # Exclusão de Clientes
 
-## Cliente Sem Vínculos
+Cliente sem vínculos pode ser excluído.
 
-Pode ser excluído, desde que:
+Cliente com vínculos deve ser preservado e utilizar Inativação.
 
-- não seja cliente padrão;
-- não possua vendas;
-- não possua devoluções;
-- não possua vínculos financeiros;
-- não possua outros relacionamentos protegidos.
-
-## Cliente com Vínculos
-
-Não pode ser excluído fisicamente.
-
-Mensagem homologada:
+Mensagem funcional homologada:
 
 ~~~text
 Este cliente possui vendas ou outros registros vinculados e não pode ser excluído. Utilize a inativação.
 ~~~
 
-Após a negativa:
-
-- cliente permanece;
-- vínculos permanecem;
-- modal fecha;
-- seleção permanece;
-- botão Inativar continua disponível;
-- Auditoria registra a negativa;
-- Histórico apresenta Exclusão negada.
-
 ---
 
-# Permissões de Clientes
-
-## VIEW
-
-Permite:
-
-- listar;
-- pesquisar;
-- filtrar;
-- consultar;
-- visualizar Compras;
-- visualizar Histórico.
-
-## EDIT
-
-Permite, respeitando as regras de negócio:
-
-- criar;
-- editar;
-- ativar;
-- inativar;
-- bloquear;
-- desbloquear;
-- excluir quando permitido.
-
-O backend é a autoridade final.
-
----
-
-# Homologação Manual de Clientes
-
-Foram concluídos 23 itens de homologação:
-
-1. abertura da tela;
-2. cadastro de Pessoa Física;
-3. CPF duplicado;
-4. cadastro de Pessoa Jurídica;
-5. CNPJ duplicado;
-6. proteções do cliente padrão;
-7. bloqueio e desbloqueio;
-8. inativação e reativação;
-9. Histórico;
-10. pesquisa e filtros;
-11. paginação;
-12. Compras e indicadores;
-13. exclusão;
-14. cliente sem documento;
-15. documentos inválidos;
-16. mesmo documento em empresas diferentes;
-17. permissão VIEW;
-18. cliente padrão no PDV;
-19. cliente identificado no PDV;
-20. cliente bloqueado ou inativo no PDV;
-21. Auditoria Central;
-22. consistência dos indicadores;
-23. regressão final.
-
-Resultado:
-
-~~~text
-APROVADO
-~~~
-
----
-
-# Testes Automatizados Registrados - Clientes
-
-## Backend
-
-Resultado informado após as correções:
-
-~~~text
-Cadastros: 42/42
-Auditoria: 21/21
-Suíte geral: 97/97
-Falhas: 0
-Ignorados: 0
-~~~
-
-## Frontend
-
-Resultado informado:
-
-~~~text
-Karma: 90/90
-Falhas: 0
-Ignorados: 0
-TypeScript: aprovado
-Build development: aprovado
-~~~
-
-Esses números representam o estado homologado registrado.
-
-Qualquer nova alteração exige nova execução.
-
----
-
-# Commits Homologados de Clientes
-
-## Implementação Inicial
-
-Backend:
-
-~~~text
-df9e955b9bc5b39903647232a1072f8a9964508e
-~~~
-
-Frontend:
-
-~~~text
-73db1f96cfac11accccff2616685161a2553e6e6
-~~~
-
-## Documento Funcional
-
-Backend:
-
-~~~text
-ef3e5ddb08d27063d3420f567974fe529e53e915
-~~~
-
-Frontend:
-
-~~~text
-5fe3a5f78a076d831f752f86d23c852cb7c0b460
-~~~
-
-## Ciclo de Vida e Histórico
-
-Backend:
-
-~~~text
-c81053b05d0949ccb945f873ff7e416255b9a406
-~~~
-
-Frontend:
-
-~~~text
-9ea4abd975982c5d0df58229ff7934836ae197f2
-~~~
-
-## Compras e Indicadores
-
-Backend:
-
-~~~text
-c95323f041dc87d617ebdaaeabaa8d094e55b4f8
-~~~
-
-Frontend:
-
-~~~text
-d8175e91c74e19b9c799a7e939a9812daf283ac0
-~~~
-
-## Exclusão Negada
-
-Backend:
-
-~~~text
-82608d6c578b37336dec162fa186da11f3350823
-~~~
-
-Frontend:
-
-~~~text
-7881c54b35a2fadc0c7089fcc283a0a65bf1d5e9
-~~~
-
----
-
-# Documentação Específica de Clientes
-
-## Homologação
+# Documentação de Clientes
 
 - [[10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Clientes|Homologação - Cadastros - Clientes]]
-
-## Mapa Técnico
-
 - [[10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Clientes|Mapa Técnico - Cadastros - Clientes]]
-
-## Modelo de Domínio
-
 - [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Cliente|Modelo de Domínio - Cadastros - Cliente]]
-
-## Workflows
-
 - [[10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Clientes|Workflows - Cadastros - Clientes]]
-
-## Riscos e Cuidados
-
 - [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Clientes|Riscos e Cuidados - Cadastros - Clientes]]
-
----
-
-# Limitações Conhecidas de Clientes
-
-Permanecem como evoluções futuras:
-
-- criação de rota frontend consolidada para consultar o detalhe completo da venda;
-- remoção planejada do campo legado `cpf`;
-- expansão de testes manuais para todos os vínculos fiscais;
-- expansão de testes manuais para todos os vínculos financeiros;
-- definição futura do comportamento de clientes bloqueados no PDV offline;
-- eventual extração dos indicadores para serviço dedicado.
-
-Essas limitações não impedem o estado homologado atual.
 
 ---
 
@@ -1070,165 +725,35 @@ DOCUMENTADO
 APROVADO
 ~~~
 
-O cadastro de Fornecedores é o segundo módulo concluído do grupo Cadastros.
+Homologação:
 
-A Fase 1 contempla cadastro, gestão operacional, integração com compras e financeiro, ciclo de vida, segurança bancária, histórico e auditoria.
+~~~text
+30/30
+~~~
 
----
+A Fase 1 contempla:
 
-# Escopo Concluído de Fornecedores
-
-Foram concluídos:
-
-- Pessoa Física;
-- Pessoa Jurídica;
-- fornecedor sem documento;
-- CPF/CNPJ validado quando informado;
-- documento único por empresa;
-- mesmo documento permitido em empresas distintas;
-- alerta de possível duplicidade por nome/apelido;
+- PF;
+- PJ;
+- Fornecedor sem documento;
+- CPF/CNPJ;
 - múltiplas categorias;
 - múltiplos contatos;
 - múltiplos endereços;
-- contato principal por tipo;
-- endereço principal por tipo;
-- inativação e reativação de contatos;
-- inativação e reativação de endereços;
-- telefone e WhatsApp com máscara brasileira;
-- dados fiscais;
-- contribuinte ICMS estruturado;
-- dados comerciais;
-- prazo padrão estruturado;
-- conta contábil padrão estruturada;
-- natureza financeira padrão;
+- fiscal;
+- comercial;
+- financeiro;
+- contábil;
 - dados bancários;
-- tipo de conta bancária estruturado;
-- proteção específica de dados bancários;
-- ativação;
-- inativação;
-- bloqueio;
-- desbloqueio;
-- exclusão protegida;
-- integração operacional;
-- restrição de fornecedor inativo;
-- restrição de fornecedor bloqueado;
-- consulta detalhada;
+- ciclo de vida;
 - Compras;
 - Financeiro;
 - Histórico;
-- indicadores comerciais;
-- Audit Central;
-- isolamento multiempresa;
+- indicadores;
+- Auditoria Central;
+- multiempresa;
 - paginação server-side;
 - filtros server-side.
-
----
-
-# Regras Centrais de Fornecedores
-
-## Empresa
-
-Todo Fornecedor pertence obrigatoriamente a uma Empresa.
-
-Regra conceitual:
-
-~~~text
-fornecedor.empresa_id == empresa atual
-~~~
-
-Não existe fornecedor global.
-
----
-
-## Tipo de Pessoa
-
-Tipos:
-
-~~~text
-PF
-PJ
-~~~
-
-Quando o documento é informado:
-
-- PF → CPF válido;
-- PJ → CNPJ válido.
-
----
-
-## Documento Funcional
-
-Campo preferencial:
-
-~~~text
-documento
-~~~
-
-Campo legado temporário:
-
-~~~text
-cnpj
-~~~
-
-O documento pode ser nulo.
-
----
-
-## Unicidade
-
-Regra:
-
-~~~text
-empresa + documento
-~~~
-
-Consequências:
-
-- documento duplicado na mesma empresa é rejeitado;
-- o mesmo documento em empresa diferente é permitido;
-- vários fornecedores sem documento são permitidos.
-
----
-
-# Fornecedor sem Documento
-
-Fornecedor sem CPF/CNPJ é permitido.
-
-Não deve ser criado documento artificial.
-
-A ausência de documento, isoladamente, não impede novas operações.
-
-Para utilização, o fornecedor deve estar:
-
-~~~text
-ATIVO
-E
-NÃO BLOQUEADO
-E
-PERTENCER À EMPRESA
-~~~
-
-além de atender ao contexto operacional aplicável.
-
----
-
-# Possível Duplicidade por Nome
-
-Nome e apelido semelhantes geram aviso.
-
-Não são bloqueio rígido.
-
-Fluxo:
-
-~~~text
-Possível duplicidade
-→ Avisar
-→ Usuário pode cancelar
-OU
-→ Confirmar e continuar
-~~~
-
-Documento, quando informado, continua sendo o critério rígido.
 
 ---
 
@@ -1246,358 +771,29 @@ TRANSPORTADORA
 OUTROS
 ~~~
 
-Um fornecedor pode possuir múltiplas categorias simultaneamente.
+Um Fornecedor pode possuir várias categorias.
 
-Estrutura preferencial:
+Categoria orienta contexto, classificação e sugestão.
 
-~~~text
-FornecedorCategoria
-~~~
-
-O campo legado `categoria` não deve ser usado como base para novas expansões.
+Não deve virar bloqueio universal sem regra própria da operação.
 
 ---
 
-# Uso Operacional das Categorias
+# Dados Bancários de Fornecedor
 
-Categorias servem principalmente para:
+Possuem proteção específica.
 
-- classificação;
-- filtro;
-- sugestão;
-- priorização;
-- contexto.
-
-Exemplos:
-
-~~~text
-Facção → FACCAO
-Compra de revenda → REVENDA
-Matéria-prima → MATERIA_PRIMA
-Transporte → TRANSPORTADORA
-~~~
-
-Não transformar categoria em bloqueio universal sem regra específica da operação.
-
----
-
-# Contatos de Fornecedor
-
-O fornecedor possui múltiplos contatos.
-
-Tipos:
-
-~~~text
-COMERCIAL
-FINANCEIRO
-FISCAL
-PRODUCAO_FACCAO
-LOGISTICA
-OUTRO
-~~~
-
-Cada contato pode possuir:
-
-- nome;
-- função;
-- telefone;
-- WhatsApp;
-- e-mail;
-- observação;
-- principal;
-- ativo/inativo.
-
----
-
-# Contato Principal
-
-Regra:
-
-~~~text
-Somente um contato ativo principal por tipo
-~~~
-
-A alteração do principal é protegida transacionalmente.
-
----
-
-# Endereços de Fornecedor
-
-O fornecedor possui múltiplos endereços.
-
-Tipos funcionais:
-
-- Fiscal;
-- Comercial;
-- Cobrança;
-- Retirada/Coleta;
-- Entrega;
-- Unidade Fabril;
-- Outro.
-
-Regra:
-
-~~~text
-Somente um endereço ativo principal por tipo
-~~~
-
----
-
-# Telefones
-
-A validação utiliza quantidade de dígitos, não pontuação rígida.
-
-Aceitos:
-
-~~~text
-10 dígitos
-11 dígitos
-vazio
-~~~
-
-Exemplos visuais:
-
-~~~text
-(21) 3324-4000
-(21) 99008-7565
-~~~
-
-Persistência/envio preferencial:
-
-~~~text
-2133244000
-21990087565
-~~~
-
----
-
-# Dados Fiscais de Fornecedor
-
-Campos:
-
-- Inscrição Estadual;
-- Inscrição Municipal;
-- Contribuinte ICMS.
-
-Contribuinte ICMS:
-
-~~~text
-SIM
-NAO
-ISENTO
-~~~
-
-A interface apresenta:
-
-- Sim;
-- Não;
-- Isento;
-- Não informado.
-
----
-
-# Inscrição Estadual
-
-Situação:
-
-~~~text
-PENDÊNCIA CONHECIDA
-NÃO BLOQUEIA FASE 1
-~~~
-
-Atualmente:
-
-- opcional;
-- texto livre;
-- sem validação específica por UF.
-
----
-
-# Inscrição Municipal
-
-Situação:
-
-~~~text
-PENDÊNCIA CONHECIDA
-NÃO BLOQUEIA FASE 1
-~~~
-
-Atualmente:
-
-- opcional;
-- texto livre;
-- sem validação municipal específica.
-
----
-
-# Prazo Padrão do Fornecedor
-
-Estrutura:
-
-~~~text
-financeiro.PrazoPagamento
-~~~
-
-Campo funcional:
-
-~~~text
-prazo_padrao_pagamento_ref
-~~~
-
-Campo legado:
-
-~~~text
-prazo_padrao_pagamento
-~~~
-
-Regra:
-
-- prazo da mesma empresa;
-- prazo ativo para nova seleção.
-
----
-
-# Conta Contábil Padrão
-
-Estrutura:
-
-~~~text
-cadastros.PlanoContabil
-~~~
-
-Campo funcional:
-
-~~~text
-conta_contabil_padrao
-~~~
-
-Campo legado:
-
-~~~text
-conta_contabil
-~~~
-
-A conta deve ser:
-
-- da mesma empresa;
-- ativa;
-- analítica.
-
----
-
-# Natureza Financeira Padrão
-
-Estrutura:
-
-~~~text
-cadastros.Nat_Lancamento
-~~~
-
-Campo:
-
-~~~text
-natureza_padrao
-~~~
-
-A natureza deve:
-
-- pertencer à mesma empresa;
-- estar ativa.
-
----
-
-# Regra dos Padrões
-
-Prazo, conta e natureza são padrões sugeridos.
-
-Não devem ser interpretados automaticamente como travamentos universais.
-
-A operação específica define se o valor pode ser alterado.
-
----
-
-# Dados Bancários
-
-Campos homologados:
-
-- Banco;
-- Agência;
-- Conta;
-- Tipo de conta;
-- Chave PIX;
-- Favorecido;
-- Documento do favorecido;
-- Observação bancária.
-
----
-
-# Tipo de Conta
-
-Valores internos:
-
-~~~text
-CORRENTE
-POUPANCA
-PAGAMENTO
-OUTRA
-~~~
-
-Interface:
-
-- Conta corrente;
-- Conta poupança;
-- Conta de pagamento;
-- Outra.
-
----
-
-# Segurança Bancária
-
-Permissão específica:
+Permissão:
 
 ~~~text
 fornecedor.dados_bancarios
 ~~~
 
-Usuário autorizado:
-
-- recebe;
-- visualiza;
-- pode editar conforme demais permissões.
-
-Usuário não autorizado:
-
-- não recebe os valores sensíveis;
-- não deve conseguir recuperá-los por chamada manual da API.
-
-Proteção obrigatoriamente no backend.
-
----
-
-# Banco Oficial
-
-Situação:
-
-~~~text
-PENDENTE
-NÃO BLOQUEIA FASE 1
-~~~
-
-Ainda não existe cadastro oficial BACEN integrado.
-
-Futuramente deverá ser analisado:
-
-- código COMPE;
-- ISPB;
-- nome oficial;
-- atualização da lista;
-- identificador interno definitivo.
+Usuário sem autorização não deve receber os valores sensíveis nem por chamada direta de API.
 
 ---
 
 # Ciclo de Vida de Fornecedores
-
-Ações:
 
 ~~~text
 Ativar
@@ -1606,79 +802,35 @@ Bloquear
 Desbloquear
 ~~~
 
-Os campos de lifecycle não devem virar simples checkboxes livres no formulário.
-
----
-
-# Fornecedor Ativo
-
-Pode ser utilizado quando:
-
-- não bloqueado;
-- pertence à empresa;
-- atende ao contexto operacional.
-
----
-
-# Fornecedor Inativo
-
-- permanece cadastrado;
-- preserva histórico;
-- não pode participar de nova operação;
-- pode ser reativado.
-
----
-
-# Fornecedor Bloqueado
-
-- permanece cadastrado;
-- preserva histórico;
-- não pode participar de nova operação;
-- registra motivo;
-- registra observação;
-- registra usuário;
-- registra data/hora;
-- pode ser desbloqueado.
-
----
-
-# Fornecedor Utilizável
-
-Regra conceitual:
+Fornecedor utilizável:
 
 ~~~text
-Fornecedor utilizável =
-empresa correta
+Empresa correta
 AND ativo
 AND não bloqueado
 AND contexto operacional válido
 ~~~
 
-A segurança não pode depender apenas do frontend.
-
 ---
 
 # Exclusão de Fornecedor
 
-## Sem Vínculos
-
-Pode ser excluído fisicamente.
-
-## Com Vínculos
-
-Não pode ser excluído.
-
-Mensagem funcional:
+Sem vínculos:
 
 ~~~text
-Este fornecedor possui compras ou outros registros vinculados e não pode ser excluído. Utilize a inativação.
+DELETE permitido
 ~~~
 
-A preservação histórica possui prioridade sobre exclusão física.
+Com vínculos:
+
+~~~text
+DELETE negado
+→ utilizar Inativação
+~~~
 
 ---
 
-# Consulta do Fornecedor
+# Consulta de Fornecedor
 
 Abas:
 
@@ -1689,13 +841,7 @@ Financeiro
 Histórico
 ~~~
 
-A consulta é somente leitura.
-
----
-
-# Indicadores Comerciais do Fornecedor
-
-Indicadores homologados:
+Indicadores:
 
 ~~~text
 Última compra
@@ -1705,482 +851,28 @@ Ticket médio
 Saldo a pagar
 ~~~
 
-Os cálculos são responsabilidade do backend.
-
 ---
 
-# Compras do Fornecedor
-
-A aba Compras pode apresentar registros:
-
-- concluídos;
-- abertos;
-- cancelados.
-
-O status deve estar identificado.
-
-Para os indicadores:
-
-- cancelados não entram;
-- rascunhos não entram;
-- abertos não concluídos não entram;
-- somente operações válidas participam.
-
----
-
-# Ticket Médio de Fornecedor
-
-Regra:
-
-~~~text
-Ticket médio =
-Total comprado
-/
-Quantidade de compras válidas
-~~~
-
-Deve existir tratamento para quantidade zero.
-
----
-
-# Financeiro do Fornecedor
-
-A aba Financeiro apresenta, quando aplicável:
-
-- documento/origem;
-- emissão;
-- vencimento;
-- valor original;
-- valor pago;
-- saldo;
-- status;
-- natureza;
-- loja.
-
-Somente registros:
-
-~~~text
-do fornecedor
-+
-da empresa atual
-~~~
-
----
-
-# Saldo a Pagar
-
-Regras:
-
-- título aberto entra;
-- pagamento parcial entra pelo saldo restante;
-- título totalmente pago fica com saldo zero;
-- título cancelado não compõe o saldo.
-
-Histórico e saldo atual são conceitos diferentes.
-
----
-
-# Histórico de Fornecedor
-
-Eventos incluem:
-
-- criação;
-- edição;
-- ativação;
-- inativação;
-- bloqueio;
-- desbloqueio;
-- contatos;
-- endereços;
-- alteração de principal;
-- demais eventos relevantes.
-
----
-
-# Auditoria de Fornecedor
-
-Eventos relevantes também aparecem na Audit Central.
-
-A auditoria deve preservar:
-
-- empresa;
-- usuário;
-- data/hora;
-- ação;
-- contexto.
-
-Não deve armazenar desnecessariamente dados bancários sensíveis.
-
----
-
-# Paginação e Filtros de Fornecedor
-
-A paginação é:
-
-~~~text
-SERVER-SIDE
-~~~
-
-Os filtros principais também são processados pelo backend.
-
-Não reintroduzir:
-
-~~~text
-page_size=2000
-~~~
-
-como estratégia de listagem.
-
----
-
-# Homologação Manual de Fornecedores
-
-Foram concluídos:
-
-~~~text
-30 ITENS
-~~~
-
-Resultado:
-
-~~~text
-30/30 APROVADOS
-~~~
-
-Itens homologados:
-
-1. abertura da tela;
-2. paginação server-side;
-3. filtros server-side;
-4. cadastro PF;
-5. cadastro PJ;
-6. fornecedor sem documento;
-7. documento inválido;
-8. documento duplicado na mesma empresa;
-9. mesmo documento em empresas diferentes;
-10. múltiplas categorias;
-11. múltiplos contatos;
-12. múltiplos endereços;
-13. endereço principal por tipo;
-14. contato principal por tipo;
-15. inativação/reativação de contato;
-16. inativação/reativação de endereço;
-17. dados fiscais, comerciais, contábeis e financeiros;
-18. dados bancários e permissões;
-19. exclusão protegida;
-20. ativação/inativação;
-21. bloqueio/desbloqueio;
-22. restrição operacional de inativo/bloqueado;
-23. Histórico e Audit Central;
-24. indicadores comerciais;
-25. aba Compras;
-26. aba Financeiro;
-27. possível duplicidade por nome/apelido;
-28. uso operacional das categorias;
-29. fornecedor sem documento em operação;
-30. regressão final.
-
----
-
-# Testes Automatizados Registrados - Fornecedores
-
-Resultado mais recente registrado na Fase 1:
-
-## Backend
-
-~~~text
-manage.py check: OK
-makemigrations --check --dry-run: OK
-FornecedorFase1Tests: 14 OK
-Cadastros: 56 OK
-Auditoria: 21 OK
-Suíte geral: 111 OK
-~~~
-
-## Frontend
-
-~~~text
-TypeScript: OK
-Karma: 114 SUCCESS
-Build development: OK
-~~~
-
-Esses números são resultados registrados durante a implementação e não representam nova execução após a documentação.
-
----
-
-# Commits Homologados de Fornecedores
-
-## Implementação parcial inicial
-
-Backend:
-
-~~~text
-0454e49318a15613d45de1c09d745b9406925c25
-~~~
-
-Frontend:
-
-~~~text
-fdcf7770c17dbe1034f69039f79223ea97979d27
-~~~
-
-## Conclusão da Fase 1
-
-Backend:
-
-~~~text
-993f473ca793193a7590327964b4f3a20e5780e7
-~~~
-
-Frontend:
-
-~~~text
-a573d068e8bb031ea7aae0ebc0196c9bbf7ad78c
-~~~
-
-## Correção de Contatos e Endereços
-
-Backend:
-
-~~~text
-c65e0e737a725741907cc298e52c314cf93efab8
-~~~
-
-Frontend:
-
-~~~text
-8e767bda4e70efd826497526dea70aaf903e860c
-~~~
-
-## Correção de Telefones
-
-Frontend:
-
-~~~text
-a3fe7235f5999652d47cb54589000b59a6b5da5b
-~~~
-
-## Padrões Fiscais e Financeiros
-
-Backend:
-
-~~~text
-a2b192b60a31b0f38db2e2ab4b0c9c9aca3c10ee
-~~~
-
-Frontend:
-
-~~~text
-37e68377bcecfc4ef35032cbb942d7a463ab58c6
-~~~
-
----
-
-# Migration de Referência - Fornecedores
-
-Migration criada durante os ajustes fiscais e financeiros:
-
-~~~text
-cadastros/migrations/0025_fornecedor_conta_contabil_padrao_and_more.py
-~~~
-
-Inclui:
-
-- conta contábil padrão;
-- prazo padrão estruturado;
-- choices de contribuinte ICMS.
-
-Migrations já aplicadas não devem ser editadas.
-
-Novas alterações exigem nova migration.
-
----
-
-# Documentação Específica de Fornecedores
-
-## Homologação
+# Documentação de Fornecedores
 
 - [[10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Fornecedores|Homologação - Cadastros - Fornecedores]]
-
-## Mapa Técnico
-
 - [[10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Fornecedores|Mapa Técnico - Cadastros - Fornecedores]]
-
-## Modelo de Domínio
-
 - [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Fornecedores|Modelo de Domínio - Cadastros - Fornecedores]]
-
-## Workflows
-
 - [[10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Fornecedores|Workflows - Cadastros - Fornecedores]]
-
-## Riscos e Cuidados
-
 - [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Fornecedores|Riscos e Cuidados - Cadastros - Fornecedores]]
 
 ---
 
-# Limitações e Pendências Conhecidas de Fornecedores
+# Pendências Conhecidas de Fornecedores
 
-## Inscrição Estadual
+Não bloqueiam a Fase 1:
 
-~~~text
-PENDENTE
-~~~
+- validação de Inscrição Estadual por UF;
+- validação específica de Inscrição Municipal;
+- cadastro oficial de Bancos;
+- melhorias de UX para campos bancários protegidos.
 
-Futuramente avaliar validação por UF.
-
-## Inscrição Municipal
-
-~~~text
-PENDENTE
-~~~
-
-Futuramente avaliar estratégia de validação.
-
-## Cadastro Oficial de Bancos
-
-~~~text
-PENDENTE
-~~~
-
-Futuramente integrar estrutura padronizada baseada em fonte oficial.
-
-## UX de Dados Bancários Restritos
-
-~~~text
-MELHORIA FUTURA
-~~~
-
-Atualmente os valores são protegidos, mas a estrutura dos campos pode permanecer visível vazia para usuário sem permissão.
-
-Essas pendências não impedem o estado homologado da Fase 1.
-
----
-
-# Fornecedores - Fase 2
-
-A Fase 2 está reservada para inteligência e avaliação.
-
-Não faz parte da Fase 1 concluída.
-
-Escopo planejado:
-
-- avaliações estruturadas;
-- avaliação por categoria;
-- histórico de avaliações;
-- pesos configuráveis;
-- Score Geral;
-- Score por Categoria;
-- peso de recência;
-- classificação;
-- alertas;
-- filtro por score;
-- ordenação por score;
-- comparação de fornecedores.
-
----
-
-# Critérios Planejados para Avaliação
-
-Escala prevista:
-
-~~~text
-1 a 5
-~~~
-
-Critérios:
-
-- Qualidade;
-- Prazo;
-- Custo-benefício;
-- Atendimento;
-- Confiabilidade;
-- Qualidade da entrega;
-- Problemas/Devoluções.
-
-Pesos padrão planejados:
-
-~~~text
-Qualidade: 25%
-Prazo: 20%
-Confiabilidade: 15%
-Custo-benefício: 15%
-Qualidade da entrega: 10%
-Atendimento: 10%
-Problemas/Devoluções: 5%
-~~~
-
-Soma:
-
-~~~text
-100%
-~~~
-
----
-
-# Score Planejado
-
-Faixa:
-
-~~~text
-0 a 100
-~~~
-
-Classificação prevista:
-
-~~~text
-90–100 → Excelente
-75–89 → Bom
-60–74 → Regular
-<60 → Ruim
-~~~
-
-Sem avaliação:
-
-~~~text
-Não avaliado
-~~~
-
-Score ruim não deve bloquear automaticamente o fornecedor.
-
----
-
-# Peso de Recência Planejado
-
-Últimas cinco avaliações:
-
-~~~text
-1ª mais recente → 35%
-2ª → 25%
-3ª → 20%
-4ª → 12%
-5ª → 8%
-~~~
-
-Quando existirem menos avaliações, os pesos deverão ser normalizados.
-
----
-
-# Separação entre Score e Lifecycle
-
-Regra arquitetural futura:
-
-~~~text
-Score ≠ Bloqueio
-~~~
-
-Score representa desempenho.
-
-Bloqueio representa decisão operacional/administrativa.
-
-Fornecedor com score ruim poderá gerar:
-
-- alerta;
-- confirmação adicional;
-
-mas não deve ser bloqueado automaticamente apenas pelo score.
+Fornecedor Fase 2 permanece reservada para inteligência e avaliação.
 
 ---
 
@@ -2196,331 +888,90 @@ DOCUMENTADO
 APROVADO
 ~~~
 
-O cadastro de Funcionários é o terceiro módulo concluído do grupo Cadastros.
-
-A Fase 1 representa o Funcionário como entidade operacional da empresa.
-
-Não representa um módulo de RH ou Departamento Pessoal.
-
-Resultado da homologação manual:
+Homologação:
 
 ~~~text
-17/17 ITENS APROVADOS
+17/17
 ~~~
 
----
+Funcionário representa identidade operacional.
 
-# Objetivo de Funcionários
-
-Funcionários identifica as pessoas que participam operacionalmente da empresa.
-
-A funcionalidade permite representar:
-
-- Vendedores;
-- Caixas;
-- Gerentes;
-- Supervisores;
-- Assistentes;
-- Auxiliares;
-- Compradores;
-- Estoquistas;
-- Almoxarifes;
-- Conferentes;
-- Recebedores;
-- funcionários administrativos;
-- funcionários financeiros;
-- funcionários de produção;
-- demais funções definidas pela empresa.
+Não representa módulo de RH/DP.
 
 ---
 
 # Separações Fundamentais de Funcionários
 
-A arquitetura homologada estabelece:
-
 ~~~text
-Funcionário ≠ Usuário
-
-Cargo ≠ Perfil de Acesso
-
-Cargo ≠ Permissão
-
-Loja supervisionada ≠ Loja permitida do Usuário
-
-Situação do Funcionário ≠ User.is_active
-
-Comissão básica ≠ Motor completo de comissão
-
-Histórico operacional ≠ AuditLog
+Funcionário != Usuário
+Cargo != Perfil
+Cargo != Permissão
+Loja supervisionada != Loja permitida do Usuário
+Situação do Funcionário != User.is_active
+Comissão básica != Motor completo de comissão
+FuncionarioHistorico != AuditLog
 ~~~
-
-Essas separações devem ser preservadas.
 
 ---
 
-# Empresa do Funcionário
+# Funcionário e Empresa
 
 Todo Funcionário pertence a uma Empresa.
 
-Regra conceitual:
-
-~~~text
-funcionario.empresa_id == empresa atual
-~~~
-
-Também devem pertencer à mesma Empresa:
+Também devem respeitar a mesma Empresa:
 
 - Cargo;
 - Loja Principal;
-- lojas supervisionadas;
+- Lojas supervisionadas;
 - Usuário vinculado.
 
-Não existe Funcionário global.
-
 ---
 
-# CPF do Funcionário
+# CPF e Matrícula
 
-CPF é obrigatório funcionalmente para novos Funcionários.
+CPF:
 
-Regras:
-
-- obrigatório;
+- obrigatório para novos cadastros;
 - validado;
 - normalizado;
-- único dentro da Empresa;
-- mesmo CPF permitido em empresas diferentes.
+- único por Empresa.
 
-Regra:
-
-~~~text
-empresa + cpf
-~~~
-
-Registros legados sem CPF podem ser preservados.
-
-Não devem ser criados CPFs artificiais.
-
----
-
-# Matrícula
-
-Todo Funcionário possui matrícula.
-
-Regras:
+Matrícula:
 
 - obrigatória;
 - única por Empresa;
-- pode ser gerada automaticamente;
-- pode ser informada manualmente;
-- permanece estável;
-- não é reutilizada;
-- não muda em afastamento;
-- não muda em desligamento;
-- não muda em recontratação.
-
-Sequência automática inicial:
-
-~~~text
-000001
-000002
-000003
-...
-~~~
+- automática ou manual;
+- estável;
+- não reutilizada.
 
 ---
 
 # Cargo
 
-Funcionários utiliza Cargo estruturado.
+Cargo é cadastro aberto por Empresa.
 
-Estrutura:
+Não é enum fixo.
 
-~~~text
-cadastros.Cargo
-~~~
+Pode representar:
 
-Cargo pertence à Empresa.
+- Vendedor;
+- Caixa;
+- Gerente;
+- Supervisor;
+- Comprador;
+- Estoquista;
+- Financeiro;
+- Administrativo;
+- Produção;
+- qualquer função operacional necessária.
 
-Regra:
+Cargo não concede permissão.
 
-~~~text
-funcionario.empresa == cargo.empresa
-~~~
-
-Cargo é cadastro aberto.
-
-Não é enumeração fechada.
-
----
-
-# Cargos Básicos
-
-O sistema disponibiliza configuração inicial contendo:
-
-~~~text
-VENDEDOR
-CAIXA
-GERENTE
-SUPERVISOR
-ASSISTENTE
-AUXILIAR
-AUXADM
-ASSADM
-ASSFIN
-AUXFIN
-COMPRADOR
-ESTOQUISTA
-ALMOX
-CONFERENTE
-RECEBEDOR
-COSTUREIRA
-AUXPROD
-~~~
-
-Esses Cargos não representam limite funcional.
-
-Cada Empresa pode cadastrar outros.
-
-Exemplos:
-
-~~~text
-Analista Financeiro
-Analista de Operações
-Coordenador de Estoque
-Modelista
-Encarregado de Produção
-~~~
+Permissões pertencem a Usuário/Perfil.
 
 ---
 
-# Cargo e Permissões
-
-Cargo representa função operacional.
-
-Não concede acesso ao sistema.
-
-Exemplo:
-
-~~~text
-Cargo:
-Assistente Financeiro
-~~~
-
-não significa automaticamente:
-
-~~~text
-Financeiro = EDIT
-~~~
-
-Permissões permanecem controladas por:
-
-- Usuário;
-- Perfil de Acesso;
-- permissões de módulo;
-- overrides;
-- demais regras do app `accounts`.
-
----
-
-# Características de Cargo
-
-Cargo possui características estruturadas como:
-
-- participa de vendas;
-- permite comissão;
-- autoridade operacional de loja;
-- permite múltiplas lojas;
-- gerencial;
-- ativo.
-
-Novas regras devem preferir características estruturadas e não comparar apenas o texto da descrição do Cargo.
-
----
-
-# Vendedor
-
-Configuração inicial:
-
-~~~text
-participa_vendas = true
-permite_comissao = true
-autoridade_operacional_loja = true
-permite_multiplas_lojas = false
-gerencial = false
-~~~
-
----
-
-# Caixa
-
-Configuração inicial:
-
-~~~text
-participa_vendas = false
-permite_comissao = false
-autoridade_operacional_loja = true
-permite_multiplas_lojas = false
-gerencial = false
-~~~
-
----
-
-# Gerente
-
-Configuração inicial homologada:
-
-~~~text
-participa_vendas = false
-permite_comissao = true
-autoridade_operacional_loja = true
-permite_multiplas_lojas = false
-gerencial = true
-~~~
-
-Gerente pode ser comissionado.
-
-A regra de cálculo avançada não pertence a Funcionários.
-
----
-
-# Supervisor
-
-Configuração inicial homologada:
-
-~~~text
-participa_vendas = false
-permite_comissao = true
-autoridade_operacional_loja = true
-permite_multiplas_lojas = true
-gerencial = true
-~~~
-
-Supervisor pode ser comissionado e pode possuir abrangência multi-loja.
-
----
-
-# Categoria Legada
-
-Campo legado:
-
-~~~text
-categoria
-~~~
-
-Fonte funcional atual:
-
-~~~text
-cargo
-~~~
-
-Novas funcionalidades não devem voltar a utilizar `categoria` como definição principal de função.
-
-O campo legado deve ser removido somente após análise completa de dependências.
-
----
-
-# Situação Operacional do Funcionário
+# Situação Operacional de Funcionários
 
 Estados:
 
@@ -2530,48 +981,7 @@ AFASTADO
 DESLIGADO
 ~~~
 
-A situação é a referência funcional de lifecycle.
-
----
-
-# Funcionário Ativo
-
-Pode participar de novas operações compatíveis com:
-
-- Empresa;
-- Cargo;
-- Loja;
-- participação em vendas;
-- demais regras da operação.
-
----
-
-# Funcionário Afastado
-
-- permanece cadastrado;
-- preserva matrícula;
-- preserva CPF;
-- preserva histórico;
-- não deve participar normalmente de novas operações;
-- pode retornar.
-
----
-
-# Funcionário Desligado
-
-- permanece cadastrado;
-- preserva matrícula;
-- preserva CPF;
-- preserva vendas;
-- preserva histórico;
-- não deve participar de novas operações;
-- pode ser recontratado.
-
----
-
-# Ciclo Operacional
-
-Fluxo homologado:
+Fluxo:
 
 ~~~text
 ATIVO
@@ -2594,366 +1004,85 @@ Desligar
 Recontratar
 ~~~
 
----
-
-# Recontratação
-
-Recontratação reutiliza o mesmo Funcionário.
-
-Não deve criar outro cadastro.
-
-Preserva:
-
-- ID;
-- matrícula;
-- CPF;
-- histórico;
-- vínculos anteriores.
+Recontratação utiliza o mesmo cadastro.
 
 ---
 
-# Campo ativo Legado
+# Loja e Abrangência
 
-O model possui campo legado:
+Funcionário pode possuir Loja Principal.
 
-~~~text
-ativo
-~~~
-
-A direção funcional atual utiliza:
-
-~~~text
-situacao
-~~~
-
-Não criar dois ciclos de vida independentes.
-
----
-
-# Loja Principal
-
-Campo técnico legado:
-
-~~~text
-idloja
-~~~
-
-Funcionalmente representa:
-
-~~~text
-Loja Principal
-~~~
-
-A Loja deve pertencer à mesma Empresa.
-
----
-
-# Obrigatoriedade de Loja
-
-A necessidade de Loja Principal depende da característica do Cargo.
-
-Não deve ser baseada apenas no texto do nome do Cargo.
-
-Cargos administrativos podem existir sem Loja Principal quando configurados dessa forma.
-
----
-
-# Abrangência Multi-Loja
-
-Estruturas:
+Cargos configurados para múltiplas lojas podem possuir:
 
 ~~~text
 lojas_supervisionadas
 todas_lojas_da_empresa
 ~~~
 
-Representam responsabilidade operacional do Funcionário.
-
-Supervisor é o principal caso atual.
+Abrangência operacional não representa permissão de acesso.
 
 ---
 
-# Regra Multi-Loja
+# Comissão
 
-Somente Cargo com:
+Estruturas:
 
 ~~~text
-permite_multiplas_lojas = true
+Cargo.permite_comissao
+Funcionarios.comissionado
+Funcionarios.comissao_percentual
 ~~~
 
-pode manter abrangência de múltiplas lojas.
+Gerente e Supervisor podem ser comissionados.
 
-Todas as Lojas devem pertencer à mesma Empresa.
+Motor avançado de comissão pertence a domínio futuro.
 
 ---
 
-# Abrangência Operacional versus Acesso
-
-Não confundir:
-
-~~~text
-Funcionarios.lojas_supervisionadas
-~~~
-
-com:
-
-~~~text
-User.lojas
-~~~
-
-A primeira representa responsabilidade operacional.
-
-A segunda representa autorização de acesso do Usuário.
-
-Não devem ser sincronizadas automaticamente.
-
----
-
-# Participação em Vendas
-
-Campo:
-
-~~~text
-participa_vendas
-~~~
-
-Indica participação comercial do Funcionário.
-
-Não concede permissão de acesso ao módulo Vendas.
-
----
-
-# Funcionário Comissionado
-
-Campo:
-
-~~~text
-comissionado
-~~~
-
-Indica se o Funcionário utiliza comissão básica.
-
-O Cargo precisa permitir comissão.
-
----
-
-# Comissão Básica
-
-Campo:
-
-~~~text
-comissao_percentual
-~~~
-
-O percentual pertence ao Funcionário.
-
-Cargo apenas informa:
-
-~~~text
-permite_comissao
-~~~
-
-Funcionários do mesmo Cargo podem possuir percentuais diferentes.
-
----
-
-# Comissão de Gerente e Supervisor
-
-Regra homologada:
-
-~~~text
-GERENTE.permite_comissao = true
-
-SUPERVISOR.permite_comissao = true
-~~~
-
-A forma efetiva de cálculo será responsabilidade futura do módulo de Planejamento/Ação de Vendas.
-
----
-
-# Meta Legada
-
-Campo existente:
-
-~~~text
-meta
-~~~
-
-não faz mais parte do cadastro funcional de Funcionários.
-
-Não deve ser utilizado em:
-
-- formulário;
-- filtro;
-- nova regra de comissão;
-- novo relatório;
-- novas funcionalidades.
-
-Metas pertencem ao futuro módulo de Planejamento/Ação de Vendas.
-
----
-
-# Vínculo Funcionário × Usuário
+# Funcionário × Usuário
 
 Relacionamento:
 
 ~~~text
 Funcionarios.usuario
+→ accounts.User
 ~~~
 
-é opcional e OneToOne com:
+É opcional e OneToOne.
 
-~~~text
-accounts.User
-~~~
-
-O Funcionário pode existir sem Usuário.
-
----
-
-# Regras do Vínculo com Usuário
-
-O Usuário:
-
-- deve pertencer à mesma Empresa;
-- não pode estar vinculado a outro Funcionário;
-- pode ser vinculado;
-- pode ser substituído;
-- pode ser desvinculado.
-
-Vincular não altera automaticamente:
+Vincular Usuário não altera automaticamente:
 
 - Cargo;
 - Perfil;
 - permissões;
-- tipo do Usuário;
 - lojas de acesso;
 - sessões.
 
 ---
 
-# Situação do Funcionário versus Login
+# Histórico de Funcionários
 
-Afastar ou desligar Funcionário não executa automaticamente:
+`FuncionarioHistorico` registra trajetória operacional.
 
-~~~text
-User.is_active = false
-~~~
-
-Essa independência foi mantida conscientemente na Fase 1.
-
-Uma política automática futura exigirá decisão funcional específica.
-
----
-
-# Dados Complementares
-
-Campos opcionais homologados incluem:
-
-- apelido;
-- telefone;
-- WhatsApp;
-- e-mail;
-- data de nascimento;
-- endereço;
-- observações.
-
-Esses dados são cadastrais.
-
-Não representam módulo de RH.
-
----
-
-# Salário
-
-Campo:
-
-~~~text
-salario
-~~~
-
-foi preservado.
-
-Não existe folha de pagamento na Fase 1.
-
-O valor é uma informação protegida.
-
-Permissão:
-
-~~~text
-funcionario.salario
-~~~
-
-O backend deve proteger visualização e alteração.
-
----
-
-# Funcionários Não é RH/DP
-
-Não pertencem à Fase 1:
-
-- folha de pagamento;
-- férias;
-- benefícios;
-- ponto;
-- banco de horas;
-- CTPS;
-- PIS;
-- dependentes;
-- encargos;
-- rescisão trabalhista detalhada;
-- prontuário de RH;
-- documentos de pessoal.
-
-Caso sejam necessários futuramente, devem compor domínio próprio.
-
----
-
-# Histórico Operacional de Funcionário
-
-Estrutura:
-
-~~~text
-FuncionarioHistorico
-~~~
-
-Eventos incluem:
+Exemplos:
 
 - mudança de Cargo;
 - mudança de Loja;
-- mudança de abrangência;
+- alteração de abrangência;
 - afastamento;
 - retorno;
 - desligamento;
 - recontratação.
 
-O histórico preserva a trajetória operacional do Funcionário.
-
----
-
-# Histórico versus Auditoria
-
-~~~text
-FuncionarioHistorico
-→ histórico funcional
-
-AuditLog
-→ rastreabilidade técnica e de segurança
-~~~
-
-As duas estruturas são complementares.
+`AuditLog` continua responsável pela Auditoria Central.
 
 ---
 
 # Exclusão de Funcionário
 
-## Sem Uso Operacional
+Funcionário nunca utilizado pode ser excluído.
 
-Pode ser excluído quando não existem vínculos impeditivos.
-
-## Com Uso Operacional
-
-Não pode ser fisicamente excluído.
+Funcionário utilizado deve ser preservado.
 
 Mensagem homologada:
 
@@ -2961,479 +1090,1234 @@ Mensagem homologada:
 Funcionário já utilizado em operações. Desligue o funcionário em vez de excluí-lo.
 ~~~
 
-A tentativa negada deve permanecer auditável.
-
 ---
 
-# Integração com VendaPdv
+# Funcionários e Vendas
 
-Venda mantém:
+Venda mantém conceitos distintos:
 
 ~~~text
 VendaPdv.vendedor
 → Funcionarios
-~~~
 
-Também mantém:
-
-~~~text
 VendaPdv.criado_por
 → User
 ~~~
 
-Os conceitos são diferentes.
+Vendedor é responsável comercial.
+
+`criado_por` identifica quem operou o sistema.
 
 ---
 
-# Vendedor versus Operador
+# Documentação de Funcionários
+
+- [[Homologação - Cadastros - Funcionários]]
+- [[Mapa Técnico - Cadastros - Funcionários]]
+- [[Workflows - Cadastros - Funcionários]]
+- [[Modelo de Domínio - Cadastros - Funcionários]]
+- [[Riscos e Cuidados - Cadastros - Funcionários]]
+
+---
+
+# Grupo Produtos
+
+Status atual:
 
 ~~~text
-vendedor
-= pessoa responsável comercialmente pela venda
-
-criado_por
-= usuário que operou o sistema
+EM ANDAMENTO
 ~~~
 
-Podem representar pessoas diferentes.
-
-Essa separação deve ser preservada.
-
----
-
-# Funcionário Elegível para Nova Venda
-
-Conceitualmente deve:
+Primeiro domínio formalmente fechado:
 
 ~~~text
-pertencer à Empresa
-AND estar ATIVO
-AND participar de vendas
-AND ser compatível com a Loja
-~~~
-
-Funcionário AFASTADO ou DESLIGADO não deve ser utilizado normalmente em nova venda.
-
----
-
-# Comissão Histórica
-
-A implementação atual ainda possui pontos que consultam:
-
-~~~text
-funcionario.comissao_percentual
-~~~
-
-Isso não é suficiente para um motor definitivo de comissão histórica.
-
-Futuramente a venda/apuração deverá preservar a regra efetivamente aplicada.
-
----
-
-# Paginação e Filtros de Funcionários
-
-A listagem utiliza:
-
-~~~text
-PAGINAÇÃO SERVER-SIDE
-~~~
-
-Filtros também são processados no backend.
-
-Busca inclui informações como:
-
-- matrícula;
-- nome;
-- apelido;
-- CPF.
-
-Filtros incluem:
-
-- Cargo;
-- Loja;
-- situação;
-- participa de vendas;
-- comissionado.
-
-Não reintroduzir carregamento massivo para filtragem Angular.
-
----
-
-# Homologação Manual de Funcionários
-
-Foram concluídos:
-
-~~~text
-17 ITENS
+PRODUTO VENDA
 ~~~
 
 Resultado:
 
 ~~~text
-17/17 APROVADOS
+IMPLEMENTADO
+TESTADO
+HOMOLOGADO
+DOCUMENTADO
+APROVADO
+
+19/19 ITENS APROVADOS
+~~~
+
+---
+
+# Produto Venda
+
+Produto Venda representa os produtos destinados à comercialização.
+
+Tipos contemplados:
+
+~~~text
+1 = Revenda
+3 = Fabricação Própria
+~~~
+
+A nomenclatura funcional aprovada é:
+
+**Produto Venda**
+
+Para tipo `3`:
+
+**Fabricação Própria**
+
+Não utilizar como nomenclatura geral da funcionalidade:
+
+~~~text
+Produtos Revenda
+~~~
+
+quando os dois tipos estiverem sendo contemplados.
+
+---
+
+# Produto Venda versus Uso e Consumo
+
+Produto Venda não engloba Uso e Consumo.
+
+Separação:
+
+~~~text
+Produto Venda
+├── Revenda
+└── Fabricação Própria
+
+Uso e Consumo
+→ fluxo separado
+~~~
+
+O fechamento de Produto Venda não significa homologação de Uso e Consumo.
+
+---
+
+# Entidades Centrais de Produto Venda
+
+Estruturas:
+
+~~~text
+Produto
+ProdutoDetalhe
+ProdutoVendaHistorico
+ProdutoImagem
+~~~
+
+Relacionamentos principais:
+
+~~~text
+Empresa
+  ↓
+Produto
+  ├── Coleção
+  ├── Grupo
+  ├── Subgrupo
+  ├── Unidade
+  ├── Material
+  ├── Grade
+  ├── ProdutoDetalhe / SKU
+  │      ├── Cor
+  │      ├── Tamanho
+  │      ├── EAN
+  │      └── Estoque
+  ├── Dados fiscais
+  ├── Preços
+  ├── Imagens
+  ├── Histórico funcional
+  └── Auditoria
+~~~
+
+Modelo completo:
+
+[[Modelo de Domínio - Produtos - Produto Venda]]
+
+---
+
+# Produto versus SKU
+
+Separação fundamental:
+
+~~~text
+Produto != SKU
+~~~
+
+Produto representa o cadastro principal.
+
+SKU representa:
+
+~~~text
+Produto + Cor + Tamanho
+~~~
+
+Exemplo:
+
+~~~text
+Produto:
+Vestido Midi
+
+SKUs:
+Vestido Midi / Preto / P
+Vestido Midi / Preto / M
+Vestido Midi / Azul / P
+Vestido Midi / Azul / M
+~~~
+
+---
+
+# Tipo do Produto Venda
+
+Tipos:
+
+~~~text
+1 = Revenda
+3 = Fabricação Própria
+~~~
+
+Regra:
+
+~~~text
+TIPO IMUTÁVEL APÓS CRIAÇÃO
+~~~
+
+Não converter Revenda em Fabricação Própria.
+
+Não converter Fabricação Própria em Revenda.
+
+---
+
+# Referência de Produto Venda
+
+Referência é automática.
+
+Formato:
+
+~~~text
+AA-BB-CCDDD
+~~~
+
+Composição:
+
+~~~text
+AA = ano da Coleção
+BB = Estação
+CC = CodigoRef do Grupo
+DDD = sequência
+~~~
+
+A Referência pertence ao Produto.
+
+EAN pertence ao SKU.
+
+---
+
+# Descrição Reduzida
+
+Obrigatória.
+
+Limite:
+
+~~~text
+60 caracteres
+~~~
+
+---
+
+# Grupo e Subgrupo
+
+Grupo:
+
+~~~text
+OBRIGATÓRIO
+~~~
+
+Subgrupo:
+
+~~~text
+OBRIGATÓRIO
+~~~
+
+Subgrupo deve ser coerente com Grupo.
+
+---
+
+# Unidade
+
+Unidade é obrigatória para Produto Venda.
+
+---
+
+# Material
+
+Material permanece opcional.
+
+Material classificatório não substitui os componentes da Ficha Técnica.
+
+---
+
+# Grade
+
+Grade é obrigatória.
+
+Ela define os Tamanhos possíveis.
+
+Após a existência de SKUs:
+
+~~~text
+GRADE IMUTÁVEL
+~~~
+
+---
+
+# Cores e SKUs
+
+Ao incluir Cor:
+
+~~~text
+Cor
++
+Tamanhos da Grade
+=
+SKUs
+~~~
+
+Quando o SKU já existia e estava Inativo:
+
+~~~text
+REATIVAR
+~~~
+
+Quando nunca existiu:
+
+~~~text
+CRIAR
+~~~
+
+---
+
+# Remoção de Cor
+
+Regra:
+
+~~~text
+REMOVER COR
+→ INATIVAR SKUs
+→ NÃO EXCLUIR
+~~~
+
+Preservar:
+
+- ID;
+- Cor;
+- Tamanho;
+- EAN;
+- custos;
+- Estoque;
+- histórico.
+
+---
+
+# Remoção da Última Cor
+
+A última Cor também pode ser retirada.
+
+Nesse caso:
+
+~~~text
+todos os SKUs correspondentes
+→ INATIVOS
+~~~
+
+O Produto permanece cadastrado.
+
+Esse cenário foi homologado.
+
+---
+
+# Reativação de Cor
+
+Ao reincluir uma Cor:
+
+~~~text
+localizar SKUs anteriores
+→ reativar
+→ preservar EAN
+→ preservar identificador
+~~~
+
+Não criar SKU duplicado.
+
+---
+
+# EAN
+
+EAN pertence ao SKU.
+
+Regras:
+
+- automático;
+- backend;
+- único;
+- preservado;
+- não reciclado;
+- mesmo SKU mantém mesmo EAN;
+- reativação não gera novo EAN.
+
+---
+
+# Estoque de Produto Venda
+
+Granularidade:
+
+~~~text
+Loja × SKU
+~~~
+
+Não existe saldo comercial suficiente apenas no nível Produto.
+
+Exemplo:
+
+~~~text
+Produto X
+SKU Preto M
+Loja 1 = 10
+Loja 2 = 3
+~~~
+
+---
+
+# Inicialização de Estoque
+
+Ao cadastrar Produto Venda podem ser selecionadas Lojas.
+
+Isso prepara:
+
+~~~text
+Loja × SKU
+~~~
+
+com quantidade inicial zero quando não existe movimentação.
+
+Inicialização não representa entrada física.
+
+---
+
+# Estoque Físico, Reserva e Disponível
+
+Conceito:
+
+~~~text
+Disponível = Físico - Reserva
+~~~
+
+Produto Venda apresenta a estrutura.
+
+As regras definitivas de movimentação e reserva pertencem ao domínio de Estoque/Vendas.
+
+---
+
+# Custos
+
+Conceitos existentes:
+
+- custo original;
+- última compra;
+- custo médio.
+
+Para Revenda:
+
+~~~text
+Compra
+→ Recebimento
+→ Estoque
+→ Custos
+~~~
+
+Para Fabricação Própria:
+
+~~~text
+Ficha Técnica
+→ Ordem de Produção
+→ Produção
+→ Custos
+~~~
+
+---
+
+# Preços
+
+Produto pode participar de múltiplas Tabelas de Preço.
+
+Não foi definida regra obrigatória de:
+
+~~~text
+Preço por SKU
+~~~
+
+nem:
+
+~~~text
+Tabela de Preço por Loja
+~~~
+
+O motor comercial continua pertencendo ao domínio próprio.
+
+---
+
+# Dados Fiscais de Produto Venda
+
+Campos expostos:
+
+- NCM;
+- Origem;
+- CST/CSOSN ICMS;
+- alíquota ICMS;
+- CFOP dentro;
+- CFOP fora;
+- CST PIS;
+- alíquota PIS;
+- CST COFINS;
+- alíquota COFINS;
+- situação IPI;
+- alíquota IPI.
+
+Dados fiscais:
+
+~~~text
+EDITÁVEIS
++
+RASTREADOS
+~~~
+
+---
+
+# Histórico Funcional de Produto Venda
+
+Estrutura:
+
+~~~text
+ProdutoVendaHistorico
+~~~
+
+Eventos incluem:
+
+- alteração cadastral;
+- alteração fiscal;
+- Ativação;
+- Inativação;
+- Bloqueio de venda;
+- Desbloqueio.
+
+Não substitui `AuditLog`.
+
+---
+
+# Produto Venda e Auditoria
+
+Separação:
+
+~~~text
+ProdutoVendaHistorico
+→ visão funcional
+
+AuditLog
+→ Auditoria Central
+~~~
+
+Ambos devem ser preservados.
+
+---
+
+# Imagens do Produto
+
+Estrutura:
+
+~~~text
+ProdutoImagem
+~~~
+
+Regras:
+
+- opcionais;
+- máximo de três;
+- no máximo uma principal;
+- pertencem ao Produto;
+- não pertencem à Cor;
+- não pertencem ao SKU.
+
+---
+
+# Imagem Reduzida
+
+A interface utiliza:
+
+~~~text
+imagem_reduzida_url
+~~~
+
+quando disponível.
+
+Fallback:
+
+~~~text
+imagem_url
+~~~
+
+Ainda não foram definidos:
+
+- largura;
+- altura;
+- resolução;
+- formato;
+- qualidade;
+- compressão.
+
+Não inventar esses parâmetros.
+
+Referência:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
+---
+
+# Situação do Produto
+
+Estado cadastral:
+
+~~~text
+ATIVO
+INATIVO
+~~~
+
+Inativar não exclui.
+
+Produto Inativo preserva:
+
+- Referência;
+- SKUs;
+- EANs;
+- Estoque;
+- histórico;
+- movimentações.
+
+---
+
+# Bloqueio de Venda
+
+Estado independente:
+
+~~~text
+bloqueado_venda
+~~~
+
+É permitido:
+
+~~~text
+ativo = true
+bloqueado_venda = true
+~~~
+
+Portanto:
+
+~~~text
+Ativo != Venda liberada
+~~~
+
+---
+
+# Ações Sensíveis de Produto Venda
+
+Incluem:
+
+- Inativar;
+- Ativar;
+- Bloquear venda;
+- Desbloquear venda.
+
+A autorização utiliza modelo funcional do Sysvar.
+
+Estrutura:
+
+~~~text
+EffectiveAccessService
+→ Produtos
+→ EDIT
+~~~
+
+Não depender apenas de:
+
+~~~text
+is_staff
+~~~
+
+do Django Admin.
+
+---
+
+# Motivo e Senha
+
+Quando exigidos pela ação, continuam obrigatórios.
+
+Exemplo:
+
+~~~text
+Permissão EDIT
++
+motivo
++
+senha válida
+→ executar
+~~~
+
+Permissão não substitui senha.
+
+Senha não substitui permissão.
+
+---
+
+# Exclusão de Produto Venda
+
+Produto nunca utilizado pode ser excluído quando não possuir vínculos impeditivos.
+
+Produto utilizado:
+
+~~~text
+DELETE NEGADO
+~~~
+
+Alternativas:
+
+- Inativar;
+- Bloquear venda.
+
+Registros técnicos de Estoque zero criados apenas na inicialização podem ser tratados de forma segura quando não existir utilização real.
+
+---
+
+# Filtros de Produto Venda
+
+Processamento:
+
+~~~text
+SERVER-SIDE
+~~~
+
+Filtros incluem:
+
+- busca;
+- Tipo;
+- Referência;
+- Código;
+- Grupo;
+- Coleção;
+- Status;
+- Bloqueado;
+- combinações.
+
+Referência e Código permanecem critérios independentes.
+
+---
+
+# Paginação de Produto Venda
+
+Processamento:
+
+~~~text
+SERVER-SIDE
+~~~
+
+Fluxo:
+
+~~~text
+page
+page_size
+filtros
+ordering
+↓
+backend
+↓
+count
+results
+~~~
+
+Indicador visual:
+
+~~~text
+Mostrando X–Y de Z
+~~~
+
+---
+
+# Consulta Consolidada de Produto Venda
+
+Consulta é somente leitura.
+
+Apresenta, quando aplicável:
+
+- dados cadastrais;
+- classificação;
+- Tipo;
+- Referência;
+- SKUs;
+- Status dos SKUs;
+- custos;
+- Preço;
+- Margem %;
+- Dados fiscais;
+- imagens;
+- Estoque Loja × SKU;
+- Histórico Funcional;
+- Fichas Técnicas;
+- Ordens de Produção.
+
+---
+
+# Status do SKU
+
+A consulta apresenta explicitamente:
+
+~~~text
+Ativo
+Inativo
+~~~
+
+Não utilizar apenas diferenciação visual por cor.
+
+---
+
+# Produto Venda - Revenda
+
+Fluxo conceitual:
+
+~~~text
+Produto Venda
+Tipo 1
+   ↓
+SKU
+   ↓
+Compra
+   ↓
+Recebimento
+   ↓
+Estoque
+   ↓
+Venda
+~~~
+
+Compras permanece responsável pelo processo de aquisição.
+
+---
+
+# Produto Venda - Fabricação Própria
+
+Fluxo conceitual:
+
+~~~text
+Produto Venda
+Tipo 3
+   ↓
+SKU
+   ↓
+Ficha Técnica
+   ↓
+Ordem de Produção
+   ↓
+Produção
+   ↓
+Estoque
+   ↓
+Venda
+~~~
+
+Produto Venda não substitui Produção.
+
+---
+
+# Integrações de Produto Venda
+
+Produto Venda se relaciona com:
+
+~~~text
+Compras
+Estoque
+Preços
+Fiscal
+Produção
+Vendas / PDV
+Auditoria
+~~~
+
+Cada domínio preserva sua responsabilidade.
+
+---
+
+# Produto Venda e Compras
+
+Compras permanece responsável por:
+
+- Fornecedor;
+- Pedido;
+- itens;
+- aprovação;
+- recebimento;
+- parcelas;
+- integração financeira;
+- entrada.
+
+Produto Venda fornece Produto/SKU.
+
+---
+
+# Produto Venda e Produção
+
+Produção permanece responsável por:
+
+- Ficha Técnica;
+- Ordem de Produção;
+- consumo;
+- facção;
+- apontamento;
+- custo;
+- encerramento.
+
+Produto Venda fornece a identidade do Produto fabricado.
+
+---
+
+# Produto Venda e Estoque
+
+Estoque permanece responsável por:
+
+- entradas;
+- saídas;
+- transferências;
+- reservas;
+- ajustes;
+- saldos.
+
+Produto Venda não executa livremente movimentos.
+
+---
+
+# Produto Venda e Fiscal
+
+Produto mantém dados fiscais cadastrais.
+
+Fiscal continua responsável pela aplicação desses dados nos documentos fiscais e pelas regras de emissão.
+
+---
+
+# Produto Venda e PDV
+
+Para utilização comercial devem ser consideradas regras como:
+
+~~~text
+Produto ativo
+AND não bloqueado para venda
+AND SKU ativo
+AND Estoque conforme política
+AND preço válido
+AND fiscal válido
+~~~
+
+A decisão definitiva pertence ao PDV/Vendas.
+
+---
+
+# Homologação Manual de Produto Venda
+
+Foram homologados:
+
+~~~text
+19 ITENS
+~~~
+
+Resultado:
+
+~~~text
+19/19 APROVADOS
 ~~~
 
 Itens:
 
-1. abertura e estrutura da tela;
-2. paginação server-side;
-3. filtros server-side;
-4. Cargos;
-5. Funcionário com Cargo administrativo;
-6. CPF;
-7. matrícula;
-8. ciclo operacional;
-9. Loja Principal;
-10. Supervisor e multi-loja;
-11. comissão básica;
-12. Funcionário × Usuário;
-13. histórico operacional;
-14. exclusão protegida;
-15. salário protegido;
-16. dados complementares;
-17. regressão e fechamento geral.
+1. Cadastro novo e obrigatoriedades;
+2. Tipo imutável;
+3. Grade imutável após SKU;
+4. Descrição reduzida;
+5. Grupo/Subgrupo;
+6. Remoção de uma Cor;
+7. Remoção da última Cor;
+8. Reativação e preservação de EAN;
+9. Exclusão de Produto nunca utilizado;
+10. Proteção de Produto utilizado;
+11. Histórico cadastral;
+12. Alteração fiscal e Histórico;
+13. Imagens;
+14. Estoque Loja × SKU;
+15. Consulta Fabricação Própria;
+16. Filtros;
+17. Inativar/Ativar;
+18. Bloquear/Desbloquear venda;
+19. Paginação.
+
+Registro:
+
+[[Homologação - Produtos - Produto Venda]]
 
 ---
 
-# Correções Surgidas na Homologação de Funcionários
+# Correções Surgidas na Homologação de Produto Venda
 
-## Cargos Livres
+## Modal de Lojas
 
-Inicialmente a interface poderia transmitir a ideia de que os Cargos estavam restritos a funções comerciais.
+Foi melhorado para:
 
-Foi corrigido para deixar explícito que Cargo é cadastro livre por Empresa.
+- organização visual;
+- seleção individual;
+- ação Todas;
+- Limpar.
+
+## Status dos SKUs
+
+Foi adicionada coluna:
+
+~~~text
+Status
+~~~
+
+com:
+
+~~~text
+Ativo
+Inativo
+~~~
+
+Margem % foi preservada.
+
+## Dados Fiscais
+
+A interface inicialmente mostrava apenas NCM.
+
+Foi corrigida para expor os demais campos fiscais já existentes.
+
+## Imagens
+
+Foi implementado gerenciamento frontend para:
+
+- inclusão;
+- remoção;
+- principal;
+- limite de três;
+- miniaturas.
+
+## Permissões
+
+Ações de ciclo de vida inicialmente dependiam de `is_staff`/permissão Django.
+
+Foram corrigidas para utilizar o modelo funcional do Sysvar.
+
+Todos esses pontos foram retestados e aprovados.
 
 ---
 
-## Cargos Administrativos e Operacionais
+# Testes Registrados de Produto Venda
 
-Foram incluídos defaults adicionais como:
+Backend no fechamento final:
 
-- Assistente;
-- Auxiliar;
-- Auxiliar Administrativo;
-- Assistente Administrativo;
-- Assistente Financeiro;
-- Auxiliar Financeiro;
-- Comprador;
-- Estoquista;
-- Almoxarife;
-- Conferente;
-- Recebedor;
-- Costureira;
-- Auxiliar de Produção.
+~~~text
+8 testes direcionados aprovados
+python manage.py check aprovado
+~~~
+
+Frontend no fechamento final:
+
+~~~text
+11 testes direcionados aprovados
+TypeScript aprovado
+~~~
+
+Esses números representam testes direcionados de fechamento.
+
+Não representam a quantidade total da suíte do Sysvar.
 
 ---
 
-## Comissão de Gerente e Supervisor
+# Commits Homologados de Produto Venda
 
-Foi corrigida a configuração para permitir comissão em:
+Backend final:
 
 ~~~text
-GERENTE
-SUPERVISOR
+574f5badc79ab3a969bf24ffc67904215bdbc49a
+Corrige permissoes Produto Venda
 ~~~
 
----
-
-## Usuário Vinculado
-
-O relacionamento já existia no backend.
-
-Durante homologação foi identificada ausência do campo correspondente no frontend.
-
-A interface passou a permitir:
-
-- vincular;
-- trocar;
-- remover;
-- consultar;
-
-o Usuário relacionado.
-
----
-
-# Testes Automatizados Registrados - Funcionários
-
-Durante a implementação foram registrados:
-
-## Backend
+Frontend final:
 
 ~~~text
-manage.py check: OK
-manage.py makemigrations --check: OK
-FuncionariosFase1Tests: OK
-Conjunto relacionado inicial: 40 testes OK
-Correções posteriores: testes direcionados OK
-~~~
-
-Esses resultados correspondem às execuções registradas durante a implementação e correções.
-
-Não representam uma nova suíte integral executada durante a documentação.
-
-## Frontend
-
-~~~text
-TypeScript: OK
-Build development: OK
-~~~
-
-As verificações foram repetidas nas correções relevantes.
-
----
-
-# Commits Homologados de Funcionários
-
-## Implementação Backend
-
-~~~text
-056dfdee7545b725f94f6396bb5bff2f58be2397
-Conclui fase 1 do cadastro de funcionarios
-~~~
-
-## Implementação Frontend
-
-~~~text
-7fd39d0c86d070bc92ff8ff38dee99cc723b23dc
-Conclui fase 1 da interface de funcionarios
-~~~
-
-## Ampliação dos Cargos
-
-Backend:
-
-~~~text
-2ba369f3c1cb076b65bdd6b625fa051e8dd7f351
-Amplia cadastro de cargos de funcionarios
-~~~
-
-Frontend:
-
-~~~text
-d847d20b2dcbb94f8f0f450c53e308e4ba0afd7a
-Permite cargos livres no cadastro de funcionarios
-~~~
-
-## Comissão de Gerente e Supervisor
-
-Backend:
-
-~~~text
-b7b10bf5d5095d49ec9cbe1a7329f46c3efa6331
-Corrige comissao de gerente e supervisor
-~~~
-
-## Vínculo de Usuário no Frontend
-
-Frontend:
-
-~~~text
-0a71c638a7c6b1db324fa978ff69e035c4fc51dc
-Adiciona vinculo de usuario ao funcionario
+1be513e4a5d7b3220ae239fee555594307115826
+Finaliza homologacao visual Produto Venda
 ~~~
 
 ---
 
-# Migrations de Referência - Funcionários
-
-## Estrutura Principal
-
-~~~text
-cadastros/migrations/0026_cargo_funcionariohistorico_funcionarios_comissionado_and_more.py
-~~~
-
-Inclui:
-
-- Cargo;
-- FuncionarioHistorico;
-- matrícula;
-- situação;
-- comissão;
-- multi-loja;
-- vínculo com Usuário;
-- dados complementares;
-- migração de categoria;
-- normalização necessária;
-- constraints;
-- índices.
-
-## Cargos Básicos
-
-~~~text
-cadastros/migrations/0027_cargos_funcionarios_basicos.py
-~~~
-
-Cria Cargos básicos em empresas existentes.
-
-## Comissão de Gerente e Supervisor
-
-~~~text
-cadastros/migrations/0028_corrige_comissao_gerente_supervisor.py
-~~~
-
-Corrige:
-
-~~~text
-GERENTE.permite_comissao = true
-SUPERVISOR.permite_comissao = true
-~~~
-
-Migrations aplicadas não devem ser modificadas.
-
-Novas mudanças exigem nova migration.
-
----
-
-# Documentação Específica de Funcionários
+# Documentação Específica de Produto Venda
 
 ## Homologação
 
-- [[10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Funcionários|Homologação - Cadastros - Funcionários]]
+- [[Homologação - Produtos - Produto Venda]]
 
 ## Mapa Técnico
 
-- [[10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Funcionários|Mapa Técnico - Cadastros - Funcionários]]
-
-## Modelo de Domínio
-
-- [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Funcionários|Modelo de Domínio - Cadastros - Funcionários]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
 
 ## Workflows
 
-- [[10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Funcionários|Workflows - Cadastros - Funcionários]]
+- [[Workflows - Produtos - Produto Venda]]
+
+## Modelo de Domínio
+
+- [[Modelo de Domínio - Produtos - Produto Venda]]
 
 ## Riscos e Cuidados
 
-- [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Funcionários|Riscos e Cuidados - Cadastros - Funcionários]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
+Esses documentos formam o conjunto documental oficial do Produto Venda.
 
 ---
 
-# Limitações e Evoluções Futuras de Funcionários
-
-## Comissão Histórica
+# Relação Documental de Produto Venda
 
 ~~~text
-EVOLUÇÃO FUTURA
+                           [[Sysvar]]
+                               │
+             ┌─────────────────┼─────────────────┐
+             │                 │                 │
+             ↓                 ↓                 ↓
+ [[Mapa Técnico]]   [[Homologação - Produtos - Produto Venda]]
+                               │
+               ┌───────────────┼───────────────┐
+               ↓               ↓               ↓
+ [[Mapa Técnico - Produtos - Produto Venda]]
+ [[Workflows - Produtos - Produto Venda]]
+ [[Modelo de Domínio - Produtos - Produto Venda]]
+ [[Riscos e Cuidados - Produtos - Produto Venda]]
 ~~~
 
-A regra aplicada à venda deverá futuramente possuir snapshot histórico adequado.
-
-## Planejamento/Ação de Vendas
-
-~~~text
-FUTURO MÓDULO
-~~~
-
-Deverá tratar:
-
-- metas;
-- campanhas;
-- bônus;
-- faixas;
-- políticas de comissão;
-- comissão de Gerente;
-- comissão de Supervisor;
-- comissão por produto;
-- comissão por grupo;
-- comissão por coleção;
-- regras temporais.
-
-## Combo de Usuários
-
-~~~text
-MELHORIA FUTURA DE ESCALABILIDADE
-~~~
-
-Em empresas muito grandes poderá ser necessário substituir carregamento amplo por:
-
-- autocomplete;
-- busca remota;
-- paginação.
-
-## Campos Legados
-
-Permanecem para compatibilidade:
-
-- `categoria`;
-- `meta`;
-- `ativo`;
-- `idloja` com nomenclatura legada.
-
-A remoção deverá ser planejada somente depois da migração de todos os consumidores.
-
-## RH/DP
-
-~~~text
-FORA DO ESCOPO ATUAL
-~~~
-
-Não existe decisão atual de desenvolver:
-
-- folha;
-- férias;
-- benefícios;
-- ponto;
-- DP.
-
-Essas limitações não impedem o estado homologado da Fase 1.
+O objetivo é manter Produto Venda integrado ao grafo geral do projeto e não como ilha documental.
 
 ---
 
-# Regra de Ouro de Funcionários
+# Riscos Centrais de Produto Venda
 
-Preservar:
+Principais pontos que não devem regredir:
+
+1. isolamento multiempresa;
+2. Tipo imutável;
+3. Referência automática;
+4. Grade imutável após SKU;
+5. SKU = Produto × Cor × Tamanho;
+6. retirada de Cor inativa SKU;
+7. retirada da última Cor;
+8. reativação preserva SKU;
+9. EAN preservado;
+10. EAN não reciclado;
+11. Estoque Loja × SKU;
+12. inicialização não é entrada;
+13. Produto utilizado não é excluído;
+14. Inativação não é exclusão;
+15. Bloqueio não é Inativação;
+16. Fiscal é auditado;
+17. Histórico Funcional não substitui AuditLog;
+18. imagens no máximo três;
+19. somente uma imagem principal;
+20. backend continua autoridade;
+21. filtros server-side;
+22. paginação server-side;
+23. permissões funcionais;
+24. motivo e senha quando exigidos.
+
+Detalhamento:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
+---
+
+# Pendência Conhecida - Imagem Reduzida
+
+Ainda não foram aprovados:
+
+- tamanho;
+- resolução;
+- largura;
+- altura;
+- formato;
+- qualidade;
+- compressão.
+
+Regra atual:
 
 ~~~text
-Funcionário é identidade operacional.
+imagem_reduzida_url quando existir
 
-Cargo é função operacional.
+senão
 
-Usuário é identidade de acesso.
-
-Perfil define permissão.
-
-Loja Principal define contexto operacional.
-
-Abrangência define responsabilidade operacional.
-
-Situação define disponibilidade operacional.
-
-Histórico preserva trajetória.
-
-Auditoria preserva rastreabilidade.
-
-Comissão básica não é o motor completo de comissão.
+imagem_url
 ~~~
+
+Não criar parâmetros arbitrários sem decisão técnica específica.
+
+---
+
+# Uso e Consumo
+
+Uso e Consumo permanece separado.
+
+Status:
+
+~~~text
+NÃO HOMOLOGADO COMO PARTE DE PRODUTO VENDA
+~~~
+
+Seu comportamento deverá ser analisado separadamente quando esse cadastro for escolhido como próximo escopo.
 
 ---
 
 # Estratégia de Uso do Codex
 
-Durante a homologação dos Cadastros foi identificado consumo relevante de tokens em tarefas amplas.
+Método atual:
 
-A estratégia foi revista.
+## Usuário
 
-## Responsabilidade do Usuário
+Responsável por:
 
 - decisão funcional;
 - teste manual;
 - homologação.
 
-## Responsabilidade do ChatGPT
+## ChatGPT
+
+Responsável por:
 
 - análise;
 - leitura do GitHub;
 - investigação;
 - arquitetura;
 - localização da causa;
-- definição da correção;
-- criação do prompt;
-- revisão do commit.
+- definição da solução;
+- criação de prompt;
+- revisão de commit;
+- documentação.
 
-## Responsabilidade do Codex
+## Codex
+
+Responsável por:
 
 - implementação;
-- alteração dos arquivos;
+- alteração de arquivos;
 - testes necessários;
 - commit.
 
@@ -3441,46 +2325,45 @@ A estratégia foi revista.
 
 # Regra de Economia de Codex
 
-Para correção localizada:
+Para correções localizadas:
 
 ~~~text
 ANALISAR ANTES
+↓
 LOCALIZAR CAUSA
+↓
 DEFINIR ARQUIVOS
-ENVIAR PROMPT CIRÚRGICO
-EXECUTAR TESTES ESPECÍFICOS
-HOMOLOGAR
+↓
+PROMPT CIRÚRGICO
+↓
+TESTES DIRECIONADOS
+↓
+REVISÃO
+↓
+HOMOLOGAÇÃO
 ~~~
 
-Evitar solicitar ao Codex:
-
-~~~text
-Investigue todo o projeto
-~~~
-
-quando a causa já puder ser determinada anteriormente.
+Evitar investigação ampla desnecessária pelo Codex.
 
 ---
 
 # Estratégia de Testes
 
-Correção pequena:
+Correção localizada:
 
 - testes específicos;
 - validação técnica necessária;
 - homologação manual.
 
-Checkpoint relevante:
+Checkpoint importante:
 
-- suíte ampla;
+- suíte mais ampla;
 - build;
-- regressão;
-- homologação.
+- regressão.
 
-Fechamento de módulo:
+Fechamento:
 
-- testes automatizados relevantes;
-- regressão;
+- testes relevantes;
 - homologação completa;
 - documentação.
 
@@ -3488,89 +2371,134 @@ Fechamento de módulo:
 
 # Regra de Continuidade
 
-Nenhum item deve ser considerado concluído apenas por estar visualmente funcionando.
+Nenhum item é considerado concluído apenas porque visualmente funciona.
 
-Para conclusão, deve existir:
+Fechamento exige:
 
 ~~~text
 ANÁLISE
+↓
 IMPLEMENTAÇÃO
+↓
 TESTES
+↓
 REVISÃO
+↓
 HOMOLOGAÇÃO
+↓
 DOCUMENTAÇÃO
+↓
 APROVAÇÃO
+~~~
+
+---
+
+# Situação Atual dos Grupos
+
+~~~text
+OPERACIONAL
+→ CONCLUÍDO
+→ HOMOLOGADO
+→ DOCUMENTADO
+
+CADASTROS
+→ CLIENTES CONCLUÍDO
+→ FORNECEDORES CONCLUÍDO
+→ FUNCIONÁRIOS CONCLUÍDO
+→ ESCOPO PRIORITÁRIO ATUAL ENCERRADO
+
+PRODUTOS
+→ EM ANDAMENTO
+
+PRODUTO VENDA
+→ CONCLUÍDO
+→ HOMOLOGADO 19/19
+→ DOCUMENTADO
 ~~~
 
 ---
 
 # Próxima Etapa
 
-Os três primeiros cadastros revisados foram concluídos:
+O projeto entrou no grupo:
 
 ~~~text
-CLIENTES
-FORNECEDORES
-FUNCIONÁRIOS
+PRODUTOS
 ~~~
 
-O próximo cadastro do grupo ainda deve ser definido conforme:
-
-- ordem da barra lateral;
-- dependências funcionais;
-- impacto sobre outros módulos;
-- prioridade do produto.
-
-Status:
+O primeiro escopo foi:
 
 ~~~text
-PRÓXIMO CADASTRO
-A DEFINIR
+PRODUTO VENDA
 ~~~
 
-Antes de implementação deverá ocorrer:
+e está concluído.
 
-1. análise funcional;
-2. levantamento das regras atuais;
-3. leitura do backend;
-4. leitura do frontend;
-5. análise dos vínculos existentes;
-6. análise multiempresa;
-7. análise de permissões;
-8. análise de auditoria;
-9. definição do escopo funcional;
-10. somente então implementação.
+O próximo item do grupo Produtos deverá ser definido funcionalmente antes de nova implementação.
 
-O método de economia de Codex deve continuar sendo utilizado.
+Uso e Consumo permanece candidato natural por proximidade de domínio, mas não deve ser tratado como automaticamente aprovado ou igual a Produto Venda.
+
+Antes de qualquer implementação:
+
+1. identificar o próximo escopo;
+2. analisar o comportamento existente;
+3. verificar backend;
+4. verificar frontend;
+5. identificar vínculos;
+6. definir regras funcionais;
+7. verificar multiempresa;
+8. verificar permissões;
+9. verificar Auditoria;
+10. verificar integrações;
+11. definir testes;
+12. somente então preparar o prompt do Codex.
 
 ---
 
-# Próximos Cadastros
+# Estado Documental
 
-Ordem atual:
+## Operacional
 
 ~~~text
-1. Clientes → CONCLUÍDO
-2. Fornecedores → CONCLUÍDO
-3. Funcionários → CONCLUÍDO
-4. Demais cadastros → A DEFINIR
+HOMOLOGADO
+DOCUMENTADO
 ~~~
 
-A ordem dos demais cadastros deverá ser definida conforme dependências funcionais.
+## Clientes
 
----
+~~~text
+23/23
+DOCUMENTAÇÃO CONCLUÍDA
+~~~
 
-# Notas Gerais Relacionadas
+## Fornecedores
 
-- [[10 Projetos/Sysvar/Contexto do Projeto/Visão Geral|Visão Geral]]
-- [[10 Projetos/Sysvar/Contexto do Projeto/Arquitetura|Arquitetura]]
-- [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio|Modelo de Domínio]]
-- [[10 Projetos/Sysvar/Contexto do Projeto/Workflows|Workflows]]
-- [[10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico|Mapa Técnico]]
-- [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados|Riscos e Cuidados]]
-- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas|ADR-001 - Licenciamento por Sessões Simultâneas]]
-- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR|ADR-002 - Princípios Arquiteturais do SISVAR]]
-- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR|ADR-003 - Auditoria Central do SISVAR]]
+~~~text
+30/30
+DOCUMENTAÇÃO CONCLUÍDA
+~~~
+
+## Funcionários
+
+~~~text
+17/17
+DOCUMENTAÇÃO CONCLUÍDA
+~~~
+
+## Produto Venda
+
+~~~text
+19/19
+DOCUMENTAÇÃO CONCLUÍDA
+~~~
+
+Documentos de Produto Venda:
+
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
 
 ---
 
@@ -3584,129 +2512,33 @@ GRUPO OPERACIONAL
 
 CADASTROS > CLIENTES
 → CONCLUÍDO
-→ 23/23 ITENS HOMOLOGADOS
+→ 23/23 HOMOLOGADOS
 → DOCUMENTADO
 
 CADASTROS > FORNECEDORES
 → CONCLUÍDO
-→ FASE 1 HOMOLOGADA
-→ 30/30 ITENS APROVADOS
+→ 30/30 HOMOLOGADOS
 → DOCUMENTADO
 
 CADASTROS > FUNCIONÁRIOS
 → CONCLUÍDO
-→ FASE 1 HOMOLOGADA
-→ 17/17 ITENS APROVADOS
+→ 17/17 HOMOLOGADOS
 → DOCUMENTADO
 
-PRÓXIMO CADASTRO
-→ A DEFINIR
-~~~
+GRUPO PRODUTOS
+→ EM ANDAMENTO
 
----
-
-# Estado do Projeto em 12/08/2026
-
-A estrutura operacional central está concluída e homologada.
-
-O grupo Cadastros possui atualmente três módulos formalmente encerrados:
-
-~~~text
-CLIENTES
-FORNECEDORES
-FUNCIONÁRIOS
-~~~
-
-Resultados:
-
-~~~text
-CLIENTES
-23/23 HOMOLOGADOS
-
-FORNECEDORES
-30/30 HOMOLOGADOS
-
-FUNCIONÁRIOS
-17/17 HOMOLOGADOS
-~~~
-
-O próximo cadastro deverá ser definido antes de iniciar uma nova implementação.
-
-O desenvolvimento deve continuar preservando:
-
-- isolamento multiempresa;
-- regras de tenant no backend;
-- perfis e permissões;
-- Auditoria Central;
-- integridade histórica;
-- proteção de dados sensíveis;
-- separação dos domínios;
-- paginação e filtros server-side;
-- compatibilidade com integrações existentes;
-- documentação estruturada no Obsidian;
-- homologação item a item;
-- uso econômico do Codex.
-
----
-
-# Estado Documental do Grupo Cadastros
-
-## Clientes
-
-~~~text
-Homologação
-Mapa Técnico
-Modelo de Domínio
-Workflows
-Riscos e Cuidados
-Sysvar.md atualizado
-~~~
-
-Status:
-
-~~~text
-DOCUMENTAÇÃO CONCLUÍDA
-~~~
-
-## Fornecedores
-
-~~~text
-Homologação
-Mapa Técnico
-Modelo de Domínio
-Workflows
-Riscos e Cuidados
-Sysvar.md atualizado
-~~~
-
-Status:
-
-~~~text
-DOCUMENTAÇÃO CONCLUÍDA
-~~~
-
-## Funcionários
-
-~~~text
-Homologação
-Mapa Técnico
-Modelo de Domínio
-Workflows
-Riscos e Cuidados
-Sysvar.md atualizado
-~~~
-
-Status:
-
-~~~text
-DOCUMENTAÇÃO CONCLUÍDA
+PRODUTOS > PRODUTO VENDA
+→ CONCLUÍDO
+→ 19/19 HOMOLOGADOS
+→ DOCUMENTADO
 ~~~
 
 ---
 
 # Marco Atual
 
-Em 12/08/2026 o projeto atingiu o seguinte marco:
+Em **13/08/2026**, o projeto atingiu o seguinte marco:
 
 ~~~text
 INFRAESTRUTURA OPERACIONAL
@@ -3714,12 +2546,123 @@ CONCLUÍDA E HOMOLOGADA
 
 CLIENTES
 CONCLUÍDO E HOMOLOGADO
+23/23
 
 FORNECEDORES
 FASE 1 CONCLUÍDA E HOMOLOGADA
+30/30
 
 FUNCIONÁRIOS
 FASE 1 CONCLUÍDA E HOMOLOGADA
+17/17
+
+PRODUTO VENDA
+CONCLUÍDO E HOMOLOGADO
+19/19
 ~~~
 
-O grupo Cadastros permanece em andamento até que os demais cadastros relevantes sejam revisados.
+O desenvolvimento segue agora dentro do grupo Produtos.
+
+---
+
+# Princípios que Devem Continuar Sendo Preservados
+
+- isolamento multiempresa;
+- tenant no backend;
+- Empresa como limite de dados;
+- Estabelecimento como contexto operacional;
+- perfis e permissões;
+- permissões efetivas;
+- Auditoria Central;
+- Histórico funcional quando o domínio exigir;
+- integridade histórica;
+- proteção de dados sensíveis;
+- backend como autoridade;
+- separação dos domínios;
+- paginação server-side;
+- filtros server-side;
+- compatibilidade entre módulos;
+- homologação item a item;
+- documentação no Obsidian;
+- links internos entre documentos;
+- uso econômico do Codex.
+
+---
+
+# Notas Gerais Relacionadas
+
+## Contexto Central
+
+- [[Mapa Técnico]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Visão Geral|Visão Geral]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Arquitetura|Arquitetura]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio|Modelo de Domínio]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Workflows|Workflows]]
+- [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados|Riscos e Cuidados]]
+
+## Decisões Técnicas
+
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas|ADR-001 - Licenciamento por Sessões Simultâneas]]
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR|ADR-002 - Princípios Arquiteturais do SISVAR]]
+- [[10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR|ADR-003 - Auditoria Central do SISVAR]]
+
+## Produto Venda
+
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
+---
+
+# Estado do Projeto em 13/08/2026
+
+A infraestrutura operacional central está concluída e homologada.
+
+O escopo prioritário revisado de Cadastros possui três módulos encerrados:
+
+~~~text
+CLIENTES
+FORNECEDORES
+FUNCIONÁRIOS
+~~~
+
+O grupo Produtos está em andamento.
+
+Seu primeiro domínio consolidado está encerrado:
+
+~~~text
+PRODUTO VENDA
+~~~
+
+Resultados acumulados das homologações documentadas:
+
+~~~text
+CLIENTES
+23/23
+
+FORNECEDORES
+30/30
+
+FUNCIONÁRIOS
+17/17
+
+PRODUTO VENDA
+19/19
+~~~
+
+Produto Venda possui documentação funcional, técnica, de domínio, workflows e riscos interligada ao nó principal [[Sysvar]].
+
+O próximo domínio deverá ser definido antes de qualquer nova implementação.
+
+O desenvolvimento deve continuar preservando:
+
+- decisões funcionais antes do código;
+- investigação antes do Codex;
+- testes proporcionais à alteração;
+- revisão técnica;
+- homologação manual;
+- documentação;
+- integração do documento ao grafo do Obsidian;
+- fechamento formal somente após aprovação.
