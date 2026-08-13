@@ -28,7 +28,7 @@ tags:
 
 ## 1. Identificação
 
-- **Projeto:** Sysvar
+- **Projeto:** [[Sysvar]]
 - **Módulo:** Produtos
 - **Funcionalidade:** Produto Venda
 - **Tipos contemplados:** Revenda e Fabricação Própria
@@ -37,11 +37,19 @@ tags:
 - **Homologação manual:** 19/19 itens aprovados
 - **Data da homologação:** 13/08/2026
 
+### Documentos relacionados
+
+- [[Sysvar]]
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
 ---
 
 # 2. Objetivo
 
-Este documento descreve os principais fluxos funcionais e operacionais do cadastro de Produto Venda do Sysvar.
+Este documento descreve os principais fluxos funcionais e operacionais do cadastro de Produto Venda do [[Sysvar]].
 
 Produto Venda contempla:
 
@@ -77,6 +85,18 @@ Os workflows documentados abrangem:
 - exclusão;
 - Histórico Funcional;
 - Auditoria Central.
+
+As regras homologadas estão registradas em:
+
+[[Homologação - Produtos - Produto Venda]]
+
+A estrutura técnica correspondente está em:
+
+[[Mapa Técnico - Produtos - Produto Venda]]
+
+A visão conceitual das entidades e relações está em:
+
+[[Modelo de Domínio - Produtos - Produto Venda]]
 
 ---
 
@@ -132,6 +152,8 @@ Frontend apresenta listagem
 ~~~
 
 A tela não deve carregar todos os Produtos da Empresa para depois paginar localmente.
+
+Esse princípio segue a arquitetura geral documentada em [[Sysvar]].
 
 ---
 
@@ -246,7 +268,9 @@ Backend aplica todos cumulativamente
 Retorna apenas registros compatíveis
 ~~~
 
-Combinações foram homologadas.
+Combinações foram homologadas em:
+
+[[Homologação - Produtos - Produto Venda]]
 
 ---
 
@@ -363,6 +387,10 @@ Editar Produto
         ↓
 Campo Tipo bloqueado
 ~~~
+
+A regra de domínio está detalhada em:
+
+[[Modelo de Domínio - Produtos - Produto Venda]]
 
 ---
 
@@ -603,6 +631,10 @@ SKU reativado
    ↓
 Mesmo EAN
 ~~~
+
+Esse é um dos cuidados de integridade destacados também em:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
 
 ---
 
@@ -903,6 +935,10 @@ Imagem possui imagem_reduzida_url?
 
 Nenhum processo futuro deve inventar resolução ou compressão sem decisão técnica específica.
 
+Ver também:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
 ---
 
 # 41. Workflow — Consultar Produto
@@ -1155,6 +1191,8 @@ Autorizado?
 
 Não utilizar `is_staff` como regra funcional do ERP.
 
+A regra faz parte do modelo geral de acesso do [[Sysvar]].
+
 ---
 
 # 51. Workflow — Usuário sem Permissão
@@ -1290,6 +1328,10 @@ Registra:
 ~~~
 
 AuditLog não substitui ProdutoVendaHistorico.
+
+Essa separação também está descrita em:
+
+[[Mapa Técnico - Produtos - Produto Venda]]
 
 ---
 
@@ -1609,6 +1651,10 @@ Não implementar dentro do cadastro:
 
 Produto Venda fornece a estrutura cadastral necessária para que esses processos utilizem o Produto e seus SKUs.
 
+Os limites de escopo e riscos de regressão estão registrados em:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
 ---
 
 # 75. Regras Homologadas que Devem Permanecer
@@ -1646,7 +1692,33 @@ Os fluxos futuros devem preservar:
 
 ---
 
-# 76. Estado Atual
+# 76. Documentação Relacionada
+
+Projeto principal:
+
+[[Sysvar]]
+
+Homologação:
+
+[[Homologação - Produtos - Produto Venda]]
+
+Mapa Técnico:
+
+[[Mapa Técnico - Produtos - Produto Venda]]
+
+Modelo de Domínio:
+
+[[Modelo de Domínio - Produtos - Produto Venda]]
+
+Riscos e Cuidados:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
+Esses documentos devem permanecer conectados entre si para preservar contexto funcional, técnico e arquitetural no grafo do Obsidian.
+
+---
+
+# 77. Estado Atual
 
 Os workflows descritos neste documento representam o comportamento implementado e homologado do Produto Venda na Fase 1.
 
@@ -1667,3 +1739,11 @@ Backend:
 Frontend:
 
 `1be513e4a5d7b3220ae239fee555594307115826`
+
+Este documento deve ser interpretado em conjunto com:
+
+- [[Sysvar]]
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
