@@ -27,7 +27,7 @@ tags:
 
 ## 1. Identificação
 
-- **Projeto:** Sysvar
+- **Projeto:** [[Sysvar]]
 - **Módulo:** Produtos
 - **Funcionalidade:** Produto Venda
 - **Tipos contemplados:** Revenda e Fabricação Própria
@@ -36,11 +36,19 @@ tags:
 - **Homologação manual:** 19/19 itens aprovados
 - **Data da homologação:** 13/08/2026
 
+### Documentos relacionados
+
+- [[Sysvar]]
+- [[Homologação - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
 ---
 
 # 2. Objetivo Técnico
 
-Produto Venda representa a estrutura principal dos produtos comercializáveis no Sysvar.
+Produto Venda representa a estrutura principal dos produtos comercializáveis no [[Sysvar]].
 
 A funcionalidade unifica dois tipos de Produto:
 
@@ -85,6 +93,10 @@ Produto Venda não contempla nesta fase:
 
 Esse tipo permanece em fluxo próprio.
 
+As regras funcionais homologadas estão consolidadas em:
+
+[[Homologação - Produtos - Produto Venda]]
+
 ---
 
 # 3. Backend
@@ -110,8 +122,21 @@ Integrações relevantes:
 - `financeiro`
 - `compras`
 - `fiscal`
-- módulos relacionados à Produção
-- estruturas de Estoque e Preço
+- estruturas relacionadas à Produção;
+- estruturas de Estoque e Preço.
+
+O backend permanece autoridade para:
+
+- regras de domínio;
+- isolamento multiempresa;
+- validação de relacionamentos;
+- permissões;
+- geração de referência;
+- geração de EAN;
+- sincronização de SKUs;
+- proteção de exclusão;
+- histórico;
+- auditoria.
 
 ---
 
@@ -141,9 +166,53 @@ Integrações visuais relevantes:
 
 O frontend Angular permanece standalone.
 
+A interface é responsável por:
+
+- entrada de dados;
+- experiência do usuário;
+- apresentação de filtros;
+- paginação;
+- consulta;
+- upload de imagens;
+- acionamento das operações.
+
+Não deve substituir validações de backend.
+
 ---
 
-# 5. Model Produto
+# 5. Estrutura Técnica Principal
+
+As estruturas centrais da funcionalidade são:
+
+- `Produto`
+- `ProdutoDetalhe`
+- `ProdutoVendaHistorico`
+- `ProdutoImagem`
+
+Relacionamentos importantes incluem:
+
+- Empresa;
+- Coleção;
+- Grupo;
+- Subgrupo;
+- Unidade;
+- Material;
+- Grade;
+- Tamanho;
+- Cor;
+- Loja;
+- Estoque;
+- Preço;
+- Ficha Técnica;
+- Ordem de Produção.
+
+A visão completa das relações de domínio está documentada em:
+
+[[Modelo de Domínio - Produtos - Produto Venda]]
+
+---
+
+# 6. Model Produto
 
 Model principal:
 
@@ -157,11 +226,11 @@ A variação individual é responsabilidade de:
 
 `ProdutoDetalhe`
 
+Produto concentra informações comuns às suas variações.
+
 ---
 
-# 6. Responsabilidade do Produto
-
-O Produto concentra informações comuns às suas variações.
+# 7. Responsabilidade do Produto
 
 Entre os campos e conceitos principais estão:
 
@@ -188,7 +257,7 @@ Entre os campos e conceitos principais estão:
 
 ---
 
-# 7. Isolamento Multiempresa
+# 8. Isolamento Multiempresa
 
 Produto pertence a uma Empresa.
 
@@ -219,13 +288,15 @@ O isolamento deve ser aplicado também aos relacionamentos auxiliares, incluindo
 
 Dados de outra Empresa não podem ser utilizados para compor Produto Venda.
 
+Esse princípio é parte da arquitetura geral do [[Sysvar]].
+
 ---
 
-# 8. Tipos de Produto
+# 9. Tipos de Produto
 
 Os tipos usados por Produto Venda são:
 
-## 8.1 Revenda
+## 9.1 Revenda
 
 Código:
 
@@ -238,7 +309,7 @@ Origem operacional principal:
 - entrada de estoque;
 - comercialização.
 
-## 8.2 Fabricação Própria
+## 9.2 Fabricação Própria
 
 Código:
 
@@ -264,7 +335,7 @@ não deve ser utilizada.
 
 ---
 
-# 9. Imutabilidade do Tipo
+# 10. Imutabilidade do Tipo
 
 Após a criação do Produto, `tipo_produto` não deve ser alterado.
 
@@ -279,11 +350,13 @@ Alterar posteriormente Revenda para Fabricação Própria, ou vice-versa, poderi
 - histórico;
 - integrações.
 
-Essa regra foi homologada.
+Essa regra foi homologada em:
+
+[[Homologação - Produtos - Produto Venda]]
 
 ---
 
-# 10. Referência Automática
+# 11. Referência Automática
 
 Produto Venda utiliza referência gerada automaticamente.
 
@@ -311,13 +384,11 @@ A referência não deve ser recriada arbitrariamente em uma edição normal.
 
 ---
 
-# 11. Coleção
+# 12. Coleção
 
 Coleção participa da estrutura classificatória e da geração da referência.
 
-Sua estrutura permanece no app `produto`.
-
-Características já definidas incluem:
+Características existentes incluem:
 
 - código;
 - estação;
@@ -330,7 +401,7 @@ A homologação não redesenhou o cadastro de Coleções.
 
 ---
 
-# 12. Grupo
+# 13. Grupo
 
 Grupo é obrigatório.
 
@@ -342,7 +413,7 @@ Grupo deve pertencer ao contexto permitido da Empresa.
 
 ---
 
-# 13. Subgrupo
+# 14. Subgrupo
 
 Subgrupo é obrigatório.
 
@@ -356,7 +427,7 @@ A regra foi homologada.
 
 ---
 
-# 14. Unidade
+# 15. Unidade
 
 Produto Venda exige Unidade.
 
@@ -372,7 +443,7 @@ Produto Venda não deve ser salvo sem Unidade válida.
 
 ---
 
-# 15. Descrição
+# 16. Descrição
 
 Produto possui:
 
@@ -389,7 +460,7 @@ Essa informação pode ser utilizada em contextos onde a descrição completa se
 
 ---
 
-# 16. Material
+# 17. Material
 
 Material é opcional.
 
@@ -401,7 +472,7 @@ Para Fabricação Própria, Material não substitui os componentes definidos na 
 
 ---
 
-# 17. Grade
+# 18. Grade
 
 Grade é obrigatória para Produto Venda.
 
@@ -424,7 +495,7 @@ Grade
 
 ---
 
-# 18. Grade Imutável após SKU
+# 19. Grade Imutável após SKU
 
 Após a existência de SKUs, a Grade não pode ser alterada.
 
@@ -445,7 +516,7 @@ Essa regra foi homologada.
 
 ---
 
-# 19. Model ProdutoDetalhe
+# 20. Model ProdutoDetalhe
 
 Model de variação:
 
@@ -469,7 +540,7 @@ ProdutoDetalhe é a unidade operacional utilizada para:
 
 ---
 
-# 20. Unicidade do SKU
+# 21. Unicidade do SKU
 
 A combinação lógica deve impedir duplicidade indevida da mesma variação.
 
@@ -486,7 +557,7 @@ A mesma combinação não deve gerar múltiplos SKUs ativos paralelos.
 
 ---
 
-# 21. Geração de SKUs
+# 22. Geração de SKUs
 
 A geração ocorre a partir das Cores selecionadas e dos Tamanhos pertencentes à Grade.
 
@@ -504,23 +575,13 @@ ProdutoDetalhe para cada combinação
 EAN automático
 ~~~
 
-Exemplo:
+O fluxo operacional completo está registrado em:
 
-~~~text
-Cor Preta
-+
-Grade 38, 40, 42
-
-gera:
-
-Preta 38
-Preta 40
-Preta 42
-~~~
+[[Workflows - Produtos - Produto Venda]]
 
 ---
 
-# 22. Inclusão de Cor
+# 23. Inclusão de Cor
 
 Quando nova Cor é adicionada:
 
@@ -535,7 +596,7 @@ Não duplicar SKU anteriormente inativado.
 
 ---
 
-# 23. Remoção de Cor
+# 24. Remoção de Cor
 
 Remover Cor do Produto não deve apagar fisicamente seus SKUs.
 
@@ -554,7 +615,7 @@ Foi homologada inclusive a remoção da última Cor.
 
 ---
 
-# 24. Reativação de Cor
+# 25. Reativação de Cor
 
 Ao adicionar novamente uma Cor retirada anteriormente:
 
@@ -570,7 +631,7 @@ Esse comportamento foi homologado manualmente.
 
 ---
 
-# 25. EAN
+# 26. EAN
 
 EAN pertence ao SKU.
 
@@ -589,7 +650,7 @@ Produto Venda não deve permitir geração aleatória ou paralela de EAN fora da
 
 ---
 
-# 26. Preservação de EAN
+# 27. Preservação de EAN
 
 EAN deve permanecer estável para o SKU.
 
@@ -601,7 +662,7 @@ Essa regra foi homologada.
 
 ---
 
-# 27. Status do SKU
+# 28. Status do SKU
 
 ProdutoDetalhe possui situação ativo/inativo.
 
@@ -616,7 +677,7 @@ Isso é especialmente importante para SKUs preservados após retirada de Cor.
 
 ---
 
-# 28. Custos do SKU
+# 29. Custos do SKU
 
 ProdutoDetalhe possui informações de custo operacional.
 
@@ -632,7 +693,7 @@ Produto pode apresentar visão resumida ou consolidada.
 
 ---
 
-# 29. Fabricação Própria e Custos
+# 30. Fabricação Própria e Custos
 
 Produto do tipo Fabricação Própria pode receber custos decorrentes da Produção.
 
@@ -647,7 +708,7 @@ Produto Venda não redesenhou essa lógica.
 
 ---
 
-# 30. Estoque
+# 31. Estoque
 
 Estoque não pertence diretamente apenas ao Produto.
 
@@ -669,7 +730,7 @@ Saldo
 
 ---
 
-# 31. Inicialização de Estoque
+# 32. Inicialização de Estoque
 
 No cadastro de Produto Venda podem ser selecionadas Lojas para inicializar a estrutura de Estoque.
 
@@ -684,7 +745,7 @@ Não confundir cadastro da estrutura com movimento de Estoque.
 
 ---
 
-# 32. Seleção de Lojas
+# 33. Seleção de Lojas
 
 A interface utiliza componente específico para seleção de Lojas.
 
@@ -705,7 +766,7 @@ O modal foi visualmente aproximado do padrão utilizado na seleção de Cores.
 
 ---
 
-# 33. Estoque Físico
+# 34. Estoque Físico
 
 Representa o saldo registrado fisicamente para o SKU em determinada Loja.
 
@@ -713,7 +774,7 @@ Não é saldo global do Produto.
 
 ---
 
-# 34. Reserva
+# 35. Reserva
 
 Reserva representa quantidade comprometida conforme processos que utilizem esse conceito.
 
@@ -721,7 +782,7 @@ Produto Venda não redesenhou as regras de reserva.
 
 ---
 
-# 35. Disponível
+# 36. Disponível
 
 Conceitualmente:
 
@@ -737,7 +798,7 @@ A consulta apresenta:
 
 ---
 
-# 36. Estoque Negativo
+# 37. Estoque Negativo
 
 Produto Venda preserva a estrutura existente de Estoque Negativo.
 
@@ -747,7 +808,7 @@ A decisão sobre permitir ou impedir saldo negativo deve continuar sendo feita p
 
 ---
 
-# 37. Preços
+# 38. Preços
 
 Preço não pertence individualmente ao SKU nesta estrutura funcional principal.
 
@@ -761,7 +822,7 @@ O gerenciamento comercial definitivo de preços deve permanecer no domínio de P
 
 ---
 
-# 38. Margem
+# 39. Margem
 
 A consulta apresenta:
 
@@ -773,7 +834,7 @@ O cálculo existente de margem não foi alterado.
 
 ---
 
-# 39. Dados Fiscais
+# 40. Dados Fiscais
 
 Produto contém os campos fiscais existentes para uso nos processos fiscais e de venda.
 
@@ -800,13 +861,11 @@ A interface os agrupa em:
 
 ---
 
-# 40. Histórico de Alterações Fiscais
+# 41. Histórico de Alterações Fiscais
 
 Alterações fiscais relevantes geram registro em:
 
 `ProdutoVendaHistorico`
-
-com evento correspondente à alteração fiscal.
 
 Também devem gerar rastreabilidade na:
 
@@ -816,7 +875,7 @@ As duas estruturas possuem finalidades diferentes e não devem ser confundidas.
 
 ---
 
-# 41. ProdutoVendaHistorico
+# 42. ProdutoVendaHistorico
 
 Model:
 
@@ -841,7 +900,7 @@ Não deve ser utilizado como tabela editável.
 
 ---
 
-# 42. Auditoria Central
+# 43. Auditoria Central
 
 A Auditoria Central permanece responsável pela rastreabilidade técnica geral.
 
@@ -851,7 +910,7 @@ Integração:
 
 Alterações cadastrais e fiscais relevantes devem produzir informação de antes/depois quando aplicável.
 
-Exemplos de informações:
+Exemplos:
 
 - campos alterados;
 - valores anteriores;
@@ -862,9 +921,13 @@ Exemplos de informações:
 
 ProdutoVendaHistorico não substitui `AuditLog`.
 
+A Auditoria Central faz parte da arquitetura geral documentada em:
+
+[[Sysvar]]
+
 ---
 
-# 43. ProdutoImagem
+# 44. ProdutoImagem
 
 Model:
 
@@ -878,7 +941,7 @@ Não à Cor.
 
 ---
 
-# 44. Regras de Imagens
+# 45. Regras de Imagens
 
 Regras homologadas:
 
@@ -896,7 +959,7 @@ Não criar imagem por SKU nesta fase.
 
 ---
 
-# 45. Upload de Imagem
+# 46. Upload de Imagem
 
 O frontend utiliza `FormData`.
 
@@ -920,7 +983,7 @@ Em edição de Produto já existente, o upload pode ser feito diretamente utiliz
 
 ---
 
-# 46. Imagem Principal
+# 47. Imagem Principal
 
 A API permite marcar uma imagem como principal.
 
@@ -930,7 +993,7 @@ Quando outra for marcada, a estrutura deve preservar essa unicidade.
 
 ---
 
-# 47. Imagem Reduzida
+# 48. Imagem Reduzida
 
 A estrutura possui suporte para URL de imagem reduzida.
 
@@ -956,11 +1019,13 @@ Não foram definidos nesta fase parâmetros obrigatórios de:
 - compressão;
 - qualidade.
 
-Não inventar esses valores em implementações futuras sem decisão específica.
+Esse cuidado está registrado em:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
 
 ---
 
-# 48. Consulta Consolidada
+# 49. Consulta Consolidada
 
 A tela Consultar funciona em modo somente leitura.
 
@@ -983,7 +1048,7 @@ A consulta reúne, quando aplicável:
 
 ---
 
-# 49. Consulta de Fabricação Própria
+# 50. Consulta de Fabricação Própria
 
 Para `tipo_produto = '3'`, a consulta pode apresentar informações relacionadas à Produção.
 
@@ -992,7 +1057,7 @@ Estruturas exibidas incluem:
 - Fichas Técnicas;
 - Ordens de Produção.
 
-Exemplos de informações:
+Exemplos:
 
 - identificação;
 - versão;
@@ -1007,7 +1072,7 @@ Produto Venda não assume responsabilidade pelo processo de Produção.
 
 ---
 
-# 50. Ativo/Inativo
+# 51. Ativo/Inativo
 
 Produto possui campo:
 
@@ -1028,7 +1093,7 @@ Produto Inativo continua preservando:
 
 ---
 
-# 51. Bloqueio de Venda
+# 52. Bloqueio de Venda
 
 Produto possui campo independente:
 
@@ -1051,7 +1116,7 @@ A distinção deve ser preservada.
 
 ---
 
-# 52. Ações Sensíveis
+# 53. Ações Sensíveis
 
 Ações customizadas incluem operações como:
 
@@ -1066,14 +1131,14 @@ A autorização utiliza:
 
 ---
 
-# 53. Permissão Funcional
+# 54. Permissão Funcional
 
 A implementação anterior utilizava:
 
 - `is_staff`;
 - ou permissão nativa Django.
 
-Isso foi substituído pelo modelo funcional do Sysvar.
+Isso foi substituído pelo modelo funcional do [[Sysvar]].
 
 Estrutura utilizada:
 
@@ -1090,7 +1155,7 @@ Portanto, um Admin funcional do Sysvar não precisa ser `is_staff` do Django Adm
 
 ---
 
-# 54. Usuário sem Permissão
+# 55. Usuário sem Permissão
 
 Usuário autenticado sem acesso `EDIT` ao módulo Produtos deve receber:
 
@@ -1102,7 +1167,7 @@ Ocultar botão no frontend não é suficiente.
 
 ---
 
-# 55. Motivo e Senha
+# 56. Motivo e Senha
 
 Ações sensíveis que já exigiam confirmação mantêm essa proteção.
 
@@ -1126,7 +1191,7 @@ A correção de permissão não deve enfraquecer essa camada.
 
 ---
 
-# 56. Exclusão Física
+# 57. Exclusão Física
 
 Produto só pode ser apagado fisicamente quando não possui utilização impeditiva.
 
@@ -1134,7 +1199,7 @@ Antes da exclusão devem ser verificadas relações que exigem preservação his
 
 ---
 
-# 57. Registros de Estoque Zero
+# 58. Registros de Estoque Zero
 
 A existência apenas de estruturas vazias de Estoque criadas durante inicialização não deve necessariamente impedir a exclusão de um Produto nunca utilizado.
 
@@ -1142,7 +1207,7 @@ A implementação permite remover estruturas vazias seguras quando necessário p
 
 ---
 
-# 58. Produto Utilizado
+# 59. Produto Utilizado
 
 Produto com movimentação ou uso relevante deve ser protegido contra exclusão.
 
@@ -1155,7 +1220,7 @@ conforme a necessidade operacional.
 
 ---
 
-# 59. Filtros Server-Side
+# 60. Filtros Server-Side
 
 A listagem não deve carregar todos os Produtos para filtrar apenas no navegador.
 
@@ -1175,7 +1240,7 @@ Filtros homologados incluem:
 
 ---
 
-# 60. Busca e Filtros Específicos
+# 61. Busca e Filtros Específicos
 
 Referência e Código possuem filtros próprios.
 
@@ -1185,7 +1250,7 @@ A API deve receber parâmetros distintos quando o critério funcional for distin
 
 ---
 
-# 61. Paginação Server-Side
+# 62. Paginação Server-Side
 
 A listagem é paginada pelo backend.
 
@@ -1219,7 +1284,7 @@ Mostrando X–Y de Z
 
 ---
 
-# 62. Ordenação
+# 63. Ordenação
 
 Ordenação deve ser aplicada no backend juntamente com os filtros e paginação.
 
@@ -1227,7 +1292,7 @@ Não deve depender da existência da página inteira carregada no frontend.
 
 ---
 
-# 63. Frontend — Formulário
+# 64. Frontend — Formulário
 
 O formulário de Produto Venda contempla blocos como:
 
@@ -1249,7 +1314,7 @@ Consulta permanece somente leitura.
 
 ---
 
-# 64. Frontend — Lojas
+# 65. Frontend — Lojas
 
 Componente utilizado:
 
@@ -1266,7 +1331,7 @@ O layout deve permanecer compacto e responsivo.
 
 ---
 
-# 65. Frontend — Cores
+# 66. Frontend — Cores
 
 A seleção de Cores é separada da seleção de Lojas.
 
@@ -1278,7 +1343,7 @@ Ela altera a estrutura de ProdutoDetalhe.
 
 ---
 
-# 66. Frontend — Imagens
+# 67. Frontend — Imagens
 
 Serviço possui operações para:
 
@@ -1297,7 +1362,7 @@ A regra também deve permanecer protegida no backend.
 
 ---
 
-# 67. Frontend — Status do SKU
+# 68. Frontend — Status do SKU
 
 A tabela de SKUs apresenta Status textual.
 
@@ -1314,7 +1379,7 @@ O texto é obrigatório para clareza operacional.
 
 ---
 
-# 68. Integração com Compras
+# 69. Integração com Compras
 
 Produto Revenda utiliza os processos existentes de Compras.
 
@@ -1330,7 +1395,7 @@ Compras permanece responsável por:
 
 ---
 
-# 69. Integração com Produção
+# 70. Integração com Produção
 
 Produto Fabricação Própria utiliza a estrutura existente de Produção.
 
@@ -1347,7 +1412,7 @@ A consulta apenas agrega informações relevantes.
 
 ---
 
-# 70. Integração com Estoque
+# 71. Integração com Estoque
 
 Produto Venda fornece a identidade dos SKUs.
 
@@ -1357,7 +1422,7 @@ Não alterar saldo diretamente pelo cadastro de Produto, exceto inicialização 
 
 ---
 
-# 71. Integração com Vendas/PDV
+# 72. Integração com Vendas/PDV
 
 A decisão final de venda deve utilizar informações como:
 
@@ -1373,7 +1438,7 @@ PDV não foi redesenhado nesta fase.
 
 ---
 
-# 72. Integração Fiscal
+# 73. Integração Fiscal
 
 Dados fiscais do Produto são utilizados pelos processos fiscais e comerciais.
 
@@ -1383,7 +1448,7 @@ A emissão de documento fiscal permanece responsabilidade do módulo Fiscal.
 
 ---
 
-# 73. Integração com Preços
+# 74. Integração com Preços
 
 Produto Venda utiliza a estrutura de Tabela de Preço existente.
 
@@ -1393,7 +1458,7 @@ Preço comercial definitivo continua sendo domínio próprio.
 
 ---
 
-# 74. Segurança Arquitetural
+# 75. Segurança Arquitetural
 
 Princípios que devem ser preservados:
 
@@ -1409,7 +1474,7 @@ Princípios que devem ser preservados:
 
 ---
 
-# 75. Histórico e Auditoria
+# 76. Histórico e Auditoria
 
 Separação obrigatória:
 
@@ -1429,7 +1494,7 @@ Não eliminar uma estrutura em favor da outra.
 
 ---
 
-# 76. Models Centrais da Funcionalidade
+# 77. Models Centrais da Funcionalidade
 
 Estruturas principais:
 
@@ -1457,7 +1522,7 @@ Estruturas relacionadas importantes:
 
 ---
 
-# 77. Fluxo Estrutural do Produto Venda
+# 78. Fluxo Estrutural do Produto Venda
 
 ~~~text
 Empresa
@@ -1492,9 +1557,13 @@ Produto
    └── Auditoria Central
 ~~~
 
+A representação conceitual detalhada está em:
+
+[[Modelo de Domínio - Produtos - Produto Venda]]
+
 ---
 
-# 78. Fluxo Revenda
+# 79. Fluxo Revenda
 
 ~~~text
 Produto Venda
@@ -1515,7 +1584,7 @@ Venda
 
 ---
 
-# 79. Fluxo Fabricação Própria
+# 80. Fluxo Fabricação Própria
 
 ~~~text
 Produto Venda
@@ -1538,9 +1607,13 @@ Estoque
 Venda
 ~~~
 
+Os workflows operacionais completos estão documentados em:
+
+[[Workflows - Produtos - Produto Venda]]
+
 ---
 
-# 80. Testes Backend
+# 81. Testes Backend
 
 O fechamento de Produto Venda possui testes direcionados.
 
@@ -1571,7 +1644,7 @@ além dos testes anteriores do módulo.
 
 ---
 
-# 81. Testes Frontend
+# 82. Testes Frontend
 
 A suíte direcionada contempla pontos como:
 
@@ -1600,7 +1673,7 @@ Resultado reportado:
 
 ---
 
-# 82. Validação Django
+# 83. Validação Django
 
 Comando executado no fechamento:
 
@@ -1614,7 +1687,7 @@ Resultado reportado:
 
 ---
 
-# 83. Migrations da Consolidação
+# 84. Migrations da Consolidação
 
 A estrutura de Produto Venda introduziu anteriormente suporte a:
 
@@ -1629,7 +1702,7 @@ A correção final de permissões também não exigiu alteração de banco.
 
 ---
 
-# 84. Commits de Referência
+# 85. Commits de Referência
 
 ## Implementação inicial consolidada
 
@@ -1641,8 +1714,6 @@ Frontend:
 
 `6d8681c312cf607a971d29bb6814e7b05df3120b`
 
----
-
 ## Fechamento técnico anterior
 
 Backend:
@@ -1652,8 +1723,6 @@ Backend:
 Frontend:
 
 `b1446baca3d388ec5f6d3610e35f2374f73951d1`
-
----
 
 ## Fechamento final após homologação
 
@@ -1677,7 +1746,7 @@ Esses são os commits finais considerados homologados para o escopo atual.
 
 ---
 
-# 85. Itens Deliberadamente Fora do Escopo
+# 86. Itens Deliberadamente Fora do Escopo
 
 Não redesenhar como consequência deste módulo:
 
@@ -1702,7 +1771,7 @@ Cada assunto deve permanecer em seu domínio próprio.
 
 ---
 
-# 86. Pendência Técnica Futura — Imagem Reduzida
+# 87. Pendência Técnica Futura — Imagem Reduzida
 
 Ainda não existe decisão definitiva para geração automática da imagem reduzida.
 
@@ -1725,9 +1794,13 @@ usar imagem_url
 
 Não criar parâmetros arbitrários.
 
+Ver:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
 ---
 
-# 87. Regras que Não Devem Regredir
+# 88. Regras que Não Devem Regredir
 
 Implementações futuras devem preservar:
 
@@ -1764,7 +1837,33 @@ Implementações futuras devem preservar:
 
 ---
 
-# 88. Estado Atual
+# 89. Documentação Relacionada
+
+Núcleo do projeto:
+
+[[Sysvar]]
+
+Homologação funcional:
+
+[[Homologação - Produtos - Produto Venda]]
+
+Fluxos:
+
+[[Workflows - Produtos - Produto Venda]]
+
+Domínio:
+
+[[Modelo de Domínio - Produtos - Produto Venda]]
+
+Riscos e cuidados:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
+Esses documentos formam o conjunto documental do Produto Venda e devem permanecer interligados.
+
+---
+
+# 90. Estado Atual
 
 Produto Venda encontra-se:
 
@@ -1776,4 +1875,12 @@ Homologação manual:
 
 O escopo de Cadastro de Produto Venda está fechado para esta fase.
 
-Próximas evoluções devem respeitar este documento como mapa técnico consolidado e não devem alterar regras homologadas sem nova decisão funcional registrada.
+Próximas evoluções devem respeitar:
+
+- [[Sysvar]]
+- [[Homologação - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
+e não devem alterar regras homologadas sem nova decisão funcional registrada.
