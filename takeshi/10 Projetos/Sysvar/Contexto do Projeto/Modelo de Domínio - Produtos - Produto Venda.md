@@ -31,7 +31,7 @@ tags:
 
 ## 1. Identificação
 
-- **Projeto:** Sysvar
+- **Projeto:** [[Sysvar]]
 - **Módulo:** Produtos
 - **Funcionalidade:** Produto Venda
 - **Tipos contemplados:** Revenda e Fabricação Própria
@@ -40,11 +40,19 @@ tags:
 - **Homologação manual:** 19/19 itens aprovados
 - **Data da homologação:** 13/08/2026
 
+### Documentos relacionados
+
+- [[Sysvar]]
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
 ---
 
 # 2. Objetivo do Modelo de Domínio
 
-O domínio de Produto Venda representa os produtos comercializáveis pelas empresas atendidas pelo Sysvar.
+O domínio de Produto Venda representa os produtos comercializáveis pelas empresas atendidas pelo [[Sysvar]].
 
 Seu objetivo é fornecer uma estrutura única e consistente para que os demais módulos possam identificar corretamente:
 
@@ -77,6 +85,10 @@ Produto Venda
 ~~~
 
 Produto de Uso e Consumo permanece em domínio funcional separado.
+
+As regras homologadas estão registradas em:
+
+[[Homologação - Produtos - Produto Venda]]
 
 ---
 
@@ -123,6 +135,10 @@ Produto
 Produto é a raiz cadastral do agregado.
 
 ProdutoDetalhe representa suas variações comercializáveis.
+
+A implementação técnica correspondente está descrita em:
+
+[[Mapa Técnico - Produtos - Produto Venda]]
 
 ---
 
@@ -180,6 +196,8 @@ Consequências:
 - histórico deve respeitar o tenant;
 - imagens pertencem ao Produto da Empresa;
 - consultas devem ser restritas à Empresa do usuário.
+
+O isolamento multiempresa é um princípio geral do [[Sysvar]].
 
 ---
 
@@ -329,6 +347,10 @@ A mudança poderia quebrar relações históricas com:
 - custos;
 - Estoque;
 - processos posteriores.
+
+O fluxo correspondente está documentado em:
+
+[[Workflows - Produtos - Produto Venda]]
 
 ---
 
@@ -548,6 +570,10 @@ Motivo:
 
 SKU já referencia Tamanho pertencente à Grade.
 
+Essa regra foi homologada em:
+
+[[Homologação - Produtos - Produto Venda]]
+
 ---
 
 # 22. Cor
@@ -721,6 +747,10 @@ Reativar
 
 A reativação preserva a identidade do SKU.
 
+O fluxo completo está em:
+
+[[Workflows - Produtos - Produto Venda]]
+
 ---
 
 # 31. EAN
@@ -762,6 +792,10 @@ mesmo EAN
 ~~~
 
 Não reciclar EAN para outro SKU.
+
+Esse é um dos cuidados de integridade registrados em:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
 
 ---
 
@@ -1081,7 +1115,7 @@ Exemplos de eventos:
 
 # 53. AuditLog
 
-AuditLog pertence à Auditoria Central do Sysvar.
+AuditLog pertence à Auditoria Central do [[Sysvar]].
 
 Relacionamento lógico:
 
@@ -1221,6 +1255,10 @@ Não existe ainda domínio fechado sobre:
 - compressão.
 
 Esses parâmetros não devem ser inferidos.
+
+Ver:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
 
 ---
 
@@ -1370,7 +1408,7 @@ Alternativas:
 
 # 70. Permissão Funcional
 
-Ações sensíveis utilizam o sistema funcional de permissões do Sysvar.
+Ações sensíveis utilizam o sistema funcional de permissões do [[Sysvar]].
 
 Conceito:
 
@@ -1684,6 +1722,8 @@ Auditoria
 → rastreabilidade técnica
 ~~~
 
+Essa separação acompanha a arquitetura modular de [[Sysvar]].
+
 ---
 
 # 86. Dependências que Devem Permanecer Separadas
@@ -1737,6 +1777,10 @@ As seguintes invariantes devem permanecer verdadeiras:
 27. Histórico Funcional não substitui Auditoria Central;
 28. segurança depende do backend;
 29. tenant é validado no backend.
+
+Os principais riscos de violação dessas invariantes estão detalhados em:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
 
 ---
 
@@ -1841,6 +1885,10 @@ Resultado:
 
 **19/19 itens aprovados**
 
+Registro completo:
+
+[[Homologação - Produtos - Produto Venda]]
+
 ---
 
 # 92. Commits de Referência
@@ -1900,7 +1948,33 @@ Esses módulos não devem criar uma segunda identidade concorrente para Produto 
 
 ---
 
-# 95. Estado Atual
+# 95. Documentação Relacionada
+
+Projeto principal:
+
+[[Sysvar]]
+
+Homologação funcional:
+
+[[Homologação - Produtos - Produto Venda]]
+
+Mapa Técnico:
+
+[[Mapa Técnico - Produtos - Produto Venda]]
+
+Workflows:
+
+[[Workflows - Produtos - Produto Venda]]
+
+Riscos e Cuidados:
+
+[[Riscos e Cuidados - Produtos - Produto Venda]]
+
+Esses documentos formam o conjunto documental do Produto Venda e devem permanecer interligados no grafo do Obsidian.
+
+---
+
+# 96. Estado Atual
 
 O Modelo de Domínio de Produto Venda encontra-se:
 
@@ -1931,4 +2005,11 @@ Homologação:
 
 **19/19 itens aprovados**
 
-As regras descritas neste documento formam a base de domínio aprovada para a continuidade do desenvolvimento do Sysvar.
+As regras descritas neste documento formam a base de domínio aprovada para a continuidade do desenvolvimento do [[Sysvar]].
+
+Este documento deve ser interpretado em conjunto com:
+
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
