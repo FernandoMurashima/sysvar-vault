@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "55ba6f56d3ce41da",
+        "id": "f496699b58fe4564",
         "type": "tabs",
         "children": [
           {
-            "id": "e46c0c60fd3a39ee",
+            "id": "59b8290cd8f86909",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -181,8 +181,9 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "e46c0c60fd3a39ee",
+  "active": "59b8290cd8f86909",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Produtos - Cadastros Auxiliares.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Cadastros Auxiliares.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Cadastros Auxiliares.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Produtos - Insumos.md",
@@ -208,7 +209,6 @@
     "10 Projetos/Sysvar/Operacao/Atualizacao do Sysvar no Viper-II.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Produto Venda.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Funcionários.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Funcionários.md",
     "10 Projetos/Sysvar/Operacao",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
