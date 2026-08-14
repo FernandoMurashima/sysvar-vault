@@ -11,10 +11,14 @@
             "id": "85711ef53f94f8dd",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
+                "mode": "source",
+                "source": true
+              },
               "icon": "lucide-file",
-              "title": "Nova aba"
+              "title": "Workflows"
             }
           }
         ]
