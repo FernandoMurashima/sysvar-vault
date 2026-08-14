@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-13
+updated: 2026-08-14
 tags:
   - projeto
   - sysvar
@@ -16,10 +16,20 @@ tags:
   - funcionários
   - produtos
   - produto-venda
+  - produto-uso-consumo
+  - insumos
+  - cadastros-auxiliares
   - revenda
   - fabricação-própria
   - sku
   - ean
+  - grades
+  - tamanhos
+  - cores
+  - coleções
+  - packs
+  - unidades
+  - material
   - estoque
   - fiscal
   - produção
@@ -41,10 +51,10 @@ O sistema foi concebido para atender empresas com uma ou múltiplas lojas, estoq
 
 Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 
-- isolamento entre empresas;
-- controle por estabelecimentos;
-- segurança baseada em perfis e permissões;
-- auditoria completa;
+- isolamento entre Empresas;
+- controle por Estabelecimentos;
+- segurança baseada em Perfis e Permissões;
+- Auditoria completa;
 - arquitetura preparada para crescimento modular;
 - integridade entre os módulos;
 - rastreabilidade das operações;
@@ -105,41 +115,48 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 - Fornecedores;
 - Funcionários;
 - Lojas;
-- Naturezas de lançamento;
-- Formas de pagamento;
-- demais cadastros auxiliares.
+- Naturezas de Lançamento;
+- Formas de Pagamento;
+- demais cadastros operacionais.
 
 ## Produtos
 
 - Produto Venda;
 - Revenda;
 - Fabricação Própria;
-- Produtos de Uso e Consumo;
-- SKUs;
-- EAN;
-- Cores;
-- Tamanhos;
-- Grades;
-- Packs;
-- Coleções;
+- Produto Uso/Consumo;
+- Insumos;
 - Grupos;
 - Subgrupos;
-- NCM;
+- Grades;
+- Tamanhos;
+- Coleções;
+- Packs;
 - Unidades;
+- Cores;
+- Material;
+- SKUs;
+- EAN;
+- NCM;
 - Tabelas de Preço;
+- Promoções;
 - imagens;
-- Dados fiscais.
+- Dados Fiscais.
 
 ## Compras
 
-- pedidos de compra;
-- pedidos de Revenda;
-- pedidos de Uso e Consumo;
+- Pedidos de Compra;
+- Produtos Venda;
+- Produtos Uso/Consumo;
+- Insumos;
+- Fornecedores;
+- Packs;
 - aprovação;
 - cancelamento;
 - parcelas;
 - integração financeira;
-- entrada de nota fiscal.
+- recebimento;
+- Entrada Fiscal.
 
 ## Fiscal
 
@@ -148,7 +165,8 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 - devoluções;
 - documentos fiscais;
 - impostos;
-- regras tributárias.
+- regras tributárias;
+- Entrada Fiscal.
 
 ## Estoque
 
@@ -156,15 +174,17 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 - saídas;
 - transferências;
 - saldos;
-- estoque por Empresa;
-- estoque por Estabelecimento;
-- estoque por SKU;
+- Estoque por Empresa;
+- Estoque por Estabelecimento;
+- Estoque por SKU;
+- Estoque de Produtos Uso/Consumo;
+- Estoque de Insumos;
 - reservas;
 - disponibilidade.
 
 ## Distribuição
 
-- fábrica para lojas;
+- fábrica para Lojas;
 - distribuição manual;
 - distribuição percentual;
 - perfis de distribuição;
@@ -176,6 +196,7 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 
 - Ficha Técnica;
 - Ordem de Produção;
+- Insumos;
 - facção;
 - matéria-prima;
 - retorno de Produção;
@@ -196,13 +217,13 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 
 ## Financeiro
 
-- contas a pagar;
-- contas a receber;
-- formas de pagamento;
+- Contas a Pagar;
+- Contas a Receber;
+- Formas de Pagamento;
 - parcelas;
 - rateios;
-- plano financeiro;
-- natureza de lançamento.
+- Plano Financeiro;
+- Natureza de Lançamento.
 
 ## Relatórios e Dashboards
 
@@ -317,8 +338,8 @@ Inclui:
 - módulos contratados;
 - usuário master;
 - superusuário da plataforma;
-- perfis;
-- permissões efetivas;
+- Perfis;
+- Permissões efetivas;
 - overrides;
 - heartbeat;
 - tokens;
@@ -357,9 +378,9 @@ Itens concluídos:
 - Overrides;
 - Sessões;
 - Tokens;
-- Administração de sessões;
-- Diagnóstico de sessões;
-- Reconciliação de sessões;
+- Administração de Sessões;
+- Diagnóstico de Sessões;
+- Reconciliação de Sessões;
 - Licenciamento simultâneo;
 - Redefinição administrativa de senha;
 - Troca obrigatória de senha;
@@ -385,7 +406,7 @@ O Sysvar utiliza:
 SESSÕES SIMULTÂNEAS
 ~~~
 
-A quantidade de usuários cadastrados não representa consumo de licença.
+A quantidade de Usuários cadastrados não representa consumo de licença.
 
 Regras homologadas:
 
@@ -398,8 +419,8 @@ Regras homologadas:
 - encerramento administrativo libera licença;
 - suspensão da Empresa libera as vagas;
 - superusuário não consome licença de Empresa cliente;
-- usuários diferentes podem utilizar o mesmo dispositivo;
-- o mesmo usuário no mesmo dispositivo substitui sua sessão anterior;
+- Usuários diferentes podem utilizar o mesmo dispositivo;
+- o mesmo Usuário no mesmo dispositivo substitui sua sessão anterior;
 - login acima do limite é recusado;
 - contador e listagem utilizam a mesma regra central.
 
@@ -459,9 +480,9 @@ A Auditoria registra eventos relacionados a:
 - contratos;
 - Empresas;
 - Usuários;
-- permissões;
+- Permissões;
 - Estabelecimentos;
-- perfis;
+- Perfis;
 - módulos;
 - bloqueios;
 - suspensão;
@@ -475,7 +496,7 @@ A Auditoria registra eventos relacionados a:
 - alterações fiscais;
 - exclusões realizadas;
 - exclusões negadas;
-- demais eventos relevantes dos módulos.
+- demais eventos relevantes.
 
 Princípios:
 
@@ -488,7 +509,7 @@ Princípios:
 - proteção de dados sensíveis;
 - ausência de tokens brutos;
 - ausência de senhas;
-- ausência de stack trace para usuários;
+- ausência de stack trace para Usuários;
 - evitar duplicação intencional de eventos.
 
 Referência:
@@ -512,13 +533,7 @@ FUNCIONÁRIOS
 → CONCLUÍDO
 ~~~
 
-Os três cadastros prioritários definidos para essa etapa foram:
-
-1. Clientes;
-2. Fornecedores;
-3. Funcionários.
-
-Os demais cadastros auxiliares continuam existentes e poderão receber revisão própria quando forem necessários aos módulos seguintes.
+Os três cadastros prioritários dessa etapa foram concluídos, homologados e documentados.
 
 ---
 
@@ -561,40 +576,11 @@ O cadastro contempla:
 - Auditoria Central;
 - isolamento multiempresa.
 
----
-
-# Regras Centrais de Clientes
-
-## Empresa
+## Regras Centrais
 
 Todo Cliente pertence a uma Empresa.
 
-~~~text
-cliente.empresa_id == empresa atual
-~~~
-
-## Tipo
-
-~~~text
-PF
-PJ
-~~~
-
-## Documento
-
-Campo funcional:
-
-~~~text
-documento
-~~~
-
-Campo legado temporário:
-
-~~~text
-cpf
-~~~
-
-## Unicidade
+Unicidade:
 
 ~~~text
 Empresa + documento
@@ -602,38 +588,22 @@ Empresa + documento
 
 Mais de um Cliente sem documento é permitido.
 
----
-
-# Consumidor Final
-
 Cada Empresa possui seu próprio:
 
 ~~~text
 Consumidor Final
 ~~~
 
-Dados funcionais:
-
-~~~text
-Tipo: PF
-Documento: 00000000000
-cliente_padrao: true
-~~~
-
-Não existe Consumidor Final global.
-
-O Cliente padrão possui proteções contra:
+Cliente padrão possui proteção contra:
 
 - exclusão;
 - inativação;
 - bloqueio;
 - mudança de documento;
-- mudança de tipo;
+- mudança de Tipo;
 - perda da condição de Cliente padrão.
 
----
-
-# Ciclo de Vida de Clientes
+Ciclo de vida:
 
 ~~~text
 Ativar
@@ -642,68 +612,7 @@ Bloquear
 Desbloquear
 ~~~
 
-Cliente Inativo ou Bloqueado não deve ser utilizado em nova venda.
-
----
-
-# Consulta de Clientes
-
-Abas:
-
-~~~text
-Dados cadastrais
-Compras
-Histórico
-~~~
-
-Indicadores:
-
-~~~text
-Última compra
-Total comprado
-Quantidade de compras
-Ticket médio
-~~~
-
-Cálculos são feitos no backend.
-
----
-
-# Clientes e PDV
-
-Venda sem Cliente identificado:
-
-~~~text
-Consumidor Final da Empresa
-~~~
-
-Venda com Cliente identificado:
-
-~~~text
-Cliente selecionado
-~~~
-
-Cliente Inativo ou Bloqueado deve ser recusado.
-
-Cliente de outra Empresa deve ser recusado.
-
----
-
-# Exclusão de Clientes
-
-Cliente sem vínculos pode ser excluído.
-
-Cliente com vínculos deve ser preservado e utilizar Inativação.
-
-Mensagem funcional homologada:
-
-~~~text
-Este cliente possui vendas ou outros registros vinculados e não pode ser excluído. Utilize a inativação.
-~~~
-
----
-
-# Documentação de Clientes
+## Documentação
 
 - [[10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Clientes|Homologação - Cadastros - Clientes]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Clientes|Mapa Técnico - Cadastros - Clientes]]
@@ -740,10 +649,10 @@ A Fase 1 contempla:
 - múltiplas categorias;
 - múltiplos contatos;
 - múltiplos endereços;
-- fiscal;
-- comercial;
-- financeiro;
-- contábil;
+- Fiscal;
+- Comercial;
+- Financeiro;
+- Contábil;
 - dados bancários;
 - ciclo de vida;
 - Compras;
@@ -754,10 +663,6 @@ A Fase 1 contempla:
 - multiempresa;
 - paginação server-side;
 - filtros server-side.
-
----
-
-# Categorias de Fornecedor
 
 Categorias:
 
@@ -773,27 +678,9 @@ OUTROS
 
 Um Fornecedor pode possuir várias categorias.
 
-Categoria orienta contexto, classificação e sugestão.
+Dados bancários possuem proteção própria.
 
-Não deve virar bloqueio universal sem regra própria da operação.
-
----
-
-# Dados Bancários de Fornecedor
-
-Possuem proteção específica.
-
-Permissão:
-
-~~~text
-fornecedor.dados_bancarios
-~~~
-
-Usuário sem autorização não deve receber os valores sensíveis nem por chamada direta de API.
-
----
-
-# Ciclo de Vida de Fornecedores
+Ciclo de vida:
 
 ~~~text
 Ativar
@@ -802,77 +689,15 @@ Bloquear
 Desbloquear
 ~~~
 
-Fornecedor utilizável:
+Fornecedor com vínculos deve ser preservado e inativado em vez de excluído.
 
-~~~text
-Empresa correta
-AND ativo
-AND não bloqueado
-AND contexto operacional válido
-~~~
-
----
-
-# Exclusão de Fornecedor
-
-Sem vínculos:
-
-~~~text
-DELETE permitido
-~~~
-
-Com vínculos:
-
-~~~text
-DELETE negado
-→ utilizar Inativação
-~~~
-
----
-
-# Consulta de Fornecedor
-
-Abas:
-
-~~~text
-Dados cadastrais
-Compras
-Financeiro
-Histórico
-~~~
-
-Indicadores:
-
-~~~text
-Última compra
-Total comprado
-Quantidade de compras
-Ticket médio
-Saldo a pagar
-~~~
-
----
-
-# Documentação de Fornecedores
+## Documentação
 
 - [[10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Fornecedores|Homologação - Cadastros - Fornecedores]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Fornecedores|Mapa Técnico - Cadastros - Fornecedores]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Fornecedores|Modelo de Domínio - Cadastros - Fornecedores]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Fornecedores|Workflows - Cadastros - Fornecedores]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Fornecedores|Riscos e Cuidados - Cadastros - Fornecedores]]
-
----
-
-# Pendências Conhecidas de Fornecedores
-
-Não bloqueiam a Fase 1:
-
-- validação de Inscrição Estadual por UF;
-- validação específica de Inscrição Municipal;
-- cadastro oficial de Bancos;
-- melhorias de UX para campos bancários protegidos.
-
-Fornecedor Fase 2 permanece reservada para inteligência e avaliação.
 
 ---
 
@@ -896,11 +721,9 @@ Homologação:
 
 Funcionário representa identidade operacional.
 
-Não representa módulo de RH/DP.
+Não representa módulo completo de RH/DP.
 
----
-
-# Separações Fundamentais de Funcionários
+Separações fundamentais:
 
 ~~~text
 Funcionário != Usuário
@@ -912,87 +735,12 @@ Comissão básica != Motor completo de comissão
 FuncionarioHistorico != AuditLog
 ~~~
 
----
-
-# Funcionário e Empresa
-
-Todo Funcionário pertence a uma Empresa.
-
-Também devem respeitar a mesma Empresa:
-
-- Cargo;
-- Loja Principal;
-- Lojas supervisionadas;
-- Usuário vinculado.
-
----
-
-# CPF e Matrícula
-
-CPF:
-
-- obrigatório para novos cadastros;
-- validado;
-- normalizado;
-- único por Empresa.
-
-Matrícula:
-
-- obrigatória;
-- única por Empresa;
-- automática ou manual;
-- estável;
-- não reutilizada.
-
----
-
-# Cargo
-
-Cargo é cadastro aberto por Empresa.
-
-Não é enum fixo.
-
-Pode representar:
-
-- Vendedor;
-- Caixa;
-- Gerente;
-- Supervisor;
-- Comprador;
-- Estoquista;
-- Financeiro;
-- Administrativo;
-- Produção;
-- qualquer função operacional necessária.
-
-Cargo não concede permissão.
-
-Permissões pertencem a Usuário/Perfil.
-
----
-
-# Situação Operacional de Funcionários
-
-Estados:
+Situações:
 
 ~~~text
 ATIVO
 AFASTADO
 DESLIGADO
-~~~
-
-Fluxo:
-
-~~~text
-ATIVO
-  ↓
-AFASTADO
-  ↓
-ATIVO
-  ↓
-DESLIGADO
-  ↓
-ATIVO
 ~~~
 
 Ações:
@@ -1004,113 +752,20 @@ Desligar
 Recontratar
 ~~~
 
-Recontratação utiliza o mesmo cadastro.
+Recontratação reutiliza o mesmo cadastro.
 
----
+Funcionário pode possuir:
 
-# Loja e Abrangência
-
-Funcionário pode possuir Loja Principal.
-
-Cargos configurados para múltiplas lojas podem possuir:
-
-~~~text
-lojas_supervisionadas
-todas_lojas_da_empresa
-~~~
-
-Abrangência operacional não representa permissão de acesso.
-
----
-
-# Comissão
-
-Estruturas:
-
-~~~text
-Cargo.permite_comissao
-Funcionarios.comissionado
-Funcionarios.comissao_percentual
-~~~
-
-Gerente e Supervisor podem ser comissionados.
-
-Motor avançado de comissão pertence a domínio futuro.
-
----
-
-# Funcionário × Usuário
-
-Relacionamento:
-
-~~~text
-Funcionarios.usuario
-→ accounts.User
-~~~
-
-É opcional e OneToOne.
-
-Vincular Usuário não altera automaticamente:
-
+- Loja Principal;
 - Cargo;
-- Perfil;
-- permissões;
-- lojas de acesso;
-- sessões.
+- Lojas supervisionadas;
+- abrangência por todas as Lojas da Empresa;
+- comissão;
+- Usuário opcional.
 
----
+Funcionário e Usuário permanecem entidades independentes.
 
-# Histórico de Funcionários
-
-`FuncionarioHistorico` registra trajetória operacional.
-
-Exemplos:
-
-- mudança de Cargo;
-- mudança de Loja;
-- alteração de abrangência;
-- afastamento;
-- retorno;
-- desligamento;
-- recontratação.
-
-`AuditLog` continua responsável pela Auditoria Central.
-
----
-
-# Exclusão de Funcionário
-
-Funcionário nunca utilizado pode ser excluído.
-
-Funcionário utilizado deve ser preservado.
-
-Mensagem homologada:
-
-~~~text
-Funcionário já utilizado em operações. Desligue o funcionário em vez de excluí-lo.
-~~~
-
----
-
-# Funcionários e Vendas
-
-Venda mantém conceitos distintos:
-
-~~~text
-VendaPdv.vendedor
-→ Funcionarios
-
-VendaPdv.criado_por
-→ User
-~~~
-
-Vendedor é responsável comercial.
-
-`criado_por` identifica quem operou o sistema.
-
----
-
-# Documentação de Funcionários
+## Documentação
 
 - [[Homologação - Cadastros - Funcionários]]
 - [[Mapa Técnico - Cadastros - Funcionários]]
@@ -1122,44 +777,68 @@ Vendedor é responsável comercial.
 
 # Grupo Produtos
 
-Status atual:
-
-~~~text
-EM ANDAMENTO
-~~~
-
-Primeiro domínio formalmente fechado:
+## Situação do Ciclo Cadastral Atual
 
 ~~~text
 PRODUTO VENDA
+→ CONCLUÍDO
+→ HOMOLOGADO
+→ DOCUMENTADO
+
+PRODUTO USO/CONSUMO
+→ CONCLUÍDO
+→ HOMOLOGADO
+→ DOCUMENTADO
+
+INSUMOS
+→ CONCLUÍDO
+→ HOMOLOGADO
+→ DOCUMENTADO
+
+CADASTROS AUXILIARES
+→ CONCLUÍDOS
+→ HOMOLOGADOS
+→ DOCUMENTADOS
 ~~~
 
-Resultado:
+O ciclo cadastral atualmente revisado do grupo Produtos está consolidado.
+
+Os quatro blocos possuem documentação funcional, técnica, de workflows, domínio e riscos.
+
+---
+
+# Arquitetura dos Tipos de Produto
+
+A entidade Produto atende domínios diferentes.
 
 ~~~text
-IMPLEMENTADO
-TESTADO
-HOMOLOGADO
-DOCUMENTADO
-APROVADO
-
-19/19 ITENS APROVADOS
+Produto
+   │
+   ├── tipo 1 → Revenda
+   │
+   ├── tipo 2 → Uso/Consumo
+   │
+   ├── tipo 3 → Fabricação Própria
+   │
+   └── tipo 4 → Insumo
 ~~~
+
+Esses tipos compartilham infraestrutura técnica, mas não devem compartilhar indiscriminadamente as mesmas regras funcionais.
 
 ---
 
 # Produto Venda
 
-Produto Venda representa os produtos destinados à comercialização.
+Produto Venda representa os Produtos destinados à comercialização.
 
-Tipos contemplados:
+Tipos:
 
 ~~~text
 1 = Revenda
 3 = Fabricação Própria
 ~~~
 
-A nomenclatura funcional aprovada é:
+Nomenclatura funcional:
 
 **Produto Venda**
 
@@ -1167,85 +846,17 @@ Para tipo `3`:
 
 **Fabricação Própria**
 
-Não utilizar como nomenclatura geral da funcionalidade:
-
-~~~text
-Produtos Revenda
-~~~
-
-quando os dois tipos estiverem sendo contemplados.
-
----
-
-# Produto Venda versus Uso e Consumo
-
-Produto Venda não engloba Uso e Consumo.
-
-Separação:
-
-~~~text
-Produto Venda
-├── Revenda
-└── Fabricação Própria
-
-Uso e Consumo
-→ fluxo separado
-~~~
-
-O fechamento de Produto Venda não significa homologação de Uso e Consumo.
-
----
-
-# Entidades Centrais de Produto Venda
-
-Estruturas:
-
-~~~text
-Produto
-ProdutoDetalhe
-ProdutoVendaHistorico
-ProdutoImagem
-~~~
-
-Relacionamentos principais:
-
-~~~text
-Empresa
-  ↓
-Produto
-  ├── Coleção
-  ├── Grupo
-  ├── Subgrupo
-  ├── Unidade
-  ├── Material
-  ├── Grade
-  ├── ProdutoDetalhe / SKU
-  │      ├── Cor
-  │      ├── Tamanho
-  │      ├── EAN
-  │      └── Estoque
-  ├── Dados fiscais
-  ├── Preços
-  ├── Imagens
-  ├── Histórico funcional
-  └── Auditoria
-~~~
-
-Modelo completo:
-
-[[Modelo de Domínio - Produtos - Produto Venda]]
+Produto Venda não engloba Uso/Consumo ou Insumos.
 
 ---
 
 # Produto versus SKU
 
-Separação fundamental:
+Separação:
 
 ~~~text
 Produto != SKU
 ~~~
-
-Produto representa o cadastro principal.
 
 SKU representa:
 
@@ -1291,8 +902,6 @@ Não converter Fabricação Própria em Revenda.
 
 # Referência de Produto Venda
 
-Referência é automática.
-
 Formato:
 
 ~~~text
@@ -1314,65 +923,43 @@ EAN pertence ao SKU.
 
 ---
 
-# Descrição Reduzida
+# Estruturas Principais de Produto Venda
 
-Obrigatória.
+Produto Venda utiliza:
 
-Limite:
+- Empresa;
+- Coleção;
+- Grupo;
+- Subgrupo;
+- Unidade;
+- Material quando aplicável;
+- Grade;
+- Tamanhos;
+- Cores;
+- SKUs;
+- EAN;
+- Dados Fiscais;
+- preços;
+- imagens;
+- Estoque Loja × SKU;
+- Histórico Funcional;
+- Auditoria.
 
-~~~text
-60 caracteres
-~~~
+Modelo detalhado:
 
----
-
-# Grupo e Subgrupo
-
-Grupo:
-
-~~~text
-OBRIGATÓRIO
-~~~
-
-Subgrupo:
-
-~~~text
-OBRIGATÓRIO
-~~~
-
-Subgrupo deve ser coerente com Grupo.
+[[Modelo de Domínio - Produtos - Produto Venda]]
 
 ---
 
-# Unidade
+# Grade, Cores e SKUs
 
-Unidade é obrigatória para Produto Venda.
+Grade define Tamanhos possíveis.
 
----
-
-# Material
-
-Material permanece opcional.
-
-Material classificatório não substitui os componentes da Ficha Técnica.
-
----
-
-# Grade
-
-Grade é obrigatória.
-
-Ela define os Tamanhos possíveis.
-
-Após a existência de SKUs:
+Após existirem SKUs:
 
 ~~~text
 GRADE IMUTÁVEL
 ~~~
-
----
-
-# Cores e SKUs
 
 Ao incluir Cor:
 
@@ -1384,23 +971,7 @@ Tamanhos da Grade
 SKUs
 ~~~
 
-Quando o SKU já existia e estava Inativo:
-
-~~~text
-REATIVAR
-~~~
-
-Quando nunca existiu:
-
-~~~text
-CRIAR
-~~~
-
----
-
-# Remoção de Cor
-
-Regra:
+Ao retirar Cor:
 
 ~~~text
 REMOVER COR
@@ -1408,47 +979,14 @@ REMOVER COR
 → NÃO EXCLUIR
 ~~~
 
-Preservar:
-
-- ID;
-- Cor;
-- Tamanho;
-- EAN;
-- custos;
-- Estoque;
-- histórico.
-
----
-
-# Remoção da Última Cor
-
-A última Cor também pode ser retirada.
-
-Nesse caso:
+Ao reincluir Cor:
 
 ~~~text
-todos os SKUs correspondentes
-→ INATIVOS
+LOCALIZAR SKUs ANTERIORES
+→ REATIVAR
+→ PRESERVAR EAN
+→ PRESERVAR ID
 ~~~
-
-O Produto permanece cadastrado.
-
-Esse cenário foi homologado.
-
----
-
-# Reativação de Cor
-
-Ao reincluir uma Cor:
-
-~~~text
-localizar SKUs anteriores
-→ reativar
-→ preservar EAN
-→ preservar identificador
-~~~
-
-Não criar SKU duplicado.
 
 ---
 
@@ -1459,11 +997,11 @@ EAN pertence ao SKU.
 Regras:
 
 - automático;
-- backend;
+- gerado no backend;
 - único;
 - preservado;
 - não reciclado;
-- mesmo SKU mantém mesmo EAN;
+- mesmo SKU mantém o mesmo EAN;
 - reativação não gera novo EAN.
 
 ---
@@ -1476,421 +1014,21 @@ Granularidade:
 Loja × SKU
 ~~~
 
-Não existe saldo comercial suficiente apenas no nível Produto.
+Inicialização de registro de Estoque com zero não representa entrada física.
 
-Exemplo:
-
-~~~text
-Produto X
-SKU Preto M
-Loja 1 = 10
-Loja 2 = 3
-~~~
-
----
-
-# Inicialização de Estoque
-
-Ao cadastrar Produto Venda podem ser selecionadas Lojas.
-
-Isso prepara:
-
-~~~text
-Loja × SKU
-~~~
-
-com quantidade inicial zero quando não existe movimentação.
-
-Inicialização não representa entrada física.
-
----
-
-# Estoque Físico, Reserva e Disponível
-
-Conceito:
+Disponibilidade conceitual:
 
 ~~~text
 Disponível = Físico - Reserva
 ~~~
 
-Produto Venda apresenta a estrutura.
-
-As regras definitivas de movimentação e reserva pertencem ao domínio de Estoque/Vendas.
-
----
-
-# Custos
-
-Conceitos existentes:
-
-- custo original;
-- última compra;
-- custo médio.
-
-Para Revenda:
-
-~~~text
-Compra
-→ Recebimento
-→ Estoque
-→ Custos
-~~~
-
-Para Fabricação Própria:
-
-~~~text
-Ficha Técnica
-→ Ordem de Produção
-→ Produção
-→ Custos
-~~~
-
----
-
-# Preços
-
-Produto pode participar de múltiplas Tabelas de Preço.
-
-Não foi definida regra obrigatória de:
-
-~~~text
-Preço por SKU
-~~~
-
-nem:
-
-~~~text
-Tabela de Preço por Loja
-~~~
-
-O motor comercial continua pertencendo ao domínio próprio.
-
----
-
-# Dados Fiscais de Produto Venda
-
-Campos expostos:
-
-- NCM;
-- Origem;
-- CST/CSOSN ICMS;
-- alíquota ICMS;
-- CFOP dentro;
-- CFOP fora;
-- CST PIS;
-- alíquota PIS;
-- CST COFINS;
-- alíquota COFINS;
-- situação IPI;
-- alíquota IPI.
-
-Dados fiscais:
-
-~~~text
-EDITÁVEIS
-+
-RASTREADOS
-~~~
-
----
-
-# Histórico Funcional de Produto Venda
-
-Estrutura:
-
-~~~text
-ProdutoVendaHistorico
-~~~
-
-Eventos incluem:
-
-- alteração cadastral;
-- alteração fiscal;
-- Ativação;
-- Inativação;
-- Bloqueio de venda;
-- Desbloqueio.
-
-Não substitui `AuditLog`.
-
----
-
-# Produto Venda e Auditoria
-
-Separação:
-
-~~~text
-ProdutoVendaHistorico
-→ visão funcional
-
-AuditLog
-→ Auditoria Central
-~~~
-
-Ambos devem ser preservados.
-
----
-
-# Imagens do Produto
-
-Estrutura:
-
-~~~text
-ProdutoImagem
-~~~
-
-Regras:
-
-- opcionais;
-- máximo de três;
-- no máximo uma principal;
-- pertencem ao Produto;
-- não pertencem à Cor;
-- não pertencem ao SKU.
-
----
-
-# Imagem Reduzida
-
-A interface utiliza:
-
-~~~text
-imagem_reduzida_url
-~~~
-
-quando disponível.
-
-Fallback:
-
-~~~text
-imagem_url
-~~~
-
-Ainda não foram definidos:
-
-- largura;
-- altura;
-- resolução;
-- formato;
-- qualidade;
-- compressão.
-
-Não inventar esses parâmetros.
-
-Referência:
-
-[[Riscos e Cuidados - Produtos - Produto Venda]]
-
----
-
-# Situação do Produto
-
-Estado cadastral:
-
-~~~text
-ATIVO
-INATIVO
-~~~
-
-Inativar não exclui.
-
-Produto Inativo preserva:
-
-- Referência;
-- SKUs;
-- EANs;
-- Estoque;
-- histórico;
-- movimentações.
-
----
-
-# Bloqueio de Venda
-
-Estado independente:
-
-~~~text
-bloqueado_venda
-~~~
-
-É permitido:
-
-~~~text
-ativo = true
-bloqueado_venda = true
-~~~
-
-Portanto:
-
-~~~text
-Ativo != Venda liberada
-~~~
-
----
-
-# Ações Sensíveis de Produto Venda
-
-Incluem:
-
-- Inativar;
-- Ativar;
-- Bloquear venda;
-- Desbloquear venda.
-
-A autorização utiliza modelo funcional do Sysvar.
-
-Estrutura:
-
-~~~text
-EffectiveAccessService
-→ Produtos
-→ EDIT
-~~~
-
-Não depender apenas de:
-
-~~~text
-is_staff
-~~~
-
-do Django Admin.
-
----
-
-# Motivo e Senha
-
-Quando exigidos pela ação, continuam obrigatórios.
-
-Exemplo:
-
-~~~text
-Permissão EDIT
-+
-motivo
-+
-senha válida
-→ executar
-~~~
-
-Permissão não substitui senha.
-
-Senha não substitui permissão.
-
----
-
-# Exclusão de Produto Venda
-
-Produto nunca utilizado pode ser excluído quando não possuir vínculos impeditivos.
-
-Produto utilizado:
-
-~~~text
-DELETE NEGADO
-~~~
-
-Alternativas:
-
-- Inativar;
-- Bloquear venda.
-
-Registros técnicos de Estoque zero criados apenas na inicialização podem ser tratados de forma segura quando não existir utilização real.
-
----
-
-# Filtros de Produto Venda
-
-Processamento:
-
-~~~text
-SERVER-SIDE
-~~~
-
-Filtros incluem:
-
-- busca;
-- Tipo;
-- Referência;
-- Código;
-- Grupo;
-- Coleção;
-- Status;
-- Bloqueado;
-- combinações.
-
-Referência e Código permanecem critérios independentes.
-
----
-
-# Paginação de Produto Venda
-
-Processamento:
-
-~~~text
-SERVER-SIDE
-~~~
-
-Fluxo:
-
-~~~text
-page
-page_size
-filtros
-ordering
-↓
-backend
-↓
-count
-results
-~~~
-
-Indicador visual:
-
-~~~text
-Mostrando X–Y de Z
-~~~
-
----
-
-# Consulta Consolidada de Produto Venda
-
-Consulta é somente leitura.
-
-Apresenta, quando aplicável:
-
-- dados cadastrais;
-- classificação;
-- Tipo;
-- Referência;
-- SKUs;
-- Status dos SKUs;
-- custos;
-- Preço;
-- Margem %;
-- Dados fiscais;
-- imagens;
-- Estoque Loja × SKU;
-- Histórico Funcional;
-- Fichas Técnicas;
-- Ordens de Produção.
-
----
-
-# Status do SKU
-
-A consulta apresenta explicitamente:
-
-~~~text
-Ativo
-Inativo
-~~~
-
-Não utilizar apenas diferenciação visual por cor.
+Movimentação continua sendo responsabilidade do módulo Estoque.
 
 ---
 
 # Produto Venda - Revenda
 
-Fluxo conceitual:
+Fluxo:
 
 ~~~text
 Produto Venda
@@ -1907,13 +1045,11 @@ Estoque
 Venda
 ~~~
 
-Compras permanece responsável pelo processo de aquisição.
-
 ---
 
 # Produto Venda - Fabricação Própria
 
-Fluxo conceitual:
+Fluxo:
 
 ~~~text
 Produto Venda
@@ -1932,25 +1068,847 @@ Estoque
 Venda
 ~~~
 
-Produto Venda não substitui Produção.
+Produto Venda fornece a identidade do Produto fabricado.
+
+Produção permanece responsável pelo processo produtivo.
 
 ---
 
-# Integrações de Produto Venda
+# Ciclo de Vida de Produto Venda
 
-Produto Venda se relaciona com:
+Estado cadastral:
 
 ~~~text
-Compras
-Estoque
-Preços
-Fiscal
-Produção
-Vendas / PDV
-Auditoria
+ATIVO
+INATIVO
 ~~~
 
-Cada domínio preserva sua responsabilidade.
+Estado comercial independente:
+
+~~~text
+bloqueado_venda
+~~~
+
+Portanto:
+
+~~~text
+Ativo != Venda liberada
+~~~
+
+Produto utilizado deve ser preservado.
+
+Alternativas à exclusão:
+
+- Inativar;
+- Bloquear Venda.
+
+---
+
+# Histórico e Auditoria de Produto Venda
+
+Separação:
+
+~~~text
+ProdutoVendaHistorico
+→ visão funcional
+
+AuditLog
+→ Auditoria Central
+~~~
+
+Ambos devem ser preservados.
+
+---
+
+# Imagens de Produto Venda
+
+Regras consolidadas:
+
+- imagens opcionais;
+- máximo de três;
+- somente uma principal;
+- pertencem ao Produto;
+- não pertencem à Cor;
+- não pertencem ao SKU.
+
+A interface pode utilizar:
+
+~~~text
+imagem_reduzida_url
+~~~
+
+quando disponível.
+
+Fallback:
+
+~~~text
+imagem_url
+~~~
+
+Ainda não existe definição homologada para:
+
+- largura;
+- altura;
+- resolução;
+- formato;
+- qualidade;
+- compressão.
+
+---
+
+# Homologação de Produto Venda
+
+Resultado:
+
+~~~text
+19/19 APROVADOS
+~~~
+
+Registro:
+
+[[Homologação - Produtos - Produto Venda]]
+
+## Documentação
+
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
+---
+
+# Produto Uso/Consumo
+
+Produto Uso/Consumo é um domínio próprio.
+
+Tipo:
+
+~~~text
+tipo_produto = '2'
+~~~
+
+Situação:
+
+~~~text
+IMPLEMENTADO
+HOMOLOGADO
+DOCUMENTADO
+APROVADO
+~~~
+
+Produto Uso/Consumo representa itens utilizados internamente pela Empresa e que não são destinados à venda normal ao consumidor.
+
+Exemplos:
+
+- materiais administrativos;
+- materiais de limpeza;
+- peças de manutenção;
+- materiais internos diversos.
+
+---
+
+# Separação de Produto Uso/Consumo
+
+~~~text
+Produto Uso/Consumo
+!=
+Produto Venda
+
+Produto Uso/Consumo
+!=
+Insumo
+~~~
+
+Uso/Consumo:
+
+~~~text
+uso interno não produtivo
+~~~
+
+Insumo:
+
+~~~text
+componente da fabricação
+~~~
+
+---
+
+# Regras Centrais de Produto Uso/Consumo
+
+- tipo interno `2`;
+- domínio próprio;
+- código próprio;
+- descrição;
+- Unidade;
+- NCM opcional no cadastro;
+- Dados Fiscais;
+- situação Fiscal Completo/Incompleto;
+- lifecycle Ativo/Inativo;
+- exclusão protegida;
+- multiempresa;
+- paginação server-side;
+- filtros server-side;
+- consulta consolidada;
+- custos provenientes de eventos reais;
+- Auditoria.
+
+---
+
+# Estoque de Produto Uso/Consumo
+
+Produto Uso/Consumo possui natureza de Estoque.
+
+Não existe campo:
+
+~~~text
+controla_estoque
+~~~
+
+O cadastro não define localização fixa.
+
+Não existe regra:
+
+~~~text
+Uso/Consumo
+→ somente Matriz
+~~~
+
+A localização nasce da operação.
+
+~~~text
+Produto
+!=
+Local de Estoque
+~~~
+
+Saldo deve decorrer de movimentos reais.
+
+---
+
+# Produto Uso/Consumo e PDV
+
+Produto Uso/Consumo não é destinado à venda.
+
+~~~text
+tipo_produto = '2'
+→ não deve participar normalmente do PDV
+~~~
+
+Também não deve receber automaticamente:
+
+- Grade;
+- Cor × Tamanho;
+- SKU comercial;
+- Coleção;
+- Tabela de Preço obrigatória;
+- Promoção;
+- Bloqueio de Venda.
+
+---
+
+# Produto Uso/Consumo e Produção
+
+Produto Uso/Consumo não é Insumo.
+
+Não deve ser utilizado automaticamente como:
+
+- componente de Ficha Técnica;
+- consumo de Ordem de Produção;
+- matéria-prima.
+
+---
+
+# Documentação de Produto Uso/Consumo
+
+- [[Homologação - Produtos - Produto Uso e Consumo]]
+- [[Mapa Técnico - Produtos - Produto Uso e Consumo]]
+- [[Workflows - Produtos - Produto Uso e Consumo]]
+- [[Modelo de Domínio - Produtos - Produto Uso e Consumo]]
+- [[Riscos e Cuidados - Produtos - Produto Uso e Consumo]]
+
+---
+
+# Insumos
+
+Insumos representam materiais utilizados diretamente na fabricação.
+
+Tipo:
+
+~~~text
+tipo_produto = '4'
+~~~
+
+Situação:
+
+~~~text
+IMPLEMENTADO
+HOMOLOGADO
+DOCUMENTADO
+APROVADO
+~~~
+
+Exemplos:
+
+- tecidos;
+- linhas;
+- botões;
+- zíperes;
+- etiquetas;
+- elásticos;
+- aviamentos;
+- demais componentes produtivos.
+
+---
+
+# Separação de Insumos
+
+~~~text
+Insumo
+!=
+Produto Venda
+
+Insumo
+!=
+Produto Uso/Consumo
+~~~
+
+Uso/Consumo:
+
+~~~text
+consumo interno não produtivo
+~~~
+
+Insumo:
+
+~~~text
+consumo produtivo
+~~~
+
+---
+
+# Regras Centrais de Insumos
+
+- tipo interno `4`;
+- domínio próprio;
+- Empresa;
+- descrição;
+- Unidade;
+- Material opcional;
+- NCM/Dados Fiscais quando aplicáveis;
+- custos;
+- natureza de Estoque;
+- lifecycle Ativo/Inativo;
+- exclusão protegida;
+- multiempresa;
+- integração com Compras;
+- participação em Ficha Técnica;
+- preparação para Produção.
+
+---
+
+# Unidade de Insumos
+
+A Unidade define como o material é quantificado.
+
+Exemplos:
+
+~~~text
+Tecido
+→ M
+
+Botão
+→ UN
+
+Material líquido
+→ LT
+~~~
+
+A propriedade:
+
+~~~text
+permite_decimal
+~~~
+
+deve ser respeitada pelos processos consumidores.
+
+---
+
+# Material e Insumo
+
+Material é opcional.
+
+Separação:
+
+~~~text
+Material
+→ classificação
+
+Insumo
+→ item operacional
+~~~
+
+Exemplo:
+
+~~~text
+Material:
+Algodão
+
+Insumo:
+Tecido Tricoline Branco
+~~~
+
+Compras, Estoque e Produção utilizam o Insumo, não o Material isoladamente.
+
+---
+
+# Estoque de Insumos
+
+Insumo possui natureza de Estoque.
+
+Não existe campo:
+
+~~~text
+controla_estoque
+~~~
+
+O cadastro não define localização fixa.
+
+Não fixa:
+
+- Matriz;
+- fábrica;
+- almoxarifado;
+- Loja;
+- facção.
+
+A operação física determina a localização.
+
+---
+
+# Insumos e Ficha Técnica
+
+Relação conceitual:
+
+~~~text
+Produto Fabricação Própria
+        ↓
+Ficha Técnica
+        ↓
+Insumos
+        ↓
+Quantidade prevista
+~~~
+
+A quantidade pertence à relação:
+
+~~~text
+Ficha Técnica × Insumo
+~~~
+
+e não ao cadastro principal do Insumo.
+
+---
+
+# Insumos e Ordem de Produção
+
+A Ficha Técnica pode fornecer a necessidade teórica de materiais para a OP.
+
+Entretanto:
+
+~~~text
+CRIAR OP
+!=
+BAIXAR INSUMOS
+~~~
+
+e:
+
+~~~text
+CRIAR OP
+!=
+RESERVAR AUTOMATICAMENTE INSUMOS
+~~~
+
+O evento físico de:
+
+- reserva;
+- separação;
+- baixa;
+- consumo;
+- perda;
+- sobra;
+- envio para facção;
+
+deverá ser definido no domínio de Produção/Estoque.
+
+---
+
+# Consumo Previsto versus Real
+
+~~~text
+Ficha Técnica
+→ consumo previsto
+
+Produção
+→ consumo real
+~~~
+
+Esses conceitos não devem ser confundidos.
+
+---
+
+# Documentação de Insumos
+
+- [[Homologação - Produtos - Insumos]]
+- [[Mapa Técnico - Produtos - Insumos]]
+- [[Workflows - Produtos - Insumos]]
+- [[Modelo de Domínio - Produtos - Insumos]]
+- [[Riscos e Cuidados - Produtos - Insumos]]
+
+---
+
+# Cadastros Auxiliares de Produtos
+
+Situação:
+
+~~~text
+IMPLEMENTADOS
+HOMOLOGADOS
+DOCUMENTADOS
+APROVADOS
+~~~
+
+O conjunto consolidado contempla:
+
+- Grupos;
+- Subgrupos;
+- Grades;
+- Tamanhos;
+- Coleções;
+- Packs;
+- Itens de Pack;
+- Unidades;
+- Cores;
+- Material.
+
+---
+
+# Princípio dos Cadastros Auxiliares
+
+~~~text
+Cadastro Auxiliar
+→ define estrutura
+
+Produto
+→ utiliza estrutura
+
+Processo Operacional
+→ utiliza Produto
+~~~
+
+Não transformar Cadastro Auxiliar em processo operacional.
+
+---
+
+# Grupo e Subgrupo
+
+Grupo possui:
+
+- Código;
+- Descrição;
+- Código de Referência;
+- Margem.
+
+Código de Referência:
+
+~~~text
+2 dígitos numéricos
+~~~
+
+Deve ser único por Empresa.
+
+Subgrupo pertence ao Grupo.
+
+~~~text
+Grupo
+   ↓
+Subgrupos
+~~~
+
+---
+
+# Grade e Tamanho
+
+Grade possui Tamanhos.
+
+~~~text
+Grade
+   ↓
+Tamanhos
+~~~
+
+Produto Venda utiliza:
+
+~~~text
+Grade
++
+Cor
++
+Tamanho
+→ SKU
+~~~
+
+Grade utilizada deve ter alterações estruturais protegidas.
+
+---
+
+# Coleções
+
+Coleção possui:
+
+- Código;
+- Estação;
+- Descrição;
+- Status.
+
+Estação:
+
+~~~text
+01 = Verão
+02 = Outono
+03 = Inverno
+04 = Primavera
+~~~
+
+Status:
+
+~~~text
+CR
+PD
+AT
+EN
+AR
+~~~
+
+O contador de geração da Referência permanece interno.
+
+---
+
+# Unidades
+
+Unidade possui:
+
+- Código;
+- Descrição;
+- `permite_decimal`.
+
+Exemplos:
+
+~~~text
+UN
+M
+KG
+LT
+CX
+~~~
+
+Código deve possuir unicidade.
+
+---
+
+# Cores
+
+Cor é utilizada principalmente por Produto Venda.
+
+Conceitualmente:
+
+~~~text
+Produto
++
+Cor
++
+Tamanho
+=
+SKU
+~~~
+
+Cor não é SKU.
+
+---
+
+# Material
+
+Material é um cadastro classificatório.
+
+Campos:
+
+- Código;
+- Descrição;
+- Ativo/Inativo.
+
+Material é opcional em Insumos.
+
+Não substitui Insumo.
+
+---
+
+# Packs
+
+Pack pertence a uma Grade.
+
+Possui:
+
+- Nome;
+- Grade;
+- Ativo/Inativo;
+- Itens.
+
+Cada Item possui:
+
+- Tamanho;
+- Quantidade.
+
+Regras:
+
+~~~text
+Tamanho não pode repetir no mesmo Pack
+
+Quantidade > 0
+~~~
+
+Cálculo:
+
+~~~text
+Número de Packs
+×
+Soma das quantidades do Pack
+=
+Quantidade total de peças
+~~~
+
+---
+
+# Padrão Visual dos Cadastros Auxiliares
+
+O padrão homologado utiliza:
+
+~~~text
+Checkbox
++
+Seleção única
++
+Linha destacada
++
+Barra de ações
+~~~
+
+Nas telas modernizadas foram removidos:
+
+~~~text
+Coluna Ações
+Menu ⋮
+~~~
+
+quando redundantes.
+
+---
+
+# Master-Detail
+
+Principais pares:
+
+~~~text
+Grupo
+→ Subgrupos
+
+Grade
+→ Tamanhos
+
+Pack
+→ Itens
+~~~
+
+O detalhe é tratado em sobretela/modal.
+
+A barra do detalhe apresenta apenas as ações pertinentes.
+
+---
+
+# Consulta em Sobretela
+
+Nas telas que utilizam o padrão atual:
+
+~~~text
+Selecionar registro
+        ↓
+Consultar
+        ↓
+Sobretela / Modal
+        ↓
+Somente leitura
+        ↓
+Fechar
+        ↓
+Retornar ao contexto original
+~~~
+
+---
+
+# Exclusão Protegida dos Auxiliares
+
+Antes da exclusão devem ser verificadas dependências.
+
+Exemplos:
+
+- Grupo usado por Produto;
+- Subgrupo usado por Produto;
+- Grade usada;
+- Tamanho usado;
+- Coleção usada;
+- Unidade usada;
+- Cor usada;
+- Material usado;
+- Pack usado em Pedido.
+
+Integridade histórica possui prioridade sobre exclusão física.
+
+---
+
+# Documentação dos Cadastros Auxiliares
+
+- [[Homologação - Produtos - Cadastros Auxiliares]]
+- [[Mapa Técnico - Produtos - Cadastros Auxiliares]]
+- [[Workflows - Produtos - Cadastros Auxiliares]]
+- [[Modelo de Domínio - Produtos - Cadastros Auxiliares]]
+- [[Riscos e Cuidados - Produtos - Cadastros Auxiliares]]
+
+---
+
+# Integração entre os Domínios de Produtos
+
+Visão consolidada:
+
+~~~text
+                    PRODUTO
+                       │
+       ┌───────────────┼────────────────┐
+       │               │                │
+       ↓               ↓                ↓
+ PRODUTO VENDA    USO/CONSUMO       INSUMO
+ tipos 1 e 3        tipo 2           tipo 4
+       │               │                │
+       ↓               ↓                ↓
+ Venda/PDV        Uso interno       Produção
+       │               │                │
+       ↓               ↓                ↓
+ Estoque SKU         Estoque          Estoque
+                                         │
+                                         ↓
+                                   Ficha Técnica
+~~~
+
+Cadastros Auxiliares fornecem estruturas compartilháveis somente quando pertencem ao domínio correspondente.
 
 ---
 
@@ -1961,334 +1919,144 @@ Compras permanece responsável por:
 - Fornecedor;
 - Pedido;
 - itens;
+- Packs;
 - aprovação;
 - recebimento;
 - parcelas;
 - integração financeira;
 - entrada.
 
-Produto Venda fornece Produto/SKU.
+Produto Venda fornece:
+
+- Produto;
+- SKU;
+- Grade;
+- Pack;
+- demais informações cadastrais necessárias.
 
 ---
 
-# Produto Venda e Produção
+# Produto Uso/Consumo e Compras
 
-Produção permanece responsável por:
+Produto Uso/Consumo pode participar de Compras.
 
-- Ficha Técnica;
-- Ordem de Produção;
-- consumo;
-- facção;
-- apontamento;
-- custo;
-- encerramento.
+Compras determina:
 
-Produto Venda fornece a identidade do Produto fabricado.
+- Fornecedor;
+- quantidade;
+- preço;
+- recebimento;
+- localização de Estoque;
+- custos;
+- Financeiro.
 
----
-
-# Produto Venda e Estoque
-
-Estoque permanece responsável por:
-
-- entradas;
-- saídas;
-- transferências;
-- reservas;
-- ajustes;
-- saldos.
-
-Produto Venda não executa livremente movimentos.
+O cadastro não executa essas operações.
 
 ---
 
-# Produto Venda e Fiscal
+# Insumos e Compras
 
-Produto mantém dados fiscais cadastrais.
+Insumos também podem participar de Compras.
 
-Fiscal continua responsável pela aplicação desses dados nos documentos fiscais e pelas regras de emissão.
-
----
-
-# Produto Venda e PDV
-
-Para utilização comercial devem ser consideradas regras como:
+Fluxo:
 
 ~~~text
-Produto ativo
-AND não bloqueado para venda
-AND SKU ativo
-AND Estoque conforme política
-AND preço válido
-AND fiscal válido
-~~~
-
-A decisão definitiva pertence ao PDV/Vendas.
-
----
-
-# Homologação Manual de Produto Venda
-
-Foram homologados:
-
-~~~text
-19 ITENS
-~~~
-
-Resultado:
-
-~~~text
-19/19 APROVADOS
-~~~
-
-Itens:
-
-1. Cadastro novo e obrigatoriedades;
-2. Tipo imutável;
-3. Grade imutável após SKU;
-4. Descrição reduzida;
-5. Grupo/Subgrupo;
-6. Remoção de uma Cor;
-7. Remoção da última Cor;
-8. Reativação e preservação de EAN;
-9. Exclusão de Produto nunca utilizado;
-10. Proteção de Produto utilizado;
-11. Histórico cadastral;
-12. Alteração fiscal e Histórico;
-13. Imagens;
-14. Estoque Loja × SKU;
-15. Consulta Fabricação Própria;
-16. Filtros;
-17. Inativar/Ativar;
-18. Bloquear/Desbloquear venda;
-19. Paginação.
-
-Registro:
-
-[[Homologação - Produtos - Produto Venda]]
-
----
-
-# Correções Surgidas na Homologação de Produto Venda
-
-## Modal de Lojas
-
-Foi melhorado para:
-
-- organização visual;
-- seleção individual;
-- ação Todas;
-- Limpar.
-
-## Status dos SKUs
-
-Foi adicionada coluna:
-
-~~~text
-Status
-~~~
-
-com:
-
-~~~text
-Ativo
-Inativo
-~~~
-
-Margem % foi preservada.
-
-## Dados Fiscais
-
-A interface inicialmente mostrava apenas NCM.
-
-Foi corrigida para expor os demais campos fiscais já existentes.
-
-## Imagens
-
-Foi implementado gerenciamento frontend para:
-
-- inclusão;
-- remoção;
-- principal;
-- limite de três;
-- miniaturas.
-
-## Permissões
-
-Ações de ciclo de vida inicialmente dependiam de `is_staff`/permissão Django.
-
-Foram corrigidas para utilizar o modelo funcional do Sysvar.
-
-Todos esses pontos foram retestados e aprovados.
-
----
-
-# Testes Registrados de Produto Venda
-
-Backend no fechamento final:
-
-~~~text
-8 testes direcionados aprovados
-python manage.py check aprovado
-~~~
-
-Frontend no fechamento final:
-
-~~~text
-11 testes direcionados aprovados
-TypeScript aprovado
-~~~
-
-Esses números representam testes direcionados de fechamento.
-
-Não representam a quantidade total da suíte do Sysvar.
-
----
-
-# Commits Homologados de Produto Venda
-
-Backend final:
-
-~~~text
-574f5badc79ab3a969bf24ffc67904215bdbc49a
-Corrige permissoes Produto Venda
-~~~
-
-Frontend final:
-
-~~~text
-1be513e4a5d7b3220ae239fee555594307115826
-Finaliza homologacao visual Produto Venda
+Fornecedor
+   ↓
+Pedido
+   ↓
+Insumo
+   ↓
+Recebimento
+   ↓
+Estoque
+   ↓
+Produção futura
 ~~~
 
 ---
 
-# Documentação Específica de Produto Venda
+# Produtos e Estoque
 
-## Homologação
-
-- [[Homologação - Produtos - Produto Venda]]
-
-## Mapa Técnico
-
-- [[Mapa Técnico - Produtos - Produto Venda]]
-
-## Workflows
-
-- [[Workflows - Produtos - Produto Venda]]
-
-## Modelo de Domínio
-
-- [[Modelo de Domínio - Produtos - Produto Venda]]
-
-## Riscos e Cuidados
-
-- [[Riscos e Cuidados - Produtos - Produto Venda]]
-
-Esses documentos formam o conjunto documental oficial do Produto Venda.
-
----
-
-# Relação Documental de Produto Venda
+Separação geral:
 
 ~~~text
-                           [[Sysvar]]
-                               │
-             ┌─────────────────┼─────────────────┐
-             │                 │                 │
-             ↓                 ↓                 ↓
- [[Mapa Técnico]]   [[Homologação - Produtos - Produto Venda]]
-                               │
-               ┌───────────────┼───────────────┐
-               ↓               ↓               ↓
- [[Mapa Técnico - Produtos - Produto Venda]]
- [[Workflows - Produtos - Produto Venda]]
- [[Modelo de Domínio - Produtos - Produto Venda]]
- [[Riscos e Cuidados - Produtos - Produto Venda]]
+Produto
+→ identidade cadastral
+
+Estoque
+→ quantidade + localização + movimentos
 ~~~
 
-O objetivo é manter Produto Venda integrado ao grafo geral do projeto e não como ilha documental.
-
----
-
-# Riscos Centrais de Produto Venda
-
-Principais pontos que não devem regredir:
-
-1. isolamento multiempresa;
-2. Tipo imutável;
-3. Referência automática;
-4. Grade imutável após SKU;
-5. SKU = Produto × Cor × Tamanho;
-6. retirada de Cor inativa SKU;
-7. retirada da última Cor;
-8. reativação preserva SKU;
-9. EAN preservado;
-10. EAN não reciclado;
-11. Estoque Loja × SKU;
-12. inicialização não é entrada;
-13. Produto utilizado não é excluído;
-14. Inativação não é exclusão;
-15. Bloqueio não é Inativação;
-16. Fiscal é auditado;
-17. Histórico Funcional não substitui AuditLog;
-18. imagens no máximo três;
-19. somente uma imagem principal;
-20. backend continua autoridade;
-21. filtros server-side;
-22. paginação server-side;
-23. permissões funcionais;
-24. motivo e senha quando exigidos.
-
-Detalhamento:
-
-[[Riscos e Cuidados - Produtos - Produto Venda]]
-
----
-
-# Pendência Conhecida - Imagem Reduzida
-
-Ainda não foram aprovados:
-
-- tamanho;
-- resolução;
-- largura;
-- altura;
-- formato;
-- qualidade;
-- compressão.
-
-Regra atual:
+Produto Venda:
 
 ~~~text
-imagem_reduzida_url quando existir
-
-senão
-
-imagem_url
+Loja × SKU
 ~~~
 
-Não criar parâmetros arbitrários sem decisão técnica específica.
+Uso/Consumo e Insumos:
+
+~~~text
+localização definida pela operação
+~~~
 
 ---
 
-# Uso e Consumo
+# Produtos e Fiscal
 
-Uso e Consumo permanece separado.
+Produto mantém informações fiscais cadastrais.
 
-Status:
+Fiscal permanece responsável por:
+
+- validar operação;
+- aplicar tributação;
+- emitir documentos;
+- processar entradas e saídas.
+
+Cadastro fiscal incompleto pode existir quando o domínio permitir.
+
+A operação fiscal é responsável por exigir os dados necessários ao evento real.
+
+---
+
+# Produtos e Produção
+
+Fabricação Própria:
 
 ~~~text
-NÃO HOMOLOGADO COMO PARTE DE PRODUTO VENDA
+Produto Venda tipo 3
+        ↓
+Ficha Técnica
+        ↓
+Insumos tipo 4
+        ↓
+Ordem de Produção
+        ↓
+Produção
 ~~~
 
-Seu comportamento deverá ser analisado separadamente quando esse cadastro for escolhido como próximo escopo.
+Uso/Consumo tipo 2 não deve ser tratado automaticamente como Insumo.
+
+---
+
+# Produtos e PDV
+
+Produto Venda é o domínio comercial.
+
+Antes da venda devem ser consideradas as regras próprias de:
+
+- Produto Ativo;
+- Bloqueio de Venda;
+- SKU Ativo;
+- Estoque;
+- Preço;
+- Fiscal.
+
+Produto Uso/Consumo e Insumos não devem aparecer como Produtos normais de venda.
 
 ---
 
 # Estratégia de Uso do Codex
-
-Método atual:
 
 ## Usuário
 
@@ -2309,7 +2077,7 @@ Responsável por:
 - localização da causa;
 - definição da solução;
 - criação de prompt;
-- revisão de commit;
+- revisão;
 - documentação.
 
 ## Codex
@@ -2329,17 +2097,17 @@ Para correções localizadas:
 
 ~~~text
 ANALISAR ANTES
-↓
+        ↓
 LOCALIZAR CAUSA
-↓
+        ↓
 DEFINIR ARQUIVOS
-↓
+        ↓
 PROMPT CIRÚRGICO
-↓
+        ↓
 TESTES DIRECIONADOS
-↓
+        ↓
 REVISÃO
-↓
+        ↓
 HOMOLOGAÇÃO
 ~~~
 
@@ -2364,7 +2132,7 @@ Checkpoint importante:
 Fechamento:
 
 - testes relevantes;
-- homologação completa;
+- homologação;
 - documentação.
 
 ---
@@ -2377,17 +2145,17 @@ Fechamento exige:
 
 ~~~text
 ANÁLISE
-↓
+        ↓
 IMPLEMENTAÇÃO
-↓
+        ↓
 TESTES
-↓
+        ↓
 REVISÃO
-↓
+        ↓
 HOMOLOGAÇÃO
-↓
+        ↓
 DOCUMENTAÇÃO
-↓
+        ↓
 APROVAÇÃO
 ~~~
 
@@ -2405,53 +2173,31 @@ CADASTROS
 → CLIENTES CONCLUÍDO
 → FORNECEDORES CONCLUÍDO
 → FUNCIONÁRIOS CONCLUÍDO
-→ ESCOPO PRIORITÁRIO ATUAL ENCERRADO
+→ ESCOPO PRIORITÁRIO ENCERRADO
 
 PRODUTOS
-→ EM ANDAMENTO
+→ CICLO CADASTRAL ATUAL CONCLUÍDO
 
 PRODUTO VENDA
 → CONCLUÍDO
 → HOMOLOGADO 19/19
 → DOCUMENTADO
+
+PRODUTO USO/CONSUMO
+→ CONCLUÍDO
+→ HOMOLOGADO
+→ DOCUMENTADO
+
+INSUMOS
+→ CONCLUÍDO
+→ HOMOLOGADO
+→ DOCUMENTADO
+
+CADASTROS AUXILIARES DE PRODUTOS
+→ CONCLUÍDOS
+→ HOMOLOGADOS
+→ DOCUMENTADOS
 ~~~
-
----
-
-# Próxima Etapa
-
-O projeto entrou no grupo:
-
-~~~text
-PRODUTOS
-~~~
-
-O primeiro escopo foi:
-
-~~~text
-PRODUTO VENDA
-~~~
-
-e está concluído.
-
-O próximo item do grupo Produtos deverá ser definido funcionalmente antes de nova implementação.
-
-Uso e Consumo permanece candidato natural por proximidade de domínio, mas não deve ser tratado como automaticamente aprovado ou igual a Produto Venda.
-
-Antes de qualquer implementação:
-
-1. identificar o próximo escopo;
-2. analisar o comportamento existente;
-3. verificar backend;
-4. verificar frontend;
-5. identificar vínculos;
-6. definir regras funcionais;
-7. verificar multiempresa;
-8. verificar permissões;
-9. verificar Auditoria;
-10. verificar integrações;
-11. definir testes;
-12. somente então preparar o prompt do Codex.
 
 ---
 
@@ -2492,13 +2238,58 @@ DOCUMENTAÇÃO CONCLUÍDA
 DOCUMENTAÇÃO CONCLUÍDA
 ~~~
 
-Documentos de Produto Venda:
+Documentos:
 
 - [[Homologação - Produtos - Produto Venda]]
 - [[Mapa Técnico - Produtos - Produto Venda]]
 - [[Workflows - Produtos - Produto Venda]]
 - [[Modelo de Domínio - Produtos - Produto Venda]]
 - [[Riscos e Cuidados - Produtos - Produto Venda]]
+
+## Produto Uso/Consumo
+
+~~~text
+HOMOLOGADO
+DOCUMENTAÇÃO CONCLUÍDA
+~~~
+
+Documentos:
+
+- [[Homologação - Produtos - Produto Uso e Consumo]]
+- [[Mapa Técnico - Produtos - Produto Uso e Consumo]]
+- [[Workflows - Produtos - Produto Uso e Consumo]]
+- [[Modelo de Domínio - Produtos - Produto Uso e Consumo]]
+- [[Riscos e Cuidados - Produtos - Produto Uso e Consumo]]
+
+## Insumos
+
+~~~text
+HOMOLOGADO
+DOCUMENTAÇÃO CONCLUÍDA
+~~~
+
+Documentos:
+
+- [[Homologação - Produtos - Insumos]]
+- [[Mapa Técnico - Produtos - Insumos]]
+- [[Workflows - Produtos - Insumos]]
+- [[Modelo de Domínio - Produtos - Insumos]]
+- [[Riscos e Cuidados - Produtos - Insumos]]
+
+## Cadastros Auxiliares de Produtos
+
+~~~text
+HOMOLOGADOS
+DOCUMENTAÇÃO CONCLUÍDA
+~~~
+
+Documentos:
+
+- [[Homologação - Produtos - Cadastros Auxiliares]]
+- [[Mapa Técnico - Produtos - Cadastros Auxiliares]]
+- [[Workflows - Produtos - Cadastros Auxiliares]]
+- [[Modelo de Domínio - Produtos - Cadastros Auxiliares]]
+- [[Riscos e Cuidados - Produtos - Cadastros Auxiliares]]
 
 ---
 
@@ -2525,20 +2316,32 @@ CADASTROS > FUNCIONÁRIOS
 → 17/17 HOMOLOGADOS
 → DOCUMENTADO
 
-GRUPO PRODUTOS
-→ EM ANDAMENTO
-
 PRODUTOS > PRODUTO VENDA
 → CONCLUÍDO
 → 19/19 HOMOLOGADOS
 → DOCUMENTADO
+
+PRODUTOS > PRODUTO USO/CONSUMO
+→ CONCLUÍDO
+→ HOMOLOGADO
+→ DOCUMENTADO
+
+PRODUTOS > INSUMOS
+→ CONCLUÍDO
+→ HOMOLOGADO
+→ DOCUMENTADO
+
+PRODUTOS > CADASTROS AUXILIARES
+→ CONCLUÍDOS
+→ HOMOLOGADOS
+→ DOCUMENTADOS
 ~~~
 
 ---
 
 # Marco Atual
 
-Em **13/08/2026**, o projeto atingiu o seguinte marco:
+Em **14/08/2026**, o projeto atingiu o seguinte marco:
 
 ~~~text
 INFRAESTRUTURA OPERACIONAL
@@ -2559,9 +2362,41 @@ FASE 1 CONCLUÍDA E HOMOLOGADA
 PRODUTO VENDA
 CONCLUÍDO E HOMOLOGADO
 19/19
+
+PRODUTO USO/CONSUMO
+CONCLUÍDO E HOMOLOGADO
+
+INSUMOS
+CONCLUÍDO E HOMOLOGADO
+
+CADASTROS AUXILIARES DE PRODUTOS
+CONCLUÍDOS E HOMOLOGADOS
 ~~~
 
-O desenvolvimento segue agora dentro do grupo Produtos.
+O ciclo cadastral atualmente revisado do grupo Produtos está concluído e documentado.
+
+---
+
+# Próximas Etapas
+
+O próximo escopo funcional deve ser definido antes de nova implementação.
+
+Antes de iniciar qualquer novo domínio:
+
+1. identificar o escopo;
+2. analisar o comportamento existente;
+3. verificar backend;
+4. verificar frontend;
+5. identificar integrações;
+6. definir regras funcionais;
+7. verificar multiempresa;
+8. verificar Permissões;
+9. verificar Auditoria;
+10. definir responsabilidades entre módulos;
+11. definir testes;
+12. somente então preparar implementação.
+
+Não transportar automaticamente regras de um domínio para outro.
 
 ---
 
@@ -2571,8 +2406,8 @@ O desenvolvimento segue agora dentro do grupo Produtos.
 - tenant no backend;
 - Empresa como limite de dados;
 - Estabelecimento como contexto operacional;
-- perfis e permissões;
-- permissões efetivas;
+- Perfis e Permissões;
+- Permissões efetivas;
 - Auditoria Central;
 - Histórico funcional quando o domínio exigir;
 - integridade histórica;
@@ -2582,14 +2417,16 @@ O desenvolvimento segue agora dentro do grupo Produtos.
 - paginação server-side;
 - filtros server-side;
 - compatibilidade entre módulos;
-- homologação item a item;
+- exclusão protegida;
+- lifecycle coerente;
 - documentação no Obsidian;
 - links internos entre documentos;
+- testes proporcionais ao risco;
 - uso econômico do Codex.
 
 ---
 
-# Notas Gerais Relacionadas
+# Navegação Documental
 
 ## Contexto Central
 
@@ -2614,13 +2451,37 @@ O desenvolvimento segue agora dentro do grupo Produtos.
 - [[Modelo de Domínio - Produtos - Produto Venda]]
 - [[Riscos e Cuidados - Produtos - Produto Venda]]
 
+## Produto Uso/Consumo
+
+- [[Homologação - Produtos - Produto Uso e Consumo]]
+- [[Mapa Técnico - Produtos - Produto Uso e Consumo]]
+- [[Workflows - Produtos - Produto Uso e Consumo]]
+- [[Modelo de Domínio - Produtos - Produto Uso e Consumo]]
+- [[Riscos e Cuidados - Produtos - Produto Uso e Consumo]]
+
+## Insumos
+
+- [[Homologação - Produtos - Insumos]]
+- [[Mapa Técnico - Produtos - Insumos]]
+- [[Workflows - Produtos - Insumos]]
+- [[Modelo de Domínio - Produtos - Insumos]]
+- [[Riscos e Cuidados - Produtos - Insumos]]
+
+## Cadastros Auxiliares de Produtos
+
+- [[Homologação - Produtos - Cadastros Auxiliares]]
+- [[Mapa Técnico - Produtos - Cadastros Auxiliares]]
+- [[Workflows - Produtos - Cadastros Auxiliares]]
+- [[Modelo de Domínio - Produtos - Cadastros Auxiliares]]
+- [[Riscos e Cuidados - Produtos - Cadastros Auxiliares]]
+
 ---
 
-# Estado do Projeto em 13/08/2026
+# Estado do Projeto em 14/08/2026
 
 A infraestrutura operacional central está concluída e homologada.
 
-O escopo prioritário revisado de Cadastros possui três módulos encerrados:
+O escopo prioritário de Cadastros possui três módulos encerrados:
 
 ~~~text
 CLIENTES
@@ -2628,41 +2489,33 @@ FORNECEDORES
 FUNCIONÁRIOS
 ~~~
 
-O grupo Produtos está em andamento.
-
-Seu primeiro domínio consolidado está encerrado:
+O ciclo cadastral atualmente revisado de Produtos também está encerrado:
 
 ~~~text
 PRODUTO VENDA
+PRODUTO USO/CONSUMO
+INSUMOS
+CADASTROS AUXILIARES DE PRODUTOS
 ~~~
 
-Resultados acumulados das homologações documentadas:
+Produto Venda possui homologação manual:
 
 ~~~text
-CLIENTES
-23/23
-
-FORNECEDORES
-30/30
-
-FUNCIONÁRIOS
-17/17
-
-PRODUTO VENDA
 19/19
 ~~~
 
-Produto Venda possui documentação funcional, técnica, de domínio, workflows e riscos interligada ao nó principal [[Sysvar]].
+Produto Uso/Consumo, Insumos e Cadastros Auxiliares foram funcionalmente validados e possuem seus respectivos conjuntos documentais concluídos.
 
-O próximo domínio deverá ser definido antes de qualquer nova implementação.
+Todos os quatro blocos estão ligados ao nó principal [[Sysvar]].
 
 O desenvolvimento deve continuar preservando:
 
-- decisões funcionais antes do código;
+- decisão funcional antes do código;
 - investigação antes do Codex;
+- implementação restrita ao escopo decidido;
 - testes proporcionais à alteração;
 - revisão técnica;
 - homologação manual;
 - documentação;
-- integração do documento ao grafo do Obsidian;
+- integração ao grafo do Obsidian;
 - fechamento formal somente após aprovação.
