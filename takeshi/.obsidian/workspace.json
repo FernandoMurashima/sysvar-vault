@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
+                "file": "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio.md",
                 "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Workflows"
+              "title": "Modelo de Domínio"
             }
           }
         ]
@@ -187,6 +187,7 @@
   },
   "active": "85711ef53f94f8dd",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico.md",
     "10 Projetos/Sysvar/Sysvar.md",
@@ -212,7 +213,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Produtos - Produto Venda.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Produtos - Produto Venda.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Produtos - Produto Venda.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Produto Venda.md",
     "10 Projetos/Sysvar/Operacao",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
