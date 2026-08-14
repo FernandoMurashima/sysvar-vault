@@ -1822,3 +1822,6 @@ Proxy: Nginx Proxy Manager
 Acesso externo: Cloudflare Tunnel
 Status: PRODUÇÃO OPERACIONAL
 ```
+
+[[Contexto para Agentes]]
+[[Mapa do Cofre]]

@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "04bf7424dde65338",
+        "id": "c359b414285b9d66",
         "type": "tabs",
         "children": [
           {
-            "id": "0abd7efb94cc2e60",
+            "id": "c4211a87e0364ac9",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -76,7 +76,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 329.5
+    "width": 470.5
   },
   "right": {
     "id": "0574bf7236bdcc9a",
@@ -181,41 +181,41 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "0abd7efb94cc2e60",
+  "active": "d27e6d8f494df13c",
   "lastOpenFiles": [
-    "10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Funcionários.md",
+    "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Produto Uso e Consumo.md",
+    "10 Projetos/Bolao2026/Bolao2026.md",
+    "00 Inbox/Obsidian Skills.md",
+    "10 Projetos/Webfoto/Webfoto.md",
     "10 Projetos/Sysvar/Sysvar.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Produtos - Produto Venda.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Produtos - Produto Venda.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Produtos - Produto Venda.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Produto Venda.md",
+    "10 Projetos/Sysvar/Operacao/Atualizacao do Sysvar no Viper-II.md",
+    "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Produto Venda.md",
+    "10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Funcionários.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Funcionários.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Funcionários.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Funcionários.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Funcionários.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Fornecedores.md",
-    "10 Projetos/Sysvar/Operacao/Atualizacao do Sysvar no Viper-II.md",
     "10 Projetos/Sysvar/Operacao",
     "10 Projetos/Bolao2026/Operação/Atualizacao Frontend.md",
     "10 Projetos/Bolao2026/Operação/Atualizacao Backend.md",
-    "00 Inbox/Obsidian Skills.md",
     "10 Projetos/Bolao2026/Operação/Operacao do Bolao.md",
     "10 Projetos/Bolao2026/Migração Kinghost/Migracao KingHost para Viper-II.md",
-    "10 Projetos/Bolao2026/Infraestrutura/Cloudflare e DNS.md",
-    "10 Projetos/Bolao2026/Infraestrutura/Nginx Proxy Manager.md",
-    "10 Projetos/Bolao2026/Infraestrutura/Banco de Dados.md",
-    "10 Projetos/Bolao2026/Infraestrutura/Docker.md",
-    "10 Projetos/Bolao2026/Infraestrutura/Servidor Viper-II.md",
-    "10 Projetos/Bolao2026/Decisões Técnicas/Arquitetura de Producao.md",
-    "10 Projetos/Bolao2026/Contexto do Projeto/Visao Geral.md",
-    "10 Projetos/Bolao2026/Bolao2026.md",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
     "10 Projetos/Bolao2026/Infraestrutura",
     "10 Projetos/Bolao2026/Decisões Técnicas",
     "10 Projetos/Bolao2026/Contexto do Projeto",
     "10 Projetos/Bolao2026",
-    "10 Projetos/Sysvar/Homologações/Homologação - Operacional.md",
-    "10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Clientes.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Cliente.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados.md",
     "10 Projetos/Sysvar/Homologações",
     "Sem título.base",
     "10 Projetos/Sysvar/Decisões Técnicas"
