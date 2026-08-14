@@ -4,16 +4,25 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-06
+updated: 2026-08-14
 tags:
   - sysvar
   - riscos
   - arquitetura
   - segurança
   - operacional
+  - cadastros
+  - produtos
+  - produto-venda
+  - produto-uso-consumo
+  - insumos
+  - cadastros-auxiliares
+  - estoque
+  - produção
   - auditoria
   - multiempresa
   - sessões
+  - licenciamento
   - homologado
 ---
 
@@ -21,9 +30,9 @@ tags:
 
 ## Objetivo
 
-Este documento reúne os principais riscos técnicos, funcionais e arquiteturais do SISVAR.
+Este documento reúne os principais riscos técnicos, funcionais e arquiteturais do [[Sysvar]].
 
-Ele deve ser consultado durante:
+Deve ser consultado durante:
 
 - novas implementações;
 - correções;
@@ -35,57 +44,84 @@ Ele deve ser consultado durante:
 - integrações;
 - deploys.
 
-Uma funcionalidade implementada e testada continua sujeita a regressões.
+Uma funcionalidade implementada e homologada continua sujeita a regressões.
 
-Toda alteração em regras estruturais deve ser acompanhada de:
+Toda alteração em regra estrutural deve ser acompanhada de:
 
-- análise de impacto;
-- testes;
-- revisão técnica;
-- homologação;
-- atualização da documentação.
+~~~text
+ANÁLISE
+↓
+IMPLEMENTAÇÃO
+↓
+TESTES
+↓
+REVISÃO
+↓
+HOMOLOGAÇÃO
+↓
+DOCUMENTAÇÃO
+~~~
 
 ---
 
-# Situação do Grupo Operacional
+# 1. Estado Atual
 
-O grupo Operacional foi:
+## Operacional
 
-```text
+~~~text
 IMPLEMENTADO
-TESTADO AUTOMATICAMENTE
-HOMOLOGADO MANUALMENTE
+TESTADO
+HOMOLOGADO
 DOCUMENTADO
-```
+APROVADO
+~~~
 
-Foram homologados:
+## Cadastros Prioritários
 
-- empresas;
-- contratos;
-- suspensão;
-- reativação;
-- estabelecimentos;
-- usuários;
-- perfis;
-- permissões;
-- sessões;
-- licenciamento simultâneo;
-- superusuário sem consumo de licença;
-- administração de sessões;
-- contador de sessões;
-- logout;
-- bloqueio por limite;
-- liberação de vagas;
-- modal `Ver Sessões`;
-- Auditoria Central.
+~~~text
+CLIENTES
+→ CONCLUÍDO
+→ 23/23 HOMOLOGADOS
+→ DOCUMENTADO
 
-A conclusão do Operacional não elimina os riscos de regressão.
+FORNECEDORES
+→ CONCLUÍDO
+→ 30/30 HOMOLOGADOS
+→ DOCUMENTADO
 
-As regras descritas neste documento devem continuar sendo protegidas em futuras alterações.
+FUNCIONÁRIOS
+→ CONCLUÍDO
+→ 17/17 HOMOLOGADOS
+→ DOCUMENTADO
+~~~
+
+## Produtos
+
+~~~text
+PRODUTO VENDA
+→ CONCLUÍDO
+→ 19/19 HOMOLOGADOS
+→ DOCUMENTADO
+
+PRODUTO USO/CONSUMO
+→ CONCLUÍDO
+→ HOMOLOGADO
+→ DOCUMENTADO
+
+INSUMOS
+→ CONCLUÍDO
+→ HOMOLOGADO
+→ DOCUMENTADO
+
+CADASTROS AUXILIARES
+→ CONCLUÍDOS
+→ HOMOLOGADOS
+→ DOCUMENTADOS
+~~~
 
 ---
 
-# Regra Geral
+# 2. Regra Geral de Segurança
 
 Nunca considerar uma funcionalidade segura apenas porque funcionou no frontend.
 
@@ -106,1178 +142,119 @@ Não confiar isoladamente em:
 - validações do formulário;
 - informações mantidas no navegador.
 
-O backend é a autoridade final.
+Regra:
+
+~~~text
+FRONTEND
+→ experiência
+
+BACKEND
+→ autoridade
+~~~
 
 ---
 
-# Multiempresa
+# 3. Multiempresa
 
-## Isolamento
+## 3.1 Empresa como limite de dados
 
-Todo dado pertencente a um cliente deve possuir empresa identificável.
+Todo dado pertencente a cliente deve possuir contexto empresarial identificável.
 
-O backend deve impedir que um usuário de uma empresa consiga:
+O backend deve impedir que um usuário de uma Empresa consiga:
 
-- listar dados de outra empresa;
-- consultar dados de outra empresa;
-- alterar dados de outra empresa;
-- excluir dados de outra empresa;
-- utilizar estabelecimento de outra empresa;
-- utilizar perfil de outra empresa;
-- utilizar fornecedor de outra empresa;
-- utilizar cliente de outra empresa;
-- utilizar produto de outra empresa;
-- consultar sessões de outra empresa;
-- consultar auditoria de outra empresa;
-- exportar dados de outra empresa;
-- vincular objetos de empresas diferentes.
-
-O risco de vazamento não está apenas no queryset.
-
-Também existe em:
-
-- serializers;
-- actions;
-- services;
-- commands;
-- signals;
-- imports;
-- exports;
-- tarefas automáticas;
-- integrações;
-- SQL manual;
-- ForeignKeys recebidas no payload.
+- listar dados de outra Empresa;
+- consultar dados de outra Empresa;
+- alterar dados de outra Empresa;
+- excluir dados de outra Empresa;
+- utilizar Estabelecimento de outra Empresa;
+- utilizar Perfil de outra Empresa;
+- utilizar Fornecedor de outra Empresa;
+- utilizar Cliente de outra Empresa;
+- utilizar Produto de outra Empresa;
+- utilizar Grupo de outra Empresa;
+- utilizar Grade de outra Empresa;
+- utilizar Pack de outra Empresa;
+- utilizar Insumo de outra Empresa;
+- consultar sessões de outra Empresa;
+- consultar Auditoria de outra Empresa;
+- exportar dados de outra Empresa;
+- vincular objetos de Empresas diferentes.
 
 ---
 
-## Querysets
+## 3.2 QuerySets
 
-Todo queryset de dados empresariais deve ser limitado pela empresa do usuário ou por contexto administrativo global autorizado.
+Todo QuerySet empresarial deve ser limitado pela Empresa do usuário ou por contexto administrativo global autorizado.
 
-Evitar:
+Evitar endpoints de usuário cliente baseados diretamente em:
 
-```python
+~~~python
 Model.objects.all()
-```
+~~~
 
-em endpoints de usuário cliente sem aplicação garantida do escopo.
-
-Não confiar que o frontend enviará o filtro correto.
+sem aplicação garantida do tenant.
 
 ---
 
-## Relacionamentos
+## 3.3 ForeignKeys
 
-Mesmo com queryset filtrado, um usuário pode enviar um ID de outra empresa.
-
-Validar sempre:
-
-- empresa do objeto principal;
-- empresa da ForeignKey;
-- empresa do estabelecimento;
-- empresa do perfil;
-- empresa do usuário afetado;
-- empresa do documento;
-- empresa da sessão.
-
-Não permitir vínculo cruzado.
-
----
-
-## Superusuário
-
-O acesso global deve depender de `is_superuser` ou da regra oficial da plataforma.
-
-Não transformar automaticamente qualquer usuário `is_staff` em administrador global do SISVAR.
-
-Permissões internas do Django não substituem as regras do sistema.
-
-O superusuário:
-
-- possui sessão;
-- possui token;
-- não pertence a uma empresa cliente;
-- não consome licença de nenhuma empresa;
-- não deve aparecer na listagem de sessões que ocupam licença de uma empresa.
-
-Essa regra foi homologada manualmente.
-
-Não reintroduzir vínculo automático entre superusuário e empresa.
-
----
-
-# Multilojas e Estabelecimentos
-
-## Empresa Obrigatória
-
-Todo estabelecimento deve possuir empresa.
-
-O campo `Loja.empresa` foi tornado obrigatório após diagnóstico real:
-
-```text
-lojas_sem_empresa = 0
-```
-
-Cuidados futuros:
-
-- nunca voltar a permitir `null=True`;
-- não criar estabelecimento sem empresa em command ou import;
-- não aceitar empresa nula no serializer;
-- não permitir remover a empresa em atualização;
-- não utilizar empresa padrão arbitrária.
-
----
-
-## Isolamento por Estabelecimento
-
-Quando o domínio depender de estabelecimento, validar:
-
-- se o estabelecimento pertence à empresa;
-- se o usuário possui acesso;
-- se o estabelecimento é permitido;
-- se o estabelecimento principal pertence à empresa;
-- se a sessão está ligada ao contexto correto;
-- se o objeto pertence ao estabelecimento;
-- se a operação permite estabelecimento nulo.
-
-Não confiar apenas no seletor visual do frontend.
-
----
-
-## Estabelecimento Principal
-
-O estabelecimento principal deve estar incluído nos estabelecimentos permitidos.
-
-Não permitir:
-
-- estabelecimento principal de outra empresa;
-- estabelecimento permitido de outra empresa;
-- remoção do estabelecimento principal sem ajuste correspondente;
-- definição automática de estabelecimento arbitrário.
-
----
-
-## Eventos sem Estabelecimento
-
-Nem toda operação pertence a um estabelecimento.
-
-Exemplos:
-
-- contrato;
-- perfil;
-- permissão;
-- suspensão da empresa;
-- configuração global.
-
-Não inventar estabelecimento apenas para preencher auditoria.
-
----
-
-# Contratos
-
-## Validação do Contrato
-
-Toda autenticação de usuário cliente depende de contrato válido.
+Mesmo com QuerySet filtrado, um usuário pode enviar manualmente um ID pertencente a outra Empresa.
 
 Validar:
 
-- existência;
-- status;
-- vigência;
-- empresa;
-- módulos;
-- limite de sessões;
-- usuário master;
-- suspensão;
-- cancelamento.
-
-A validação deve ocorrer:
-
-- no login;
-- no heartbeat;
-- em requisições autenticadas;
-- em operações administrativas sensíveis.
-
----
-
-## Estados
-
-Estados como:
-
-```text
-PENDENTE
-ATIVO
-SUSPENSO
-VENCIDO
-CANCELADO
-```
-
-possuem significados diferentes.
-
-Não tratar todos como simples booleano ativo/inativo.
-
-Não reutilizar `INADIMPLENTE` como estado operacional.
-
-Inadimplência é motivo de suspensão.
-
----
-
-# Suspensão Administrativa
-
-## Ação Crítica
-
-Suspender uma empresa bloqueia todos os usuários.
-
-Por isso, a operação deve exigir:
-
-- superusuário;
-- motivo;
-- confirmação explícita;
-- transação;
-- bloqueio do contrato;
-- Auditoria obrigatória.
-
-Nunca permitir suspensão por simples edição genérica do status.
-
----
-
-## Risco de Suspensão Acidental
-
-Uma suspensão indevida pode paralisar todas as unidades do cliente.
-
-A interface deve informar:
-
-- nome da empresa;
-- status atual;
-- quantidade de sessões ativas;
-- consequência da ação;
-- necessidade de novo login após reativação.
-
-A confirmação deve reduzir o risco de clique acidental.
-
----
-
-## Atomicidade
-
-A suspensão deve ser totalmente atômica.
-
-Na mesma transação devem ocorrer:
-
-1. alteração do contrato;
-2. gravação do motivo;
-3. encerramento das sessões;
-4. revogação dos tokens;
-5. liberação das vagas;
-6. incremento de `permissions_version`;
-7. Auditoria obrigatória.
-
-Se qualquer etapa falhar, tudo deve sofrer rollback.
-
-Não aceitar estado parcial como:
-
-- contrato suspenso com sessão ativa;
-- contrato ativo com tokens revogados;
-- algumas sessões encerradas e outras não;
-- suspensão sem auditoria.
-
----
-
-## Bloqueio em Vários Pontos
-
-Não basta bloquear somente o login.
-
-Contrato suspenso deve ser recusado em:
-
-- autenticação;
-- validação do token;
-- heartbeat;
-- requisição autenticada;
-- criação de sessão;
-- renovação de contexto.
-
-Isso reduz o risco de uma sessão antiga continuar funcionando.
-
----
-
-## Mensagem Pública
-
-Usuário comum deve receber mensagem genérica:
-
-```text
-O acesso da empresa está temporariamente suspenso. Entre em contato com o suporte.
-```
-
-Não expor:
-
-- inadimplência;
-- valores;
-- cobrança;
-- motivo comercial;
-- observações internas.
-
----
-
-## Reativação
-
-A reativação não deve:
-
-- reabrir sessões antigas;
-- restaurar tokens anteriores;
-- reutilizar sessão revogada;
-- ocultar o histórico da suspensão.
-
-Todo usuário deve realizar novo login.
-
----
-
-# Autenticação
-
-## Serviço Central
-
-É proibido criar autenticação paralela.
-
-Toda autenticação deve considerar:
-
-- credenciais;
-- usuário ativo;
-- empresa;
-- contrato;
-- status;
-- perfil;
-- módulos;
-- sessão;
-- dispositivo;
-- limite simultâneo;
-- troca obrigatória de senha.
-
----
-
-## Tokens
-
-Nunca armazenar token bruto.
-
-Persistir somente hash.
-
-Nunca registrar:
-
-- token;
-- hash do token;
-- Authorization;
-- cookie;
-- access token;
-- refresh token;
-- credencial temporária.
-
-Token revogado ou sem sessão válida não autentica.
-
----
-
-## Credenciais Inválidas
-
-O evento de login negado não deve armazenar:
-
-- senha;
-- payload completo;
-- token;
-- dados desnecessários.
-
-A resposta não deve facilitar enumeração de usuários.
-
----
-
-# Sessões Simultâneas
-
-## Regra Oficial
-
-Licença é consumida por sessão válida.
-
-Não por:
-
-- usuário cadastrado;
-- usuário ativo;
-- perfil;
-- estabelecimento;
-- senha;
-- dispositivo sem login.
-
-Nunca retornar ao controle por quantidade de usuários ativos.
-
----
-
-## Fonte Única de Verdade
-
-A validade da sessão deve ser calculada pelo serviço central.
-
-Métodos existentes:
-
-```text
-ConcurrentSessionService.valid_sessions_queryset
-ConcurrentSessionService.active_sessions_queryset
-ConcurrentSessionService.count_active_sessions
-ConcurrentSessionService.session_validity
-ConcurrentSessionService.is_session_valid
-```
-
-Login, contador, disponibilidade, heartbeat e listagem devem utilizar a mesma regra.
-
-Não criar consulta paralela baseada somente em:
-
-```python
-SessaoUsuario.objects.filter(ativa=True)
-```
-
-Esse filtro isolado pode incluir sessões inválidas.
-
----
-
-## Critérios de Validade
-
-Uma sessão ocupa licença quando, conforme o serviço central:
-
-- está ativa;
-- não possui encerramento;
-- não expirou;
-- pertence a usuário ativo;
-- pertence a empresa válida;
-- possui contrato válido;
-- possui token;
-- o token não está revogado.
-
-Sessões inválidas não podem ocupar vagas.
-
----
-
-## Concorrência da Última Vaga
-
-A contagem e a criação da sessão devem permanecer na mesma transação.
-
-O contrato deve ser bloqueado.
-
-Não executar:
-
-1. contagem;
-2. fim da transação;
-3. criação posterior.
-
-Isso permite ultrapassar o limite.
-
----
-
-## Login Bloqueado
-
-Quando o limite for atingido:
-
-- nenhuma sessão válida deve ser criada;
-- nenhum token utilizável deve ser criado;
-- o contador não pode aumentar;
-- o evento de bloqueio deve ser auditado;
-- o frontend não pode guardar contexto de autenticação.
-
-Código:
-
-```text
-CONCURRENT_SESSION_LIMIT_REACHED
-```
-
----
-
-## Mesmo Usuário e Mesmo Dispositivo
-
-Novo login do mesmo usuário no mesmo dispositivo deve:
-
-- encerrar somente a sessão anterior desse usuário;
-- revogar o token anterior;
-- criar nova sessão;
-- manter apenas uma vaga consumida.
+- Empresa do objeto principal;
+- Empresa da ForeignKey;
+- Empresa do Estabelecimento;
+- Empresa do Perfil;
+- Empresa do Usuário;
+- Empresa do Cliente;
+- Empresa do Fornecedor;
+- Empresa do Produto;
+- Empresa do Grupo;
+- Empresa da Grade;
+- Empresa do Pack;
+- Empresa do Insumo.
 
 Regra:
 
-```text
-mesmo usuário + mesmo device_id
-→ substituição
-```
+~~~text
+MESMO ID VÁLIDO
+não significa
+MESMO TENANT VÁLIDO
+~~~
 
 ---
 
-## Usuários Diferentes no Mesmo Dispositivo
+# 4. Superusuário
 
-Usuários diferentes podem utilizar o mesmo `device_id`.
+O acesso global deve depender da regra oficial da plataforma.
 
-Regra:
+Não transformar automaticamente qualquer `is_staff` em administrador global do SYSVAR.
 
-```text
-usuários diferentes + mesmo device_id
-→ sessões independentes
-```
+Superusuário:
 
-Não substituir a sessão de outro usuário apenas por compartilhar navegador ou dispositivo.
+- possui sessão própria;
+- não pertence a Empresa cliente;
+- não consome licença de Empresa cliente;
+- não deve aparecer consumindo licença da Empresa.
 
-Cada sessão válida consome uma vaga.
+Não confundir:
 
----
-
-## Timeout
-
-Sessões abandonadas não podem ocupar vaga indefinidamente.
-
-O timeout deve:
-
-- encerrar sessão;
-- revogar token;
-- liberar vaga;
-- registrar motivo;
-- gerar auditoria quando aplicável.
+~~~text
+SUPERUSUÁRIO DA PLATAFORMA
+!=
+USUÁRIO MASTER DA EMPRESA
+~~~
 
 ---
 
-## Heartbeat
+# 5. Estabelecimentos
 
-O heartbeat não substitui a validação de cada requisição.
+## 5.1 Empresa obrigatória
 
-Cada chamada autenticada ainda deve validar:
+Todo Estabelecimento pertence a uma Empresa.
 
-- token;
-- sessão;
-- expiração;
-- usuário;
-- empresa;
-- contrato;
-- suspensão;
-- troca obrigatória de senha.
-
----
-
-## Redução do Limite
-
-Reduzir o limite abaixo das sessões válidas atuais não encerra sessões automaticamente.
-
-O sistema deve:
-
-- preservar sessões atuais;
-- bloquear novos logins;
-- reduzir o excesso por logout, timeout ou encerramento administrativo.
-
-Mudança nessa regra exige nova decisão arquitetural.
-
----
-
-# Logout
-
-## Ordem Correta
-
-O frontend deve:
-
-1. manter o token atual;
-2. chamar o endpoint de logout;
-3. aguardar a resposta;
-4. somente depois limpar o token local;
-5. interromper o heartbeat;
-6. limpar o contexto;
-7. redirecionar para o login.
-
-Não apagar o token antes da chamada ao backend.
-
-Esse erro já ocorreu e causava:
-
-- sessão não encerrada;
-- licença não liberada;
-- contador incorreto;
-- bloqueio indevido de novos logins.
-
-O fluxo foi corrigido e homologado manualmente.
-
----
-
-## Encerramento no Backend
-
-O backend deve:
-
-- identificar o token exato;
-- localizar a sessão vinculada;
-- marcar a sessão como inativa;
-- preencher `encerrada_em`;
-- registrar motivo `LOGOUT`;
-- revogar o token;
-- liberar a vaga;
-- registrar Auditoria.
-
-Não localizar sessão de forma aproximada quando existe token exato.
-
----
-
-# Administração de Sessões
-
-## Necessidade Operacional
-
-O suporte e o administrador precisam identificar quem está ocupando as licenças.
-
-Não pode ser necessário consultar diretamente o banco.
-
-A interface deve permitir:
-
-- visualizar sessões por empresa;
-- visualizar sessões por usuário;
-- identificar usuário;
-- identificar perfil;
-- identificar estabelecimento;
-- identificar dispositivo;
-- identificar navegador;
-- identificar sistema operacional;
-- identificar IP;
-- visualizar início;
-- visualizar última atividade;
-- visualizar status;
-- visualizar token válido ou revogado;
-- encerrar sessão.
-
----
-
-## Contador e Listagem
-
-A regra obrigatória é:
-
-```text
-contador de sessões ativas
-=
-quantidade de sessões válidas exibidas
-```
-
-O contador e a listagem devem usar a mesma fonte de verdade.
-
-Não aplicar no frontend filtros paralelos sobre:
-
-- `ativa`;
-- `status`;
-- `token_valido`;
-- `token_revogado`.
-
-O backend deve retornar as sessões corretas.
-
----
-
-## Formato da Resposta da API
-
-O frontend deve tratar corretamente:
-
-Resposta direta:
-
-```json
-[
-  {}
-]
-```
-
-Resposta paginada:
-
-```json
-{
-  "count": 1,
-  "results": [
-    {}
-  ]
-}
-```
-
-A normalização deve ficar centralizada no service.
-
-Não duplicar esse tratamento em vários componentes.
-
----
-
-## Estado Vazio
-
-Mostrar:
-
-```text
-Nenhuma sessão ocupando licença.
-```
-
-somente quando não existir nenhuma sessão válida na listagem.
-
-Não mostrar estado vazio quando há uma linha carregada.
-
----
-
-## Mensagem de Divergência
-
-Mostrar aviso somente quando:
-
-```text
-contador != quantidade de linhas
-```
-
-Não mostrar divergência quando:
-
-```text
-contador = 1
-linhas = 1
-```
-
-Esse erro visual já ocorreu e foi corrigido.
-
----
-
-## Sessão Individual
-
-Encerrar uma sessão deve:
-
-- validar empresa;
-- validar executor;
-- validar permissão;
-- revogar token;
-- liberar vaga;
-- registrar motivo;
-- auditar;
-- atualizar listagem;
-- atualizar contador;
-- atualizar quantidade disponível.
-
----
-
-## Todas as Sessões do Usuário
-
-O encerramento consolidado deve ser transacional.
-
-A operação deve:
-
-- bloquear usuário;
-- bloquear sessões;
-- encerrar todas as sessões válidas;
-- revogar todos os tokens correspondentes;
-- criar um evento consolidado;
-- confirmar tudo junto.
-
-Se a Auditoria obrigatória falhar:
-
-- nenhuma sessão deve ser encerrada;
-- nenhum token deve ser revogado.
-
----
-
-## Duplicidade de Auditoria
-
-Evitar registrar simultaneamente:
-
-- um evento consolidado;
-- eventos individuais equivalentes;
-- evento do signal;
-- evento da view;
-- evento do service.
-
-A política precisa ser clara.
-
-Para encerramento em massa, o evento principal é:
-
-```text
-USER_SESSIONS_CLOSED
-```
-
----
-
-# Diagnóstico de Sessões
-
-O command oficial é:
-
-```powershell
-python manage.py diagnosticar_sessoes_empresa --empresa-id <id>
-```
-
-O diagnóstico pode mostrar:
-
-- ID da sessão;
-- usuário;
-- empresa;
-- dispositivo;
-- estado;
-- encerramento;
-- última atividade;
-- token existente;
-- token revogado;
-- validade;
-- motivo da não validade.
-
-Nunca exibir token bruto.
-
----
-
-# Reconciliação de Sessões
-
-Commands:
-
-```powershell
-python manage.py reconciliar_sessoes_ativas --empresa-id <id> --dry-run
-python manage.py reconciliar_sessoes_ativas --empresa-id <id> --apply
-```
-
-O `dry-run` não altera dados.
-
-O `apply` deve:
-
-- preservar histórico;
-- encerrar sessões inválidas;
-- revogar tokens restantes;
-- registrar motivo coerente;
-- não apagar registros.
-
-Possíveis inconsistências:
-
-- sessão ativa com token revogado;
-- sessão ativa sem token;
-- sessão ativa com `encerrada_em` preenchido;
-- sessão expirada ainda ativa;
-- token válido ligado a sessão encerrada.
-
----
-
-# Usuários
-
-## Empresa
-
-Usuário cliente deve pertencer a uma empresa.
-
-Não permitir:
-
-- empresa nula;
-- troca para outra empresa;
-- edição pelo próprio usuário;
-- empresa recebida livremente do frontend.
-
----
-
-## Perfil Principal
-
-Usuário comum deve possuir perfil principal válido.
-
-O perfil deve:
-
-- estar ativo;
-- pertencer à mesma empresa;
-- utilizar módulos permitidos;
-- respeitar dependências.
-
----
-
-## Tipo Funcional
-
-O campo `type` não define permissão efetiva.
-
-Nunca usar tipo funcional para:
-
-- conceder módulo;
-- retirar módulo;
-- sobrescrever perfil;
-- criar override;
-- elevar acesso.
-
-Tipos antigos podem continuar em regras específicas, mas não como autoridade de segurança.
-
----
-
-## Autoproteção
-
-O usuário não pode:
-
-- aumentar a própria permissão;
-- trocar o próprio perfil;
-- ampliar os próprios estabelecimentos;
-- alterar a própria empresa;
-- tornar-se master;
-- alterar campos internos.
-
----
-
-## Campos Protegidos
-
-Usuários clientes não podem alterar:
-
-```text
-is_staff
-is_superuser
-groups
-user_permissions
-empresa
-master
-token
-session_id
-session_token
-```
-
-O backend deve rejeitar explicitamente.
-
-Não apenas ocultar no frontend.
-
----
-
-## Usuário Master
-
-O master não pode ser:
-
-- excluído;
-- inativado;
-- movido de empresa;
-- rebaixado;
-- privado de acesso essencial.
-
-Antes disso, deve ocorrer transferência de administração.
-
-O master pertence à empresa e consome licença quando possui sessão válida.
-
-Não confundir master com superusuário da plataforma.
-
----
-
-# Perfis e Permissões
-
-## Default Deny
-
-Ausência de permissão significa bloqueio.
-
-Não criar fallback permissivo.
-
----
-
-## Nomes de Perfil
-
-Não conceder acesso com base no nome:
-
-```text
-Admin
-Gerente
-Master
-Diretor
-```
-
-O acesso depende do cálculo efetivo.
-
----
-
-## Roles Antigas
-
-Rotas não devem depender exclusivamente de:
-
-```typescript
-roles: ['Admin']
-roles: ['Diretor', 'Gerente']
-```
-
-Esse problema já foi corrigido em:
-
-- Auditoria;
-- Estabelecimentos;
-- Perfis;
-- demais rotas do Operacional.
-
-Não reintroduzir.
-
----
-
-## Perfil Padrão
-
-O MySQL não garante constraint condicional do Django.
-
-A regra de um perfil padrão por empresa deve continuar garantida por:
-
-- transação;
-- `select_for_update`;
-- serviço central;
-- testes concorrentes.
-
----
-
-## Dependências de Módulos
-
-Módulos dependentes devem respeitar `ModuloSistema.dependencias`.
-
-Não permitir:
-
-- módulo dependente em `VIEW` ou `EDIT`;
-- dependência necessária em `NONE`.
-
-Não inventar dependências no frontend.
-
-A fonte é o catálogo do backend.
-
----
-
-## Módulos Hardcoded
-
-Evitar listas fixas diferentes em:
-
-- usuário;
-- perfil;
-- menu;
-- guard;
-- frontend;
-- backend.
-
-O catálogo deve vir do backend.
-
-A ordenação deve utilizar o cadastro do módulo.
-
----
-
-## Override
-
-Valores possíveis:
-
-```text
-HERDAR
-NONE
-VIEW
-EDIT
-```
-
-`HERDAR` deve remover o override individual.
-
-Não persistir valor redundante sem necessidade.
-
----
-
-## Permissão Efetiva
-
-A permissão efetiva considera:
-
-- contrato;
-- módulo contratado;
-- perfil;
-- override;
-- master;
-- superusuário;
-- status do usuário;
-- status do contrato.
-
-O frontend exibe.
-
-O backend calcula.
-
----
-
-# Redefinição de Senha
-
-## Operação Administrativa
-
-A redefinição deve ser transacional.
-
-Na mesma operação:
-
-1. senha é alterada;
-2. `deve_trocar_senha` é marcado;
-3. sessões são encerradas, quando previsto;
-4. tokens são revogados;
-5. Auditoria obrigatória é criada.
-
-Se a Auditoria falhar, tudo deve voltar ao estado anterior.
-
----
-
-## Senhas na Auditoria
-
-Nunca registrar:
-
-- senha atual;
-- senha nova;
-- confirmação;
-- hash;
-- senha temporária.
-
-O sanitizer deve continuar protegendo esses campos.
-
----
-
-## Exposição da Senha
-
-Não:
-
-- retornar senha na API;
-- mostrar senha cadastrada;
-- guardar no navegador;
-- enviar por log;
-- incluir em exception;
-- persistir em metadata.
-
----
-
-# Troca Obrigatória de Senha
-
-## Bloqueio Central
-
-Quando:
-
-```text
-deve_trocar_senha = true
-```
-
-o usuário não deve acessar módulos normais.
-
-O bloqueio precisa ocorrer no backend centralmente.
-
-Não depender apenas do guard Angular.
-
----
-
-## Endpoints Permitidos
-
-Durante a pendência, liberar apenas:
-
-- `/api/me/`;
-- troca de senha;
-- logout;
-- heartbeat necessário.
-
-Qualquer outro endpoint deve retornar:
-
-```text
-PASSWORD_CHANGE_REQUIRED
-```
-
----
-
-## Bypass por URL
-
-O frontend deve impedir acesso direto a:
-
-```text
-/home
-/config
-/lojas
-/usuarios
-```
-
-mas o backend ainda deve bloquear caso o usuário chame a API manualmente.
-
----
-
-## Sessão Atual
-
-Após a troca:
-
-- sessão atual pode permanecer;
-- demais sessões devem ser encerradas;
-- token atual permanece válido conforme a regra implementada;
-- contexto deve ser recarregado.
-
-Não criar uma sessão adicional e consumir nova licença.
-
----
-
-## Nova Senha
-
-Validar:
-
-- senha atual;
-- confirmação;
-- diferença em relação à atual;
-- validadores do Django;
-- tamanho mínimo;
-- regras de segurança.
-
----
-
-# Estabelecimentos
-
-## Empresa Obrigatória
-
-Não permitir estabelecimento sem empresa.
+Não voltar a permitir Estabelecimento empresarial sem Empresa.
 
 Isso vale para:
 
@@ -1291,196 +268,552 @@ Isso vale para:
 
 ---
 
-## Tipo de Unidade
+## 5.2 Contexto de Estabelecimento
 
-`tipo_unidade` é a fonte principal.
+Quando o domínio depender de Estabelecimento, validar:
 
-O campo legado `Matriz` não pode contradizer o tipo.
+- Empresa;
+- acesso do Usuário;
+- Estabelecimentos permitidos;
+- Estabelecimento principal;
+- contexto da sessão;
+- objeto manipulado.
 
-Manter sincronização enquanto existir compatibilidade.
-
----
-
-## Campos Legados
-
-Campos antigos não devem ser removidos sem análise:
-
-```text
-EstoqueNegativo
-Rede
-DataAbertura
-ContaContabil
-DataEnceramento
-Matriz
-```
-
-Antes de remover:
-
-- localizar usos;
-- revisar frontend;
-- revisar API;
-- criar migration;
-- preservar dados;
-- documentar breaking change.
+Não confiar apenas no seletor do frontend.
 
 ---
 
-## Ciclo de Vida
+## 5.3 Eventos sem Estabelecimento
 
-Não usar apenas edição direta de `ativo`.
+Nem toda operação pertence a um Estabelecimento.
 
-Ações oficiais:
+Exemplos:
 
-```text
-Ativar
-Inativar
-Encerrar
-Reabrir
-```
+- contrato;
+- Perfil;
+- Permissão;
+- suspensão da Empresa;
+- configuração global.
 
-Cada ação possui significado próprio e deve ser auditada.
-
----
-
-## Inativação
-
-Antes de inativar, verificar:
-
-- sessões;
-- usuários;
-- estabelecimento principal;
-- caixas;
-- estoque;
-- documentos;
-- operações pendentes;
-- distribuição;
-- integrações.
-
-Não automatizar transferências sem projeto específico.
+Não inventar Estabelecimento para preencher Auditoria.
 
 ---
 
-## Encerramento
+# 6. Contratos
 
-Encerrar não pode apagar histórico.
+Toda autenticação de Usuário cliente depende de contrato válido.
 
-Deve preservar:
+Validar:
 
-- vendas;
-- documentos;
-- estoque histórico;
-- sessões;
-- usuários;
+- existência;
+- status;
+- vigência;
+- Empresa;
+- módulos;
+- limite de sessões;
+- Usuário master;
+- suspensão;
+- cancelamento.
+
+Não reduzir os diferentes estados de contrato a um único booleano.
+
+---
+
+# 7. Suspensão Administrativa
+
+Suspender Empresa é operação crítica.
+
+Deve exigir:
+
+- superusuário autorizado;
+- motivo;
+- confirmação;
+- transação;
+- encerramento das sessões;
+- revogação dos tokens;
+- Auditoria obrigatória.
+
+Não permitir suspensão por simples edição genérica de `status`.
+
+---
+
+# 8. Atomicidade da Suspensão
+
+Na mesma transação devem ocorrer, conforme arquitetura vigente:
+
+1. alteração do contrato;
+2. gravação do motivo;
+3. encerramento das sessões;
+4. revogação dos tokens;
+5. liberação das vagas;
+6. atualização das estruturas de acesso;
+7. Auditoria obrigatória.
+
+Não aceitar estado parcial.
+
+---
+
+# 9. Reativação da Empresa
+
+Reativação não deve:
+
+- reabrir sessão antiga;
+- restaurar token revogado;
+- reutilizar sessão encerrada;
+- apagar histórico da suspensão.
+
+Usuários devem realizar novo login.
+
+---
+
+# 10. Autenticação
+
+Não criar autenticação paralela.
+
+Toda autenticação deve considerar:
+
+- credenciais;
+- Usuário ativo;
+- Empresa;
+- contrato;
+- Perfil;
+- módulos;
+- sessão;
+- token;
+- dispositivo;
+- limite simultâneo;
+- troca obrigatória de senha.
+
+---
+
+# 11. Tokens
+
+Nunca registrar ou expor:
+
+- token bruto;
+- `Authorization`;
+- cookie de autenticação;
+- access token;
+- refresh token;
+- segredo;
+- credencial temporária.
+
+Token revogado ou sem sessão válida não autentica.
+
+---
+
+# 12. Sessões Simultâneas
+
+Licença é consumida por:
+
+~~~text
+SESSÃO VÁLIDA
+~~~
+
+Não por:
+
+- Usuário cadastrado;
+- Usuário ativo;
+- Perfil;
+- Estabelecimento;
+- dispositivo sem login.
+
+Nunca retornar ao controle de licenças pela quantidade de Usuários ativos.
+
+---
+
+# 13. Fonte Única de Verdade das Sessões
+
+Login, contador, disponibilidade, heartbeat e listagem devem utilizar a mesma regra central.
+
+Não criar consulta paralela baseada somente em:
+
+~~~python
+SessaoUsuario.objects.filter(ativa=True)
+~~~
+
+Sessão marcada ativa pode já estar funcionalmente inválida.
+
+---
+
+# 14. Concorrência da Última Vaga
+
+Contagem e criação da sessão devem permanecer no mesmo contexto transacional.
+
+Não executar:
+
+~~~text
+contar
+↓
+encerrar transação
+↓
+criar sessão depois
+~~~
+
+Isso permite ultrapassar o limite contratado.
+
+---
+
+# 15. Login Bloqueado por Limite
+
+Quando o limite for atingido:
+
+- não criar sessão válida;
+- não criar token utilizável;
+- não aumentar contador;
+- registrar evento adequado;
+- frontend não deve assumir autenticação.
+
+Código funcional:
+
+~~~text
+CONCURRENT_SESSION_LIMIT_REACHED
+~~~
+
+---
+
+# 16. Mesmo Usuário e Mesmo Dispositivo
+
+Regra homologada:
+
+~~~text
+mesmo Usuário
++
+mesmo device_id
+→ substituição da própria sessão anterior
+~~~
+
+Não consumir duas vagas para essa substituição.
+
+---
+
+# 17. Usuários Diferentes no Mesmo Dispositivo
+
+Regra:
+
+~~~text
+Usuários diferentes
++
+mesmo device_id
+→ sessões independentes
+~~~
+
+Não encerrar sessão de outro Usuário apenas porque compartilha o dispositivo.
+
+---
+
+# 18. Timeout
+
+Sessão abandonada não deve ocupar licença indefinidamente.
+
+Timeout deve tratar:
+
+- encerramento;
+- token;
+- liberação da vaga;
+- motivo;
+- Auditoria quando aplicável.
+
+---
+
+# 19. Heartbeat
+
+Heartbeat não substitui validação normal de requisição.
+
+Cada chamada autenticada continua sujeita à validação de:
+
+- token;
+- sessão;
+- Usuário;
+- Empresa;
+- contrato;
+- suspensão;
+- troca obrigatória de senha.
+
+---
+
+# 20. Redução de Limite
+
+A regra homologada não encerra automaticamente sessões válidas quando o limite contratado é reduzido abaixo da ocupação atual.
+
+Nesse cenário:
+
+~~~text
+preservar sessões existentes
++
+bloquear novos logins
+~~~
+
+até redução natural por:
+
+- logout;
+- timeout;
+- encerramento administrativo.
+
+---
+
+# 21. Logout
+
+Ordem correta no frontend:
+
+1. manter o token;
+2. chamar o backend;
+3. aguardar resposta;
+4. interromper heartbeat;
+5. limpar contexto;
+6. redirecionar.
+
+Não remover o token antes da chamada de logout.
+
+---
+
+# 22. Administração de Sessões
+
+Contador e listagem devem utilizar a mesma definição de sessão válida.
+
+Regra:
+
+~~~text
+CONTADOR
+=
+QUANTIDADE DE SESSÕES VÁLIDAS EXIBIDAS
+~~~
+
+Não aplicar filtros adicionais no frontend que alterem essa definição.
+
+---
+
+# 23. Encerramento Administrativo
+
+Encerrar sessão deve:
+
+- validar Empresa;
+- validar executor;
+- validar Permissão;
+- revogar token;
+- liberar vaga;
+- registrar motivo;
+- auditar;
+- atualizar contador e listagem.
+
+Encerramento consolidado deve evitar duplicação desnecessária de eventos de Auditoria.
+
+---
+
+# 24. Diagnóstico e Reconciliação
+
+Commands de diagnóstico não devem exibir token bruto.
+
+Reconciliação deve:
+
+- preservar histórico;
+- encerrar sessões inválidas;
+- revogar tokens;
+- não apagar registros.
+
+---
+
+# 25. Usuários
+
+Usuário cliente deve pertencer à Empresa correta.
+
+Não permitir por payload comum:
+
+- troca de Empresa;
+- elevação a master;
+- alteração de `is_superuser`;
+- alteração de `is_staff`;
+- alteração de grupos Django;
+- alteração de Permissões internas;
+- manipulação de token;
+- manipulação de sessão.
+
+---
+
+# 26. Usuário Master
+
+Master da Empresa não deve ser:
+
+- excluído;
+- inativado sem tratamento;
+- movido de Empresa;
+- rebaixado arbitrariamente;
+- privado do acesso essencial.
+
+Transferência de administração deve ocorrer pelo processo oficial.
+
+---
+
+# 27. Perfis e Permissões
+
+Ausência de Permissão significa bloqueio.
+
+Não conceder acesso apenas pelo nome do Perfil:
+
+~~~text
+Admin
+Gerente
+Diretor
+Master
+~~~
+
+A autoridade é o cálculo de Permissão efetiva.
+
+---
+
+# 28. Roles Antigas
+
+Não reintroduzir decisões de acesso baseadas exclusivamente em listas como:
+
+~~~text
+roles: ['Admin']
+roles: ['Diretor', 'Gerente']
+~~~
+
+A arquitetura utiliza Permissões funcionais.
+
+---
+
+# 29. Perfil Padrão
+
+A regra de Perfil padrão por Empresa deve continuar protegida contra concorrência e inconsistência.
+
+Não confiar somente em restrição que o MySQL não garante.
+
+---
+
+# 30. Dependências de Módulos
+
+Não permitir módulo dependente em:
+
+~~~text
+VIEW
+ou
+EDIT
+~~~
+
+quando uma dependência obrigatória estiver:
+
+~~~text
+NONE
+~~~
+
+A fonte das dependências é o backend.
+
+---
+
+# 31. Overrides
+
+Valores conceituais:
+
+~~~text
+HERDAR
+NONE
+VIEW
+EDIT
+~~~
+
+`HERDAR` representa ausência de override específico.
+
+Não criar valores redundantes.
+
+---
+
+# 32. Redefinição Administrativa de Senha
+
+Operação deve preservar:
+
+- atomicidade;
+- encerramento das sessões quando previsto;
+- revogação de tokens;
+- `deve_trocar_senha`;
 - Auditoria.
 
----
-
-## Fiscal
-
-Alterações em:
-
-- série NFC-e;
-- próximo número NFC-e;
-- série NF-e;
-- próximo número NF-e;
-- habilitação de emissão;
-- política de estoque negativo;
-
-devem possuir validação e auditoria.
-
-Numeração inválida pode causar rejeição fiscal.
+Nunca registrar senha em Auditoria.
 
 ---
 
-# Auditoria Central
+# 33. Troca Obrigatória de Senha
 
-## Infraestrutura Única
+Quando:
+
+~~~text
+deve_trocar_senha = true
+~~~
+
+Usuário não deve acessar módulos normais.
+
+Proteção deve existir no backend.
+
+Não depender somente do Angular.
+
+---
+
+# 34. Auditoria Central
 
 O app oficial é:
 
-```text
+~~~text
 auditoria
-```
+~~~
 
 O serviço oficial é:
 
-```text
+~~~text
 AuditService
-```
+~~~
 
 Não criar:
 
 - tabela paralela;
 - middleware paralelo;
 - serviço paralelo;
-- gravações diretas espalhadas.
+- gravação manual espalhada sem necessidade.
 
 ---
 
-## Imutabilidade
+# 35. Imutabilidade da Auditoria
 
-Não permitir:
+Logs concluídos não devem ser tratados como cadastro editável.
 
-- `save()` em log existente;
-- `delete()`;
-- `QuerySet.update()`;
-- `QuerySet.delete()`;
-- `bulk_create()`;
-- `bulk_update()`;
-- `update_or_create()`;
-- `get_or_create()`.
+Não permitir mecanismos que comprometam a imutabilidade histórica.
 
 ---
 
-## Auditoria Normal
+# 36. Auditoria e Transação
 
-Eventos comuns podem usar:
+Eventos que representam sucesso não devem ser gravados antes da confirmação da operação.
 
-```python
-transaction.on_commit()
-```
+Quando Auditoria for obrigatória para operação crítica:
 
-Não registrar sucesso antes do commit.
-
----
-
-## Auditoria Obrigatória
-
-Operações críticas do Operacional incluem:
-
-- suspensão;
-- reativação;
-- transferência de master;
-- perfil padrão;
-- permissões;
-- redefinição de senha;
-- troca obrigatória;
-- encerramento consolidado de sessões;
-- exclusão administrativa.
-
-Se a Auditoria falhar, a operação deve falhar.
+~~~text
+ALTERAÇÃO
++
+AUDITORIA
+=
+MESMA GARANTIA TRANSACIONAL
+~~~
 
 ---
 
-## Dados Sensíveis
+# 37. Dados Sensíveis na Auditoria
 
 Nunca registrar:
 
 - senha;
 - token;
 - cookie;
-- Authorization;
 - certificado;
 - chave privada;
-- hash de token;
 - segredo;
+- hash de token;
 - payload completo de autenticação.
 
 ---
 
-## Duplicidade
+# 38. Duplicidade de Auditoria
 
-Uma ação não pode gerar eventos equivalentes por:
+Uma única ação funcional não deve gerar eventos equivalentes desnecessariamente por:
 
 - signal;
 - serializer;
@@ -1488,106 +821,1173 @@ Uma ação não pode gerar eventos equivalentes por:
 - service;
 - wrapper legado.
 
-Testes devem conferir contagem exata.
+---
+
+# 39. Clientes
+
+Status:
+
+~~~text
+HOMOLOGADO 23/23
+~~~
+
+Riscos específicos detalhados em:
+
+- [[Homologação - Cadastros - Clientes]]
+- [[Mapa Técnico - Cadastros - Clientes]]
+- [[Workflows - Cadastros - Clientes]]
+- [[Modelo de Domínio - Cadastros - Clientes]]
+- [[Riscos e Cuidados - Cadastros - Clientes]]
 
 ---
 
-# Frontend
+# 40. Cliente — Multiempresa
 
-## Permissão Visual
+Unicidade funcional do documento deve considerar Empresa.
 
-O frontend deve ocultar ações sem autorização.
+~~~text
+Empresa + documento
+~~~
 
-Exemplos:
-
-- master não vê suspender empresa;
-- usuário comum não vê alterar contrato;
-- VIEW não vê editar;
-- NONE não vê menu;
-- usuário com troca pendente não acessa módulos.
-
-Mas a segurança final permanece no backend.
+Não transformar documento em chave global entre todos os tenants.
 
 ---
 
-## Tratamento de 401 e 403
+# 41. Cliente sem Documento
 
-401 pode representar:
+Mais de um Cliente sem documento pode existir.
 
-- token inválido;
-- sessão expirada;
-- sessão encerrada.
+Não criar constraint que transforme:
 
-403 pode representar:
+~~~text
+documento vazio
+~~~
 
-- sem permissão;
-- contrato suspenso;
-- troca obrigatória;
-- empresa incorreta;
-- estabelecimento não permitido.
-
-Não tratar todo 403 como logout automático sem considerar o código retornado.
+em falsa duplicidade.
 
 ---
 
-## Paginação
+# 42. Consumidor Final
 
-Não carregar milhares de registros e paginar somente no navegador.
+Cada Empresa possui seu próprio Consumidor Final.
 
-Listagens devem utilizar paginação real da API.
+Não criar Consumidor Final global.
+
+Não permitir no Cliente padrão:
+
+- exclusão;
+- inativação;
+- bloqueio;
+- mudança indevida de documento;
+- mudança indevida de Tipo;
+- remoção da condição de padrão.
+
+---
+
+# 43. Cliente Utilizado
+
+Cliente com vínculos históricos não deve ser fisicamente removido.
+
+Utilizar lifecycle adequado.
+
+Não quebrar:
+
+- vendas;
+- fiscal;
+- financeiro;
+- histórico;
+- indicadores.
+
+---
+
+# 44. Fornecedores
+
+Status:
+
+~~~text
+HOMOLOGADO 30/30
+~~~
+
+Documentação específica deve continuar sendo referência para alterações.
+
+---
+
+# 45. Fornecedor — Categorias
+
+Fornecedor pode possuir múltiplas categorias.
+
+Categoria orienta contexto.
+
+Não transformar categoria em bloqueio universal de processo sem regra formal daquele módulo.
+
+---
+
+# 46. Fornecedor — Dados Bancários
+
+Dados bancários possuem proteção específica.
+
+Usuário sem Permissão não deve receber valores sensíveis nem por chamada direta à API.
+
+Ocultar campo visualmente não é suficiente.
+
+---
+
+# 47. Fornecedor Utilizado
+
+Fornecedor com vínculos em:
+
+- Compras;
+- Financeiro;
+- Fiscal;
+- documentos;
+
+deve ser preservado.
+
+Preferir Inativação a exclusão destrutiva.
+
+---
+
+# 48. Funcionários
+
+Status:
+
+~~~text
+HOMOLOGADO 17/17
+~~~
+
+Separações fundamentais:
+
+~~~text
+Funcionário != Usuário
+Cargo != Perfil
+Cargo != Permissão
+Loja supervisionada != Loja permitida
+Situação do Funcionário != User.is_active
+FuncionarioHistorico != AuditLog
+~~~
+
+---
+
+# 49. Funcionário e Usuário
+
+Vínculo com Usuário não deve alterar automaticamente:
+
+- Cargo;
+- Perfil;
+- Permissões;
+- Lojas permitidas;
+- sessões.
+
+---
+
+# 50. Funcionário e Cargo
+
+Cargo é entidade operacional.
+
+Não utilizar Cargo como mecanismo automático de autorização.
+
+~~~text
+Cargo
+!=
+Permissão
+~~~
+
+---
+
+# 51. Funcionário e Situação
+
+Estados:
+
+~~~text
+ATIVO
+AFASTADO
+DESLIGADO
+~~~
+
+Não mapear diretamente esses estados para `User.is_active`.
+
+---
+
+# 52. Funcionário Utilizado
+
+Funcionário utilizado em operações deve ser preservado.
+
+Não excluir vendedor histórico de uma Venda para limpar cadastro.
+
+---
+
+# 53. Produtos — Separação dos Tipos
+
+A entidade Produto atende domínios diferentes:
+
+~~~text
+1 = Revenda
+2 = Uso/Consumo
+3 = Fabricação Própria
+4 = Insumo
+~~~
+
+Risco crítico:
+
+aplicar uma regra de um tipo a todos os Produtos.
+
+---
+
+# 54. Produto Venda
+
+Tipos:
+
+~~~text
+1 = Revenda
+3 = Fabricação Própria
+~~~
+
+Documentação específica:
+
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
+---
+
+# 55. Tipo de Produto Venda Imutável
+
+Não converter:
+
+~~~text
+Revenda
+→ Fabricação Própria
+~~~
+
+nem:
+
+~~~text
+Fabricação Própria
+→ Revenda
+~~~
+
+após criação.
+
+Isso pode comprometer:
+
+- histórico;
+- Compras;
+- Produção;
+- Estoque;
+- custos.
+
+---
+
+# 56. Referência de Produto Venda
+
+Formato:
+
+~~~text
+AA-BB-CCDDD
+~~~
+
+Onde:
+
+~~~text
+AA = ano da Coleção
+BB = Estação
+CC = CodigoRef do Grupo
+DDD = sequência
+~~~
+
+Não regenerar Referências históricas por alteração posterior de Grupo ou Coleção.
+
+---
+
+# 57. Produto versus SKU
+
+Separação obrigatória:
+
+~~~text
+Produto != SKU
+~~~
+
+SKU representa:
+
+~~~text
+Produto + Cor + Tamanho
+~~~
+
+Não armazenar Estoque comercial granular apenas no Produto.
+
+---
+
+# 58. Grade de Produto Venda
+
+Grade é estrutural para os SKUs.
+
+Após existirem SKUs:
+
+~~~text
+GRADE IMUTÁVEL
+~~~
+
+Não permitir mudança apenas porque o frontend disponibilizou o campo.
+
+A proteção deve existir no backend.
+
+---
+
+# 59. Remoção de Cor
+
+Regra homologada:
+
+~~~text
+REMOVER COR
+→ INATIVAR SKUs
+→ NÃO EXCLUIR
+~~~
 
 Preservar:
 
-```text
-Mostrando X–Y de Z
-```
+- ID;
+- Cor;
+- Tamanho;
+- EAN;
+- Estoque;
+- histórico.
 
 ---
 
-## Cache e Estado Local
+# 60. Última Cor
 
-Contadores e listas administrativas não devem permanecer presos a dados antigos.
+A retirada da última Cor é permitida.
 
-Após:
+Resultado:
 
-- login;
-- logout;
-- encerramento de sessão;
-- atualização do modal;
-- suspensão;
-- reativação;
+~~~text
+todos os SKUs correspondentes
+→ INATIVOS
+~~~
 
-o frontend deve recarregar os dados necessários.
+Produto permanece cadastrado.
+
+---
+
+# 61. Reativação de Cor
+
+Ao reincluir Cor:
+
+~~~text
+localizar SKU anterior
+→ reativar
+→ preservar ID
+→ preservar EAN
+~~~
+
+Não criar SKU duplicado.
+
+---
+
+# 62. EAN
+
+EAN pertence ao SKU.
+
+Regras:
+
+- gerado no backend;
+- único;
+- preservado;
+- não reciclado;
+- reativação não gera novo EAN.
+
+---
+
+# 63. Estoque de Produto Venda
+
+Granularidade:
+
+~~~text
+Loja × SKU
+~~~
+
+Não substituir por saldo global de Produto.
+
+Inicialização em zero não representa entrada física.
+
+---
+
+# 64. Disponível
+
+Conceito:
+
+~~~text
+Disponível = Físico - Reserva
+~~~
+
+Produto pode apresentar essa informação.
+
+Movimentações e reservas pertencem ao domínio de Estoque/Vendas.
+
+---
+
+# 65. Custos de Produto Venda
+
+Para Revenda:
+
+~~~text
+Compra
+→ Recebimento
+→ Estoque
+→ Custos
+~~~
+
+Para Fabricação Própria:
+
+~~~text
+Ficha Técnica
+→ Produção
+→ Custos
+~~~
+
+Não criar atualização arbitrária de custo no cadastro.
+
+---
+
+# 66. Fiscal de Produto Venda
+
+Alterações fiscais devem respeitar:
+
+- validação;
+- rastreabilidade;
+- Histórico Funcional quando aplicável;
+- Auditoria.
+
+Não ocultar silenciosamente campos fiscais já existentes na interface.
+
+---
+
+# 67. ProdutoVendaHistorico versus AuditLog
+
+~~~text
+ProdutoVendaHistorico
+→ visão funcional
+
+AuditLog
+→ Auditoria Central
+~~~
+
+Não substituir uma estrutura pela outra.
+
+---
+
+# 68. Imagens
+
+Produto Venda permite:
+
+~~~text
+0..3 imagens
+~~~
+
+Regras:
+
+- opcionais;
+- máximo três;
+- somente uma principal;
+- pertencem ao Produto;
+- não pertencem à Cor;
+- não pertencem ao SKU.
+
+Não inventar parâmetros técnicos de miniatura ainda não definidos.
+
+---
+
+# 69. Lifecycle de Produto Venda
+
+Estado cadastral:
+
+~~~text
+ATIVO
+INATIVO
+~~~
+
+Estado comercial independente:
+
+~~~text
+LIBERADO
+BLOQUEADO
+~~~
+
+Portanto:
+
+~~~text
+ATIVO
+!=
+LIBERADO PARA VENDA
+~~~
+
+---
+
+# 70. Exclusão de Produto Venda
+
+Produto utilizado deve ser preservado.
+
+Alternativas:
+
+- Inativar;
+- Bloquear Venda.
+
+Não transformar lifecycle em exclusão física.
+
+---
+
+# 71. Permissões de Produto Venda
+
+Ações sensíveis devem utilizar Permissão funcional do SYSVAR.
+
+Não retornar a regras baseadas somente em:
+
+~~~text
+is_staff
+~~~
+
+Quando motivo e senha forem exigidos, continuam requisitos independentes.
+
+---
+
+# 72. Produto Uso/Consumo
+
+Tipo:
+
+~~~text
+tipo_produto = '2'
+~~~
+
+Documentação:
+
+- [[Homologação - Produtos - Produto Uso e Consumo]]
+- [[Mapa Técnico - Produtos - Produto Uso e Consumo]]
+- [[Workflows - Produtos - Produto Uso e Consumo]]
+- [[Modelo de Domínio - Produtos - Produto Uso e Consumo]]
+- [[Riscos e Cuidados - Produtos - Produto Uso e Consumo]]
+
+---
+
+# 73. Uso/Consumo não é Produto Venda
+
+Não adicionar automaticamente:
+
+- Grade;
+- Tamanho comercial;
+- Cor × Tamanho;
+- SKU comercial;
+- Coleção;
+- Tabela de Preço;
+- Promoção;
+- Bloqueio de Venda.
+
+---
+
+# 74. Uso/Consumo não é Insumo
+
+Separação:
+
+~~~text
+Uso/Consumo
+→ utilização interna não produtiva
+
+Insumo
+→ componente da fabricação
+~~~
+
+Não disponibilizar tipo 2 em Ficha Técnica apenas porque possui Estoque.
+
+---
+
+# 75. Uso/Consumo e Estoque
+
+Produto Uso/Consumo possui natureza de Estoque.
+
+Não existe regra homologada:
+
+~~~text
+controla_estoque = Sim/Não
+~~~
+
+Não reintroduzir esse campo.
+
+---
+
+# 76. Uso/Consumo e Localização
+
+Cadastro não define localização fixa.
+
+Não reintroduzir:
+
+~~~text
+Uso/Consumo
+→ somente Matriz
+~~~
+
+A localização pertence à operação.
+
+---
+
+# 77. Uso/Consumo e Fiscal
+
+NCM pode ser opcional no cadastro conforme a regra homologada.
+
+Situação:
+
+~~~text
+Fiscal Completo
+Fiscal Incompleto
+~~~
+
+Fiscal Incompleto não significa Produto cadastralmente inválido.
+
+A operação fiscal valida o necessário.
+
+---
+
+# 78. Uso/Consumo no PDV
+
+Tipo 2 não deve aparecer como Produto normal de venda.
+
+Proteção deve existir no backend dos processos comerciais.
+
+---
+
+# 79. Uso/Consumo e Custos
+
+Custos devem ser provenientes de eventos reais.
+
+Não preencher valores artificiais apenas para completar a consulta.
+
+---
+
+# 80. Insumos
+
+Tipo:
+
+~~~text
+tipo_produto = '4'
+~~~
+
+Documentação:
+
+- [[Homologação - Produtos - Insumos]]
+- [[Mapa Técnico - Produtos - Insumos]]
+- [[Workflows - Produtos - Insumos]]
+- [[Modelo de Domínio - Produtos - Insumos]]
+- [[Riscos e Cuidados - Produtos - Insumos]]
+
+---
+
+# 81. Insumo não é Uso/Consumo
+
+Não misturar:
+
+~~~text
+consumo administrativo
+~~~
+
+com:
+
+~~~text
+consumo produtivo
+~~~
+
+A Ficha Técnica utiliza Insumos.
+
+---
+
+# 82. Material Opcional
+
+Material permanece opcional para Insumos.
+
+Não transformar essa classificação em campo obrigatório sem nova decisão funcional.
+
+---
+
+# 83. Material não é Insumo
+
+~~~text
+Material
+→ classificação
+
+Insumo
+→ item operacional
+~~~
+
+Não movimentar Material diretamente em:
+
+- Compras;
+- Estoque;
+- Ficha Técnica;
+- Produção.
+
+---
+
+# 84. Unidade dos Insumos
+
+Processos devem respeitar:
+
+~~~text
+permite_decimal
+~~~
+
+Exemplo:
+
+~~~text
+Tecido
+1,75 M
+~~~
+
+Não arredondar arbitrariamente quantidades produtivas.
+
+---
+
+# 85. Insumos e Estoque
+
+Não existe campo homologado:
+
+~~~text
+controla_estoque
+~~~
+
+Não fixar localização no cadastro.
+
+Material pode estar:
+
+- fábrica;
+- almoxarifado;
+- outro Estabelecimento;
+- futuramente em poder de terceiro.
+
+Essa informação é operacional.
+
+---
+
+# 86. Ficha Técnica
+
+Quantidade necessária pertence à relação:
+
+~~~text
+Ficha Técnica × Insumo
+~~~
+
+Não ao cadastro principal do Insumo.
+
+O mesmo Insumo pode ser utilizado em vários Produtos com quantidades diferentes.
+
+---
+
+# 87. Ordem de Produção e Baixa
+
+Não presumir:
+
+~~~text
+CRIAR OP
+=
+BAIXAR INSUMOS
+~~~
+
+Essa regra não foi homologada.
+
+---
+
+# 88. Ordem de Produção e Reserva
+
+Também não presumir:
+
+~~~text
+CRIAR OP
+=
+RESERVAR INSUMOS
+~~~
+
+Reserva deverá ser definida no processo de Produção/Estoque.
+
+---
+
+# 89. Previsto versus Real
+
+Separação:
+
+~~~text
+Ficha Técnica
+→ consumo previsto
+
+Produção
+→ consumo real
+~~~
+
+Misturar os conceitos compromete:
+
+- Estoque;
+- custos;
+- perdas;
+- produtividade.
+
+---
+
+# 90. Facção
+
+Fluxos futuros com facção devem controlar materiais por movimentos.
+
+Não criar campo fixo no Insumo como:
+
+~~~text
+faccao_atual
+~~~
+
+para representar localização transitória.
+
+---
+
+# 91. Cadastros Auxiliares de Produtos
+
+Documentação:
+
+- [[Homologação - Produtos - Cadastros Auxiliares]]
+- [[Mapa Técnico - Produtos - Cadastros Auxiliares]]
+- [[Workflows - Produtos - Cadastros Auxiliares]]
+- [[Modelo de Domínio - Produtos - Cadastros Auxiliares]]
+- [[Riscos e Cuidados - Produtos - Cadastros Auxiliares]]
+
+---
+
+# 92. Grupo — Código de Referência
+
+Formato:
+
+~~~text
+2 dígitos numéricos
+~~~
+
+Deve ser único por Empresa.
+
+Não aceitar:
+
+~~~text
+1
+001
+AB
+A1
+~~~
+
+---
+
+# 93. Alteração do CodigoRef
+
+CodigoRef participa da Referência do Produto Venda.
+
+Não fazer:
+
+~~~text
+Grupo alterado
+↓
+regenerar Referências históricas
+~~~
+
+---
+
+# 94. Subgrupo
+
+Subgrupo pertence ao Grupo.
+
+Não criar Subgrupo órfão.
+
+Não associar Grupo e Subgrupo de Empresas diferentes.
+
+---
+
+# 95. Grade
+
+Grade possui Tamanhos.
+
+Alterações em Grade já utilizada podem afetar:
+
+- Produto;
+- SKU;
+- Pack.
+
+Proteger integridade.
+
+---
+
+# 96. Tamanho
+
+Tamanho pertence a Grade.
+
+Não mover arbitrariamente Tamanho já utilizado para outra Grade.
+
+---
+
+# 97. Coleção
+
+Valores de Estação homologados:
+
+~~~text
+01
+02
+03
+04
+~~~
+
+Status:
+
+~~~text
+CR
+PD
+AT
+EN
+AR
+~~~
+
+Não criar novos estados silenciosamente.
+
+---
+
+# 98. Contador da Coleção
+
+O contador é interno.
+
+Não disponibilizar edição manual.
+
+Manipulação do contador pode provocar colisão de Referência.
+
+---
+
+# 99. Unidade
+
+Código deve possuir unicidade.
+
+Não alterar Unidade já utilizada sem avaliar impacto histórico.
+
+Exemplo:
+
+~~~text
+100 M
+~~~
+
+não pode passar a significar:
+
+~~~text
+100 KG
+~~~
+
+por simples alteração cadastral.
+
+---
+
+# 100. Cor
+
+Cor utilizada por SKU deve ser preservada historicamente.
+
+Não excluir de modo que o SKU fique sem referência.
+
+---
+
+# 101. Material
+
+Material utilizado deve preservar relacionamentos existentes.
+
+Lifecycle Ativo/Inativo não deve destruir histórico.
+
+---
+
+# 102. Pack
+
+Pack deve possuir Grade.
+
+Item do Pack:
+
+~~~text
+Pack + Tamanho + Quantidade
+~~~
+
+Regras:
+
+~~~text
+Tamanho pertence à Grade
+
+Tamanho não repete no mesmo Pack
+
+Quantidade > 0
+~~~
+
+---
+
+# 103. Pack Histórico
+
+Alteração posterior do Pack não deve recalcular Pedido já gravado.
+
+Regra:
+
+~~~text
+CONFIGURAÇÃO ATUAL
+!=
+OPERAÇÃO HISTÓRICA
+~~~
+
+---
+
+# 104. Exclusão de Cadastros Auxiliares
+
+Antes de excluir, verificar dependências.
+
+Exemplos:
+
+- Grupo usado por Produto;
+- Subgrupo usado;
+- Grade usada;
+- Tamanho usado;
+- Coleção usada;
+- Unidade usada;
+- Cor usada;
+- Material usado;
+- Pack usado em Pedido.
+
+---
+
+# 105. Padrão Visual dos Auxiliares
+
+O padrão homologado utiliza:
+
+~~~text
+Checkbox
++
+Seleção única
++
+Linha destacada
++
+Barra de ações
+~~~
+
+Não reintroduzir nas telas já modernizadas:
+
+~~~text
+Coluna Ações
++
+Menu ⋮
+~~~
+
+sem nova decisão de padrão.
+
+---
+
+# 106. Master-Detail
+
+Estruturas:
+
+~~~text
+Grupo
+→ Subgrupos
+
+Grade
+→ Tamanhos
+
+Pack
+→ Itens
+~~~
+
+O detalhe deve permanecer no contexto do mestre correto.
+
+---
+
+# 107. Sobretelas
+
+Consulta e detalhes que utilizam modal devem preservar o contexto da tela de origem.
+
+Não transformar novamente consultas simples em navegação desnecessária para outra tela sem decisão de UX.
+
+---
+
+# 108. Paginação
+
+Não carregar milhares de registros para paginar apenas no navegador.
+
+Listagens homologadas devem continuar utilizando paginação server-side quando definido.
+
+Preservar:
+
+~~~text
+Mostrando X–Y de Z
+~~~
+
+---
+
+# 109. Filtros
+
+Filtros server-side devem considerar:
+
+- Empresa;
+- domínio;
+- tipo do Produto;
+- critérios informados;
+- ordenação.
+
+Não filtrar apenas a página atualmente carregada.
+
+---
+
+# 110. Indicadores
+
+Indicadores não devem ser calculados apenas sobre a página visível.
+
+Devem respeitar o conjunto correspondente do backend.
+
+---
+
+# 111. Cache e Estado Local
+
+Após operações que alteram dados relevantes, recarregar o necessário.
 
 Cuidado com:
 
 - `shareReplay`;
-- objetos mantidos em memória;
+- objetos antigos em memória;
+- filtros locais;
 - indicadores calculados sobre resposta antiga;
-- ausência de recarga;
-- filtros locais adicionais.
+- snapshots da linha.
 
 ---
 
-# Banco de Dados
+# 112. Consulta por ID
 
-## Migrations
+Quando existir endpoint de detalhe:
 
-Toda mudança estrutural deve possuir migration.
+~~~text
+seleção
+→ ID
+→ backend
+→ dado atual
+~~~
 
-Não editar migration já aplicada.
+é preferível a abrir consulta com snapshot potencialmente desatualizado da listagem.
 
 ---
 
-## Data Migrations
+# 113. Edição por ID
 
-Usar:
+O mesmo princípio se aplica à edição.
 
-```python
-apps.get_model()
-```
+Não editar dados críticos baseando-se apenas no objeto armazenado anteriormente na tabela.
 
-Não importar model atual diretamente.
+---
+
+# 114. Banco de Dados
+
+Toda alteração estrutural deve possuir migration.
+
+Não editar migration já aplicada em produção.
+
+---
+
+# 115. Data Migrations
+
+Utilizar o model histórico fornecido pelo mecanismo de migrations.
+
+Não presumir estrutura atual sobre banco antigo.
 
 Considerar:
 
@@ -1596,284 +1996,610 @@ Considerar:
 - MySQL;
 - registros nulos;
 - volume;
-- ambiguidade;
-- rollback.
+- rollback;
+- dados ambíguos.
 
 ---
 
-## Saneamento
+# 116. Saneamento de Dados
 
-Nunca preencher empresa com valor arbitrário.
+Nunca atribuir Empresa arbitrariamente para corrigir registro ambíguo.
 
-Não usar:
+Não usar automaticamente:
 
-- primeira empresa;
-- empresa mais antiga;
-- empresa do superusuário;
-- empresa padrão inventada.
+- primeira Empresa;
+- Empresa mais antiga;
+- Empresa do superusuário;
+- Empresa padrão inventada.
 
-Quando houver ambiguidade, parar e documentar.
-
----
-
-## Constraints MySQL
-
-Não confiar em recursos não suportados.
-
-Sempre conferir avisos durante migration.
+Quando não houver fonte segura, interromper e analisar.
 
 ---
 
-# Performance
+# 117. Constraints e MySQL
 
-## Consultas
+Antes de depender de constraint específica:
+
+- confirmar suporte;
+- verificar migrations;
+- observar warnings;
+- testar contra MySQL.
+
+Não assumir comportamento idêntico entre SQLite e MySQL.
+
+---
+
+# 118. Mudanças em Models Compartilhados
+
+`Produto` atende vários domínios.
+
+Alterar campo, serializer ou regra compartilhada pode afetar:
+
+~~~text
+tipo 1
+tipo 2
+tipo 3
+tipo 4
+~~~
+
+Antes da mudança, revisar todos os consumidores.
+
+---
+
+# 119. Performance
 
 Evitar:
 
 - N+1;
-- queries globais;
+- QuerySets globais;
 - consultas sem índice;
 - paginação local;
-- payloads grandes;
-- filtros frequentes em JSON.
+- payload excessivo;
+- filtros desnecessários em memória.
 
-Utilizar:
+Utilizar quando apropriado:
 
-- paginação;
-- índices;
 - `select_related`;
 - `prefetch_related`;
+- índices;
 - agregações;
-- endpoints de indicadores.
+- paginação;
+- endpoints próprios para indicadores.
 
 ---
 
-## Indicadores
+# 120. Frontend — Permissão Visual
 
-Indicadores não devem ser calculados apenas sobre a página atual.
+Frontend deve esconder ações sem autorização.
 
-Devem respeitar:
+Entretanto:
 
-- empresa;
-- estabelecimento;
-- filtros;
-- permissão;
-- regra central do domínio.
+~~~text
+BOTÃO OCULTO
+!=
+SEGURANÇA
+~~~
 
-O contador de sessões deve usar o mesmo método utilizado pelo login e pela listagem.
-
----
-
-# Testes
-
-## Testes Automatizados
-
-Rodadas registradas durante o fechamento do Operacional:
-
-```text
-Backend: 59 testes aprovados na centralização das sessões
-Frontend: 37 testes aprovados na centralização das sessões
-```
-
-Testes posteriores foram adicionados para:
-
-- superusuário sem consumo de licença;
-- sessões por empresa;
-- sessões por usuário;
-- encerramento individual;
-- encerramento consolidado;
-- resposta em array;
-- resposta paginada;
-- contador;
-- estado vazio;
-- modal `Ver Sessões`;
-- atualização após encerramento.
-
-Os totais devem ser confirmados novamente antes de uma nova declaração formal.
+Backend deve continuar bloqueando ação direta.
 
 ---
 
-## Homologação Manual
+# 121. 401 e 403
 
-Foram homologados manualmente:
+Não tratar toda resposta `403` como logout automático.
 
-- primeiro login;
-- segundo login;
-- bloqueio acima do limite;
-- logout liberando vaga;
-- novo login após liberação;
-- superusuário sem consumo de licença;
-- contador de sessões;
-- quantidade disponível;
-- modal `Ver Sessões`;
-- consistência entre contador e listagem;
-- administração visual das sessões.
+Pode representar:
 
-Status:
+- falta de Permissão;
+- contrato suspenso;
+- troca obrigatória;
+- Empresa incorreta;
+- contexto inválido.
 
-```text
-OPERACIONAL HOMOLOGADO
-```
+Interpretar o código funcional retornado.
 
 ---
 
-# Riscos Mitigados no Operacional
+# 122. Separação de Responsabilidades
 
-Foram tratados:
+Regra transversal:
 
-- suspensão administrativa;
-- bloqueio imediato do contrato;
-- encerramento de sessões;
-- revogação de tokens;
-- reativação segura;
-- empresa obrigatória em estabelecimentos;
-- remoção da dependência exclusiva de roles antigas;
-- perfil como base das permissões;
-- override `HERDAR`;
-- dependências de módulos;
-- proteção do master;
-- transação no encerramento de sessões;
-- transação na redefinição de senha;
-- troca obrigatória de senha;
-- bloqueio central durante troca;
-- Auditoria dos novos eventos;
-- fonte única de validade das sessões;
-- correção da ordem do logout;
-- superusuário fora do licenciamento;
-- administração visual de sessões;
-- consistência entre contador e listagem;
-- diagnóstico de sessões;
-- reconciliação de sessões;
-- testes backend e frontend;
+~~~text
+CADASTRO
+→ identidade e parâmetros
+
+COMPRAS
+→ aquisição
+
+ESTOQUE
+→ quantidade e localização
+
+FISCAL
+→ aplicação tributária
+
+PRODUÇÃO
+→ transformação e consumo produtivo
+
+PDV
+→ venda
+
+AUDITORIA
+→ rastreabilidade
+~~~
+
+Evitar absorção indevida de responsabilidades entre módulos.
+
+---
+
+# 123. Compras e Produtos
+
+Produto fornece identidade.
+
+Compras define:
+
+- Fornecedor;
+- Pedido;
+- quantidade;
+- preço;
+- aprovação;
+- recebimento;
+- parcelas;
+- Financeiro.
+
+Não implementar Compra dentro do cadastro de Produto.
+
+---
+
+# 124. Estoque e Produtos
+
+Separação:
+
+~~~text
+Produto
+→ o que é
+
+Estoque
+→ quanto existe e onde está
+~~~
+
+Não armazenar localização operacional como atributo fixo do Produto quando o domínio não exige isso.
+
+---
+
+# 125. Fiscal e Produtos
+
+Produto armazena dados fiscais cadastrais.
+
+O módulo Fiscal é responsável pela aplicação desses dados nos eventos fiscais.
+
+Não confundir:
+
+~~~text
+cadastro fiscal
+~~~
+
+com:
+
+~~~text
+operação fiscal
+~~~
+
+---
+
+# 126. Produção
+
+Produto Venda tipo 3 representa o Produto acabado.
+
+Insumo tipo 4 representa componente produtivo.
+
+~~~text
+Produto Venda tipo 3
+        ↓
+Ficha Técnica
+        ↓
+Insumo tipo 4
+        ↓
+Produção
+~~~
+
+Uso/Consumo tipo 2 não deve entrar automaticamente nesse fluxo.
+
+---
+
+# 127. Testes
+
+Correção localizada:
+
+- testes específicos;
+- verificação técnica necessária;
 - homologação manual.
 
+Checkpoint estrutural:
+
+- testes mais amplos;
+- build;
+- regressão relevante.
+
+Não executar suítes enormes sem necessidade apenas como ritual.
+
+Não deixar de executar testes essenciais quando o risco justificar.
+
 ---
 
-# Riscos Ainda Abertos
+# 128. Homologação
 
-## Regressão no Licenciamento
+Uma feature não é considerada concluída apenas porque:
 
-Apesar da homologação, alterações futuras podem reintroduzir:
+~~~text
+compila
+~~~
 
-- contagem apenas por `ativa=True`;
+ou:
+
+~~~text
+teste automatizado passou
+~~~
+
+Quando a interface e regra operacional são relevantes, a homologação manual continua necessária.
+
+---
+
+# 129. Documentação
+
+Após fechamento de escopo:
+
+- atualizar documento específico;
+- atualizar links;
+- atualizar documentos centrais quando necessário;
+- preservar nomenclatura;
+- não criar documentos órfãos.
+
+---
+
+# 130. Obsidian
+
+Alteração de nome de arquivo exige atenção aos links.
+
+Documentos atuais de Produtos:
+
+## Produto Venda
+
+- [[Homologação - Produtos - Produto Venda]]
+- [[Mapa Técnico - Produtos - Produto Venda]]
+- [[Workflows - Produtos - Produto Venda]]
+- [[Modelo de Domínio - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+
+## Produto Uso/Consumo
+
+- [[Homologação - Produtos - Produto Uso e Consumo]]
+- [[Mapa Técnico - Produtos - Produto Uso e Consumo]]
+- [[Workflows - Produtos - Produto Uso e Consumo]]
+- [[Modelo de Domínio - Produtos - Produto Uso e Consumo]]
+- [[Riscos e Cuidados - Produtos - Produto Uso e Consumo]]
+
+## Insumos
+
+- [[Homologação - Produtos - Insumos]]
+- [[Mapa Técnico - Produtos - Insumos]]
+- [[Workflows - Produtos - Insumos]]
+- [[Modelo de Domínio - Produtos - Insumos]]
+- [[Riscos e Cuidados - Produtos - Insumos]]
+
+## Cadastros Auxiliares
+
+- [[Homologação - Produtos - Cadastros Auxiliares]]
+- [[Mapa Técnico - Produtos - Cadastros Auxiliares]]
+- [[Workflows - Produtos - Cadastros Auxiliares]]
+- [[Modelo de Domínio - Produtos - Cadastros Auxiliares]]
+- [[Riscos e Cuidados - Produtos - Cadastros Auxiliares]]
+
+---
+
+# 131. Riscos Ainda Abertos
+
+## Licenciamento
+
+Alterações futuras podem reintroduzir:
+
+- contagem por `ativa=True`;
 - logout sem token;
-- sessão bloqueada criada indevidamente;
-- superusuário associado a empresa;
-- divergência entre contador e listagem;
-- filtros paralelos no frontend.
-
-Toda alteração em autenticação, sessão ou contrato deve repetir os testes do licenciamento.
+- sessão bloqueada criada;
+- superusuário associado a Empresa;
+- divergência entre contador e listagem.
 
 ---
 
 ## Campos Legados de Loja
 
-Ainda precisam ser revisados em fase futura para possível remoção.
+Campos legados ainda devem ser tratados com cautela antes de eventual remoção.
+
+Não remover sem análise de consumidores e migration.
 
 ---
 
 ## Tipos Funcionais Antigos
 
-O campo `type` continua existindo.
-
-Deve ser monitorado para evitar que novas regras voltem a utilizá-lo como permissão.
+Campos antigos de classificação de Usuário não devem voltar a funcionar como fonte principal de Permissão.
 
 ---
 
 ## Automação de Suspensão
 
-Nesta fase, a suspensão é manual.
+Suspensão automática por cobrança não pertence à fase homologada atual.
 
-Ainda não existe:
-
-- cobrança automática;
-- integração com gateway;
-- suspensão automática por vencimento;
-- aviso prévio;
-- tolerância configurável.
-
-Esses itens exigem projeto próprio.
+Qualquer automação futura exige projeto próprio.
 
 ---
 
 ## Recuperação Pública de Senha
 
-Não foi implementada nesta fase.
+Ainda necessita desenho próprio caso seja implementada.
 
-Ainda pode ser necessária futuramente:
+Deve considerar:
 
-- recuperação por email;
 - token temporário;
 - expiração;
-- proteção contra abuso;
-- Auditoria.
+- prevenção de abuso;
+- Auditoria;
+- proteção de informações.
 
 ---
 
 ## Retenção da Auditoria
 
-Ainda não existe política automatizada de retenção.
-
-A tabela continuará crescendo.
+A política de retenção e crescimento precisa continuar sendo observada conforme o volume do sistema aumentar.
 
 ---
 
 ## Backups
 
-A estratégia de backup ainda precisa ser formalizada com:
+Backup precisa possuir:
 
 - frequência;
 - retenção;
 - cópia externa;
-- criptografia;
+- proteção adequada;
 - teste de restauração;
 - monitoramento.
 
-Backup sem teste de restauração não é garantia.
+Backup que nunca foi restaurado em teste não comprova recuperabilidade.
 
 ---
 
-# Próxima Prioridade
+## Imagens de Produto Venda
 
-A revisão seguirá a barra lateral.
+Continuam sem definição homologada:
 
-Próximo grupo:
+- largura;
+- altura;
+- resolução;
+- formato;
+- compressão;
+- qualidade da miniatura.
 
-```text
-Cadastros
-```
-
-Itens iniciais:
-
-1. Clientes;
-2. Fornecedores;
-3. Funcionários.
-
-Cada item deverá ser analisado quanto a:
-
-- isolamento;
-- permissões;
-- validações;
-- layout;
-- paginação;
-- auditoria;
-- integrações;
-- testes;
-- riscos funcionais.
-
-Antes de iniciar Cadastros, o arquivo `Mapa Técnico.md` deve ser atualizado com o estado final do Operacional.
+Não inventar parâmetros.
 
 ---
 
-# Última Atualização
+## Produção e Consumo de Insumos
 
-```text
-2026-08-06
-```
+Ainda não estão definidos dentro do cadastro de Insumos:
+
+- momento de reserva;
+- momento de baixa;
+- consumo real;
+- perda;
+- sobra;
+- retorno;
+- materiais em facção;
+- conversão avançada de Unidade;
+- MRP.
+
+Essas regras devem ser definidas no módulo Produção.
 
 ---
 
-# Notas Relacionadas
+# 132. Riscos de Regressão do Grupo Produtos
+
+Não reintroduzir:
+
+1. mistura entre tipos 1, 2, 3 e 4;
+2. Grade para Uso/Consumo;
+3. Grade comercial automática para Insumo;
+4. Uso/Consumo no PDV;
+5. Insumo no PDV;
+6. Uso/Consumo em Ficha Técnica;
+7. `controla_estoque` em Uso/Consumo;
+8. `controla_estoque` em Insumos;
+9. Matriz obrigatória para Uso/Consumo;
+10. localização fixa de Insumo;
+11. baixa de Insumo ao criar OP;
+12. reserva automática ao criar OP;
+13. Material obrigatório para Insumos;
+14. exclusão de Produto utilizado;
+15. reciclagem de EAN;
+16. recriação de SKU em vez de reativação;
+17. alteração de Grade após SKU;
+18. Reference histórica recalculada;
+19. Pack histórico reinterpretado;
+20. ações por linha redundantes nos auxiliares já padronizados.
+
+---
+
+# 133. Checklist antes de Alterar Produto
+
+Verificar:
+
+1. qual tipo de Produto será afetado?
+2. a regra deve valer para tipos 1, 2, 3 e 4?
+3. Empresa continua protegida?
+4. lifecycle continua coerente?
+5. exclusão continua protegida?
+6. Estoque continua separado do cadastro?
+7. Fiscal continua separado da operação?
+8. algum módulo consumidor será afetado?
+9. existem migrations?
+10. existem dados legados?
+
+---
+
+# 134. Checklist antes de Alterar Estoque
+
+Verificar:
+
+1. Produto correto?
+2. SKU correto quando aplicável?
+3. Empresa correta?
+4. Estabelecimento/local correto?
+5. Unidade correta?
+6. movimento existe?
+7. saldo resulta de movimentos?
+8. existe risco de baixa duplicada?
+9. reserva é distinta de saída?
+10. histórico será preservado?
+
+---
+
+# 135. Checklist antes de Alterar Produção
+
+Verificar:
+
+1. Produto acabado é tipo 3?
+2. componentes são Insumos válidos?
+3. Ficha Técnica pertence à Empresa correta?
+4. Unidade é compatível?
+5. consumo previsto está separado do real?
+6. criar OP provoca algum movimento?
+7. esse movimento foi realmente aprovado?
+8. reserva foi definida?
+9. perda foi definida?
+10. facção foi modelada adequadamente?
+
+---
+
+# 136. Checklist antes de Alterar Cadastros Auxiliares
+
+Verificar:
+
+1. registro já está em uso?
+2. mudança altera significado histórico?
+3. unicidade continua válida?
+4. relação mestre-detalhe continua válida?
+5. cross-tenant continua bloqueado?
+6. exclusão continua protegida?
+7. Produto consumidor será afetado?
+8. padrão visual homologado foi preservado?
+
+---
+
+# 137. Checklist antes de Migration
+
+Verificar:
+
+1. migration é necessária?
+2. banco possui dados?
+3. MySQL suporta a mudança?
+4. valores antigos são compatíveis?
+5. há `null` legado?
+6. existe constraint nova?
+7. dados precisam de saneamento?
+8. rollback é possível?
+9. outros tipos do model compartilhado serão afetados?
+10. testes foram executados?
+
+---
+
+# 138. Estado Consolidado dos Riscos
+
+Os riscos centrais atualmente protegidos incluem:
+
+- tenant;
+- sessões;
+- licenciamento;
+- contratos;
+- Permissões;
+- Auditoria;
+- Clientes;
+- Fornecedores;
+- Funcionários;
+- Produto Venda;
+- Produto Uso/Consumo;
+- Insumos;
+- Cadastros Auxiliares;
+- Estoque;
+- Fiscal;
+- integrações futuras com Produção.
+
+A existência de documentação específica não elimina a necessidade de consultar este documento central.
+
+---
+
+# 139. Regra de Continuidade
+
+Antes de nova implementação:
+
+~~~text
+DEFINIR REGRA FUNCIONAL
+        ↓
+ANALISAR CÓDIGO ATUAL
+        ↓
+LOCALIZAR IMPACTO
+        ↓
+IMPLEMENTAR SOMENTE O NECESSÁRIO
+        ↓
+TESTAR
+        ↓
+REVISAR
+        ↓
+HOMOLOGAR
+        ↓
+DOCUMENTAR
+~~~
+
+Não antecipar arquitetura de módulos ainda não definidos.
+
+---
+
+# 140. Última Atualização
+
+~~~text
+14/08/2026
+~~~
+
+Marco atual:
+
+~~~text
+OPERACIONAL
+→ CONCLUÍDO
+
+CLIENTES
+→ CONCLUÍDO
+
+FORNECEDORES
+→ CONCLUÍDO
+
+FUNCIONÁRIOS
+→ CONCLUÍDO
+
+PRODUTO VENDA
+→ CONCLUÍDO
+
+PRODUTO USO/CONSUMO
+→ CONCLUÍDO
+
+INSUMOS
+→ CONCLUÍDO
+
+CADASTROS AUXILIARES DE PRODUTOS
+→ CONCLUÍDOS
+~~~
+
+---
+
+# 141. Notas Relacionadas
+
+## Contexto Central
 
 - [[10 Projetos/Sysvar/Sysvar|Sysvar]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Visão Geral|Visão Geral]]
@@ -1881,6 +2607,20 @@ Antes de iniciar Cadastros, o arquivo `Mapa Técnico.md` deve ser atualizado com
 - [[10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio|Modelo de Domínio]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Workflows|Workflows]]
 - [[10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico|Mapa Técnico]]
+
+## Decisões Técnicas
+
 - [[10 Projetos/Sysvar/Decisões Técnicas/ADR-001 - Licenciamento por Sessões Simultâneas|ADR-001 - Licenciamento por Sessões Simultâneas]]
 - [[10 Projetos/Sysvar/Decisões Técnicas/ADR-002 - Princípios Arquiteturais do SISVAR|ADR-002 - Princípios Arquiteturais do SISVAR]]
 - [[10 Projetos/Sysvar/Decisões Técnicas/ADR-003 - Auditoria Central do SISVAR|ADR-003 - Auditoria Central do SISVAR]]
+
+## Produtos
+
+- [[Homologação - Produtos - Produto Venda]]
+- [[Riscos e Cuidados - Produtos - Produto Venda]]
+- [[Homologação - Produtos - Produto Uso e Consumo]]
+- [[Riscos e Cuidados - Produtos - Produto Uso e Consumo]]
+- [[Homologação - Produtos - Insumos]]
+- [[Riscos e Cuidados - Produtos - Insumos]]
+- [[Homologação - Produtos - Cadastros Auxiliares]]
+- [[Riscos e Cuidados - Produtos - Cadastros Auxiliares]]
