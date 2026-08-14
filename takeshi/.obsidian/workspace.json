@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "c359b414285b9d66",
+        "id": "50ed2b9f0de7bcb8",
         "type": "tabs",
         "children": [
           {
-            "id": "c4211a87e0364ac9",
+            "id": "f8639ddec94112f2",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -181,8 +181,9 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "d27e6d8f494df13c",
+  "active": "f8639ddec94112f2",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Bolao2026/Bolao2026.md",
     "00 Inbox/Obsidian Skills.md",
@@ -209,7 +210,6 @@
     "10 Projetos/Bolao2026/Operação/Atualizacao Frontend.md",
     "10 Projetos/Bolao2026/Operação/Atualizacao Backend.md",
     "10 Projetos/Bolao2026/Operação/Operacao do Bolao.md",
-    "10 Projetos/Bolao2026/Migração Kinghost/Migracao KingHost para Viper-II.md",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
     "10 Projetos/Bolao2026/Infraestrutura",
