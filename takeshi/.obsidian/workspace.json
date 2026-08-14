@@ -11,10 +11,14 @@
             "id": "898578b1404795ea",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Produtos - Produto Uso e Consumo.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "Nova aba"
+              "title": "Riscos e Cuidados - Produtos - Produto Uso e Consumo"
             }
           }
         ]
@@ -183,6 +187,7 @@
   },
   "active": "898578b1404795ea",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Produto Uso e Consumo.md",
@@ -209,7 +214,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Fornecedores.md",
     "10 Projetos/Sysvar/Operacao",
-    "10 Projetos/Bolao2026/Operação/Atualizacao Frontend.md",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
     "10 Projetos/Bolao2026/Infraestrutura",
