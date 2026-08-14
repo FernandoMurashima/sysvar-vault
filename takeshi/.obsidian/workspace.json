@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "bbd363d5684767d4",
+        "id": "55ba6f56d3ce41da",
         "type": "tabs",
         "children": [
           {
-            "id": "9b8f06bc0309cf70",
+            "id": "e46c0c60fd3a39ee",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Cadastros Auxiliares.md",
-                "mode": "source",
-                "source": true
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "Homologação - Produtos - Cadastros Auxiliares"
+              "title": "Nova aba"
             }
           }
         ]
@@ -185,8 +181,9 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "9b8f06bc0309cf70",
+  "active": "e46c0c60fd3a39ee",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Cadastros Auxiliares.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Cadastros Auxiliares.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Produtos - Insumos.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Produtos - Insumos.md",
@@ -212,7 +209,6 @@
     "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Produto Venda.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Funcionários.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Funcionários.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Funcionários.md",
     "10 Projetos/Sysvar/Operacao",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
