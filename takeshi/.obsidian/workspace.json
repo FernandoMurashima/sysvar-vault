@@ -11,10 +11,14 @@
             "id": "59b8290cd8f86909",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Produtos - Cadastros Auxiliares.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "Nova aba"
+              "title": "Modelo de Domínio - Produtos - Cadastros Auxiliares"
             }
           }
         ]
@@ -183,6 +187,7 @@
   },
   "active": "59b8290cd8f86909",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Produtos - Cadastros Auxiliares.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Produtos - Cadastros Auxiliares.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Cadastros Auxiliares.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Cadastros Auxiliares.md",
@@ -208,7 +213,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Produto Venda.md",
     "10 Projetos/Sysvar/Operacao/Atualizacao do Sysvar no Viper-II.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Produto Venda.md",
-    "10 Projetos/Sysvar/Homologações/Homologação - Cadastros - Funcionários.md",
     "10 Projetos/Sysvar/Operacao",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
