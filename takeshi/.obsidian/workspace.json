@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "b5dceb13e55a3607",
+        "id": "bbd363d5684767d4",
         "type": "tabs",
         "children": [
           {
-            "id": "e2b2ba607161238b",
+            "id": "9b8f06bc0309cf70",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -181,8 +181,9 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "e2b2ba607161238b",
+  "active": "9b8f06bc0309cf70",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Produtos - Insumos.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Produtos - Insumos.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Produtos - Insumos.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Insumos.md",
@@ -208,7 +209,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Cadastros - Funcionários.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Cadastros - Funcionários.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Cadastros - Funcionários.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Cadastros - Funcionários.md",
     "10 Projetos/Sysvar/Operacao",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
