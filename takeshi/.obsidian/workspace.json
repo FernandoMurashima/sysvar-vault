@@ -11,10 +11,14 @@
             "id": "7b1f7e88a5fafe6b",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "10 Projetos/Sysvar/Contexto do Projeto/Arquitetura.md",
+                "mode": "source",
+                "source": true
+              },
               "icon": "lucide-file",
-              "title": "Nova aba"
+              "title": "Arquitetura"
             }
           }
         ]
