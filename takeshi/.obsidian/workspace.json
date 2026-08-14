@@ -11,10 +11,14 @@
             "id": "c9ae3585a1c6e555",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Insumos.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "Nova aba"
+              "title": "Mapa Técnico - Produtos - Insumos"
             }
           }
         ]
@@ -185,7 +189,7 @@
   "lastOpenFiles": [
     "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Insumos.md",
     "10 Projetos/Sysvar/Homologações/Sem título 1.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Sem título.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Insumos.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Produtos - Produto Uso e Consumo.md",
