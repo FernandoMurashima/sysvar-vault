@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "1496acbf3b80e368",
+        "id": "e67339c622cabe38",
         "type": "tabs",
         "children": [
           {
-            "id": "52882f1d80816b0b",
+            "id": "e3a7e118975a871e",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -181,8 +181,9 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "52882f1d80816b0b",
+  "active": "e3a7e118975a871e",
   "lastOpenFiles": [
+    "90 Sistema/Hierarquia de Fontes e Decisoes.md",
     "90 Sistema/Padrao de Prompts para Codex.md",
     "90 Sistema/Protocolo de Trabalho com IA.md",
     "90 Sistema/Contexto para Agentes.md",
@@ -208,7 +209,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Produto Uso e Consumo.md",
-    "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Sysvar/Operacao",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
