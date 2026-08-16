@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-14
+updated: 2026-08-16
 tags:
   - sysvar
   - contexto
@@ -18,6 +18,10 @@ tags:
   - produto-uso-consumo
   - insumos
   - cadastros-auxiliares
+  - compras
+  - pedido-de-compra
+  - financeiro
+  - fiscal
   - sku
   - estoque
   - produção
@@ -442,36 +446,100 @@ Documentação:
 
 ---
 
+# Grupo Compras
+
+Status do Pedido de Compra unificado:
+
+~~~text
+IMPLEMENTADO
+TESTADO AUTOMATICAMENTE
+HOMOLOGADO MANUALMENTE
+DOCUMENTADO
+APROVADO
+~~~
+
+A funcionalidade oficial é:
+
+**Pedido de Compra**
+
+Tipos contemplados:
+
+~~~text
+1 = Revenda
+2 = Uso/Consumo
+4 = Insumo
+~~~
+
+Tipo não participante:
+
+~~~text
+3 = Fabricação Própria
+→ Produção
+~~~
+
+Princípios consolidados:
+
+- uma única funcionalidade de Pedido de Compra;
+- usuário não escolhe manualmente o tipo;
+- primeiro item define o tipo;
+- itens de tipos diferentes não podem ser misturados;
+- Pedido vazio permanece com tipo não definido;
+- exclusão do último item em AB redefine o tipo;
+- Revenda utiliza Cor e Pack;
+- Uso/Consumo utiliza quantidade direta;
+- Insumo utiliza quantidade direta;
+- Forma e Prazo de Pagamento possuem estrutura própria;
+- parcelas são planejadas antes da aprovação;
+- Natureza de Lançamento é escolhida na aprovação;
+- aprovação integra com Financeiro;
+- aprovação não representa entrada de Estoque;
+- recebimento ocorre através do fluxo Fiscal;
+- recebimento parcial mantém AP;
+- atendimento integral leva a AT;
+- somente Pedido AB pode ser excluído;
+- isolamento multiempresa permanece obrigatório;
+- Auditoria Central deve ser preservada.
+
+Documentação:
+
+- [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
+---
+
 # Estrutura Local
 
 Projeto:
 
 ~~~text
-C:\SysvarProjeto
+C:\\SysvarProjeto
 ~~~
 
 Backend:
 
 ~~~text
-C:\SysvarProjeto\Backend
+C:\\SysvarProjeto\\Backend
 ~~~
 
 Frontend:
 
 ~~~text
-C:\SysvarProjeto\Frontend\sysvar
+C:\\SysvarProjeto\\Frontend\\sysvar
 ~~~
 
 Vault Obsidian:
 
 ~~~text
-C:\takeshi\takeshi
+C:\\takeshi\\takeshi
 ~~~
 
 Documentação no projeto:
 
 ~~~text
-C:\SysvarProjeto\docs
+C:\\SysvarProjeto\\docs
 ~~~
 
 ---
@@ -507,13 +575,13 @@ Hashes de commits não devem ser referência permanente neste mapa central.
 Para consultar commits atuais:
 
 ~~~powershell
-cd C:\SysvarProjeto\Backend
+cd C:\\SysvarProjeto\\Backend
 git log -5 --oneline
 
-cd C:\SysvarProjeto\Frontend\sysvar
+cd C:\\SysvarProjeto\\Frontend\\sysvar
 git log -5 --oneline
 
-cd C:\takeshi\takeshi
+cd C:\\takeshi\\takeshi
 git log -5 --oneline
 ~~~
 
@@ -559,20 +627,20 @@ git log -5 --oneline
 ## Backend
 
 ~~~text
-Backend\manage.py
-Backend\Varejo\settings.py
-Backend\Varejo\urls.py
-Backend\requirements.txt
+Backend\\manage.py
+Backend\\Varejo\\settings.py
+Backend\\Varejo\\urls.py
+Backend\\requirements.txt
 ~~~
 
 ## Frontend
 
 ~~~text
-Frontend\sysvar\package.json
-Frontend\sysvar\angular.json
-Frontend\sysvar\src\app
-Frontend\sysvar\src\app\app.routes.ts
-Frontend\sysvar\src\app\layout\shell
+Frontend\\sysvar\\package.json
+Frontend\\sysvar\\angular.json
+Frontend\\sysvar\\src\\app
+Frontend\\sysvar\\src\\app\\app.routes.ts
+Frontend\\sysvar\\src\\app\\layout\\shell
 ~~~
 
 ---
@@ -601,12 +669,12 @@ auditoria
 Features frontend principais:
 
 ~~~text
-features\empresas
-features\lojas
-features\usuarios
-features\perfis-acesso
-features\auditoria
-features\change-password-required
+features\\empresas
+features\\lojas
+features\\usuarios
+features\\perfis-acesso
+features\\auditoria
+features\\change-password-required
 ~~~
 
 ---
@@ -616,7 +684,7 @@ features\change-password-required
 Caminho:
 
 ~~~text
-Backend\accounts
+Backend\\accounts
 ~~~
 
 Responsabilidades:
@@ -638,27 +706,27 @@ Responsabilidades:
 Arquivos principais:
 
 ~~~text
-Backend\accounts\models.py
-Backend\accounts\serializers.py
-Backend\accounts\views.py
-Backend\accounts\permissions.py
-Backend\accounts\authentication.py
-Backend\accounts\urls.py
-Backend\accounts\apps.py
-Backend\accounts\tests.py
+Backend\\accounts\\models.py
+Backend\\accounts\\serializers.py
+Backend\\accounts\\views.py
+Backend\\accounts\\permissions.py
+Backend\\accounts\\authentication.py
+Backend\\accounts\\urls.py
+Backend\\accounts\\apps.py
+Backend\\accounts\\tests.py
 ~~~
 
 Services:
 
 ~~~text
-Backend\accounts\services\effective_access.py
-Backend\accounts\services\sessions.py
+Backend\\accounts\\services\\effective_access.py
+Backend\\accounts\\services\\sessions.py
 ~~~
 
 Commands:
 
 ~~~text
-Backend\accounts\management\commands
+Backend\\accounts\\management\\commands
 ~~~
 
 ---
@@ -780,7 +848,7 @@ Serviço:
 Arquivo:
 
 ~~~text
-Backend\accounts\services\effective_access.py
+Backend\\accounts\\services\\effective_access.py
 ~~~
 
 Responsável por:
@@ -815,7 +883,7 @@ Serviço:
 Arquivo:
 
 ~~~text
-Backend\accounts\services\sessions.py
+Backend\\accounts\\services\\sessions.py
 ~~~
 
 Responsabilidades:
@@ -955,7 +1023,7 @@ Não depender exclusivamente de cargos ou roles antigas.
 Caminho:
 
 ~~~text
-Backend\cadastros
+Backend\\cadastros
 ~~~
 
 Responsabilidades:
@@ -975,11 +1043,11 @@ Responsabilidades:
 Arquivos principais:
 
 ~~~text
-Backend\cadastros\models.py
-Backend\cadastros\serializers.py
-Backend\cadastros\views.py
-Backend\cadastros\urls.py
-Backend\cadastros\tests.py
+Backend\\cadastros\\models.py
+Backend\\cadastros\\serializers.py
+Backend\\cadastros\\views.py
+Backend\\cadastros\\urls.py
+Backend\\cadastros\\tests.py
 ~~~
 
 ---
@@ -1093,7 +1161,7 @@ Integrações:
 Caminho principal:
 
 ~~~text
-Backend\produto
+Backend\\produto
 ~~~
 
 Responsabilidades gerais:
@@ -1123,12 +1191,12 @@ Responsabilidades gerais:
 Arquivos centrais da estrutura:
 
 ~~~text
-Backend\produto\models.py
-Backend\produto\serializers.py
-Backend\produto\views.py
-Backend\produto\urls.py
-Backend\produto\permissions.py
-Backend\produto\tests.py
+Backend\\produto\\models.py
+Backend\\produto\\serializers.py
+Backend\\produto\\views.py
+Backend\\produto\\urls.py
+Backend\\produto\\permissions.py
+Backend\\produto\\tests.py
 ~~~
 
 Sempre confirmar o código atual no repositório antes de editar.
@@ -1139,6 +1207,406 @@ Mapas específicos:
 - [[Mapa Técnico - Produtos - Produto Uso e Consumo]]
 - [[Mapa Técnico - Produtos - Insumos]]
 - [[Mapa Técnico - Produtos - Cadastros Auxiliares]]
+
+---
+
+# Backend — Compras
+
+Caminho principal:
+
+~~~text
+Backend\\compras
+~~~
+
+Responsabilidades consolidadas:
+
+- Pedido de Compra unificado;
+- cabeçalho do Pedido;
+- itens;
+- definição automática do tipo;
+- Revenda;
+- Uso/Consumo;
+- Insumo;
+- Packs de Revenda;
+- quantidades;
+- preços;
+- descontos;
+- frete;
+- totais;
+- Forma de Pagamento;
+- Prazo de Pagamento;
+- parcelas planejadas;
+- aprovação;
+- Natureza de Lançamento;
+- integração com Contas a Pagar;
+- acompanhamento de entregas;
+- integração com recebimento;
+- Auditoria;
+- isolamento multiempresa.
+
+Arquivos centrais:
+
+~~~text
+Backend\\compras\\models.py
+Backend\\compras\\serializers.py
+Backend\\compras\\views.py
+Backend\\compras\\urls.py
+Backend\\compras\\tests.py
+~~~
+
+Mapa específico:
+
+[[Mapa Técnico - Compras - Pedido de Compra]]
+
+Documentação complementar:
+
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+- [[Homologação - Compras - Pedido de Compra]]
+
+---
+
+# Compras — Entidades Principais
+
+Estruturas centrais:
+
+~~~text
+PedidoCompra
+PedidoCompraItem
+PedidoCompraParcela
+PedidoCompraEntrega
+~~~
+
+Relacionamento conceitual:
+
+~~~text
+PedidoCompra
+├── PedidoCompraItem
+│   └── PedidoCompraEntrega
+└── PedidoCompraParcela
+~~~
+
+Integrações externas relevantes:
+
+~~~text
+Empresa
+Loja
+Fornecedor
+Produto
+Cor
+Pack
+FormaPagamento
+PrazoPagamento
+Nat_Lancamento
+Pagar
+PagarItem
+Fiscal
+Auditoria
+~~~
+
+---
+
+# Compras — Tipo do Pedido
+
+Tipos:
+
+~~~text
+'' = Não definido
+1  = Revenda
+2  = Uso/Consumo
+4  = Insumo
+~~~
+
+O tipo:
+
+~~~text
+3 = Fabricação Própria
+~~~
+
+não participa de Compras.
+
+O usuário não escolhe manualmente o tipo.
+
+Fluxo:
+
+~~~text
+Pedido vazio
+    ↓
+Primeiro item
+    ↓
+Produto.tipo_produto
+    ↓
+Pedido.tipo
+~~~
+
+Todos os itens posteriores devem respeitar o mesmo tipo.
+
+---
+
+# Compras — Estados do Pedido
+
+Estados:
+
+~~~text
+AB = Aberto
+AP = Aprovado
+AT = Atendido
+CA = Cancelado
+~~~
+
+Regra geral:
+
+~~~text
+AB
+→ edição
+
+AP
+→ aprovado e aguardando atendimento
+
+AT
+→ integralmente atendido
+
+CA
+→ cancelado
+~~~
+
+Somente Pedido AB pode ser excluído pelo fluxo normal.
+
+---
+
+# Compras — Revenda
+
+Tipo:
+
+~~~text
+1
+~~~
+
+Item utiliza:
+
+- Produto;
+- Cor;
+- Pack;
+- número de Packs;
+- quantidade calculada;
+- preço;
+- desconto;
+- total;
+- observação.
+
+Quantidade:
+
+~~~text
+n_packs
+×
+soma das quantidades dos itens do Pack
+=
+qtd
+~~~
+
+Quantidade de Revenda não deve ser decimal.
+
+---
+
+# Compras — Uso/Consumo
+
+Tipo:
+
+~~~text
+2
+~~~
+
+Mecânica:
+
+- Produto;
+- Unidade;
+- quantidade direta;
+- preço;
+- desconto;
+- total;
+- observação.
+
+Não utiliza Pack.
+
+Quantidade decimal depende de:
+
+~~~text
+Unidade.permite_decimal
+~~~
+
+---
+
+# Compras — Insumo
+
+Tipo:
+
+~~~text
+4
+~~~
+
+Mecânica:
+
+- Produto;
+- Unidade;
+- quantidade direta;
+- preço;
+- desconto;
+- total;
+- observação.
+
+Não utiliza Pack.
+
+Insumo continua sendo domínio distinto de Uso/Consumo.
+
+---
+
+# Compras — Totais
+
+Cálculo do item:
+
+~~~text
+bruto = qtd × preco_unit
+total_item = bruto - desconto_valor
+~~~
+
+Cálculo do Pedido:
+
+~~~text
+total_pedido =
+total_itens
+- total_desconto
++ frete
+~~~
+
+O total não pode ser negativo.
+
+Para aprovação:
+
+~~~text
+total_pedido > 0
+~~~
+
+---
+
+# Compras — Forma, Prazo e Parcelas
+
+Forma de Pagamento possui ação própria de configuração.
+
+O planejamento utiliza:
+
+~~~text
+PedidoCompraParcela
+~~~
+
+Status relevantes:
+
+~~~text
+PLAN   = Planejada
+GERADA = Gerada em Financeiro
+CANC   = Cancelada
+~~~
+
+Forma e Prazo podem utilizar configurações de:
+
+~~~text
+FormaPagamentoParcela
+PrazoPagamentoParcela
+~~~
+
+Invariante antes da aprovação:
+
+~~~text
+soma das parcelas
+=
+total do Pedido
+~~~
+
+---
+
+# Compras — Aprovação
+
+Fluxo:
+
+~~~text
+Pedido AB
+    ↓
+validar itens
+    ↓
+validar tipo
+    ↓
+validar Forma/Prazo
+    ↓
+validar parcelas
+    ↓
+selecionar Natureza
+    ↓
+gerar Financeiro
+    ↓
+AP
+~~~
+
+Integrações:
+
+~~~text
+PedidoCompra
+    ↓
+Pagar
+    ↓
+PagarItem
+~~~
+
+A aprovação não gera entrada física de Estoque.
+
+---
+
+# Compras — Recebimento
+
+Fluxo conceitual:
+
+~~~text
+Pedido AP
+    ↓
+Nota Fiscal de Entrada
+    ↓
+Recebimento
+    ↓
+Estoque
+    ↓
+Atualização do atendimento
+~~~
+
+Recebimento parcial:
+
+~~~text
+Pedido permanece AP
+~~~
+
+Recebimento integral:
+
+~~~text
+AP → AT
+~~~
+
+Cancelamento de Nota Fiscal deve provocar recálculo do atendimento conforme o fluxo Fiscal vigente.
+
+---
+
+# Compras — Multiempresa
+
+O backend deve proteger:
+
+- Pedido;
+- Loja;
+- Fornecedor;
+- Produto;
+- Forma de Pagamento;
+- Prazo;
+- Natureza;
+- Financeiro;
+- recebimentos.
+
+Não confiar somente em filtros do frontend.
 
 ---
 
@@ -1850,21 +2318,21 @@ Menu ⋮
 Caminho:
 
 ~~~text
-Backend\auditoria
+Backend\\auditoria
 ~~~
 
 Arquivos centrais:
 
 ~~~text
-Backend\auditoria\models.py
-Backend\auditoria\services.py
-Backend\auditoria\middleware.py
-Backend\auditoria\signals.py
-Backend\auditoria\views.py
-Backend\auditoria\serializers.py
-Backend\auditoria\urls.py
-Backend\auditoria\display.py
-Backend\auditoria\tests.py
+Backend\\auditoria\\models.py
+Backend\\auditoria\\services.py
+Backend\\auditoria\\middleware.py
+Backend\\auditoria\\signals.py
+Backend\\auditoria\\views.py
+Backend\\auditoria\\serializers.py
+Backend\\auditoria\\urls.py
+Backend\\auditoria\\display.py
+Backend\\auditoria\\tests.py
 ~~~
 
 Componentes:
@@ -1922,17 +2390,17 @@ Não eliminar automaticamente uma estrutura em favor da outra.
 Caminho:
 
 ~~~text
-Frontend\sysvar\src\app
+Frontend\\sysvar\\src\\app
 ~~~
 
 Arquivos centrais:
 
 ~~~text
-src\app\app.routes.ts
-src\app\layout\shell\shell.component.ts
-src\app\core\auth.service.ts
-src\app\core\permission.service.ts
-src\app\core\services\access-control.service.ts
+src\\app\\app.routes.ts
+src\\app\\layout\\shell\\shell.component.ts
+src\\app\\core\\auth.service.ts
+src\\app\\core\\permission.service.ts
+src\\app\\core\\services\\access-control.service.ts
 ~~~
 
 Confirmar caminhos atuais antes de alterações.
@@ -2075,6 +2543,65 @@ Mapa específico:
 
 ---
 
+# Frontend — Pedido de Compra
+
+Feature principal:
+
+~~~text
+src\\app\\features\\pedidos-compra
+~~~
+
+Componente:
+
+~~~text
+PedidosCompraComponent
+~~~
+
+Rota canônica:
+
+~~~text
+/compras/pedidos
+~~~
+
+Responsabilidades principais:
+
+- listagem unificada;
+- filtros;
+- seleção do Pedido;
+- novo Pedido;
+- consulta;
+- edição de Pedido AB;
+- exclusão de Pedido AB;
+- aprovação;
+- indicadores;
+- sobretela de Itens;
+- sobretela de Forma de Pagamento;
+- sobretela de Recebimentos;
+- seleção de Natureza na aprovação;
+- apresentação das parcelas;
+- acompanhamento do atendimento.
+
+O frontend não permite escolha manual do tipo.
+
+O layout dos itens é adaptado conforme:
+
+~~~text
+Pedido sem tipo
+Revenda
+Uso/Consumo
+Insumo
+~~~
+
+Rotas antigas de pedidos separados devem permanecer apenas como compatibilidade/redirecionamento quando ainda existirem.
+
+Não recriar componentes funcionais independentes por tipo.
+
+Mapa específico:
+
+[[Mapa Técnico - Compras - Pedido de Compra]]
+
+---
+
 # Integração — Produtos e Compras
 
 Produto Venda, Produto Uso/Consumo e Insumos podem possuir relações distintas com Compras.
@@ -2092,6 +2619,146 @@ Compras permanece responsável por:
 - integração financeira.
 
 Produtos fornecem a identidade dos itens.
+
+---
+
+# Integração — Compras e Produtos
+
+Fluxo:
+
+~~~text
+Pedido de Compra
+        ↓
+Produto
+        ↓
+tipo_produto
+        ↓
+define regras do item
+~~~
+
+Tipos válidos:
+
+~~~text
+1 = Revenda
+2 = Uso/Consumo
+4 = Insumo
+~~~
+
+Tipo 3 não participa.
+
+Para Revenda, Compras reutiliza:
+
+- Produto;
+- Cor;
+- Pack;
+- PackItem.
+
+Para Uso/Consumo e Insumo, reutiliza:
+
+- Produto;
+- Unidade;
+- `permite_decimal`.
+
+Não duplicar estruturas cadastrais de Produtos dentro de Compras.
+
+---
+
+# Integração — Compras e Financeiro
+
+Fluxo:
+
+~~~text
+Pedido AB
+   ↓
+Forma / Prazo
+   ↓
+PedidoCompraParcela
+   ↓
+Aprovação + Natureza
+   ↓
+Pagar
+   ↓
+PagarItem
+~~~
+
+Separação:
+
+~~~text
+PedidoCompraParcela
+→ planejamento financeiro da compra
+
+Pagar / PagarItem
+→ obrigação financeira efetiva
+~~~
+
+Compras não deve implementar Contas a Pagar paralelo.
+
+---
+
+# Integração — Compras e Fiscal
+
+Fluxo operacional:
+
+~~~text
+Pedido AP
+   ↓
+Nota Fiscal de Entrada
+   ↓
+Recebimento
+   ↓
+Atualização do atendimento
+~~~
+
+Pedido de Compra não substitui Nota Fiscal.
+
+A sobretela de Recebimentos permanece principalmente consultiva.
+
+Cancelamento fiscal deve ser considerado no recálculo do atendimento do Pedido.
+
+---
+
+# Integração — Compras e Estoque
+
+Princípio:
+
+~~~text
+Aprovar Pedido
+!=
+Entrada de Estoque
+~~~
+
+Fluxo correto:
+
+~~~text
+Pedido
+   ↓
+Aprovação
+   ↓
+AP
+   ↓
+Recebimento Fiscal
+   ↓
+Movimento de Estoque
+~~~
+
+Não criar entrada física no momento da aprovação.
+
+---
+
+# Integração — Compras e Auditoria
+
+Operações relevantes devem utilizar a Auditoria Central.
+
+Eventos incluem, conforme a operação:
+
+- alterações relevantes;
+- Forma de Pagamento;
+- geração/regeneração de parcelas;
+- aprovação;
+- transições;
+- operações críticas.
+
+Não criar auditoria paralela exclusiva do módulo.
 
 ---
 
@@ -2210,6 +2877,12 @@ O backend deve validar:
 - Material;
 - Pack;
 - Loja;
+- Fornecedor;
+- Pedido de Compra;
+- Forma de Pagamento;
+- Prazo de Pagamento;
+- Natureza de Lançamento;
+- Financeiro;
 - Ficha Técnica;
 - demais relacionamentos empresariais.
 
@@ -2282,6 +2955,16 @@ Aplicável a:
 - Packs;
 - outros cadastros com dependências.
 
+No Pedido de Compra:
+
+~~~text
+AB
+→ exclusão permitida conforme regras
+
+AP / AT / CA
+→ preservar histórico
+~~~
+
 ---
 
 # Princípio de Integridade Histórica
@@ -2304,6 +2987,8 @@ Cor inativada
 → não apagar SKU histórico
 ~~~
 
+Pedido de Compra deve preservar a realidade da operação realizada.
+
 ---
 
 # Testes
@@ -2325,6 +3010,24 @@ Fechamento:
 - testes relevantes;
 - homologação;
 - documentação.
+
+Pedido de Compra possui cobertura específica do módulo de Compras.
+
+O fechamento da unificação registrou:
+
+~~~text
+15 testes aprovados
+~~~
+
+Além de:
+
+~~~text
+python manage.py check
+~~~
+
+A cobertura específica de Compras não representa cobertura integral do cancelamento real de Nota Fiscal dentro do módulo Fiscal.
+
+Mudanças nessa integração devem validar os dois módulos.
 
 ---
 
@@ -2368,6 +3071,9 @@ define quantidade e localização.
 
 FISCAL
 define aplicação tributária operacional.
+
+FINANCEIRO
+define títulos, parcelas efetivas e pagamentos.
 
 PRODUÇÃO
 define transformação e consumo produtivo.
@@ -2423,6 +3129,13 @@ PRODUTOS > CADASTROS AUXILIARES
 → CONCLUÍDOS
 → HOMOLOGADOS
 → DOCUMENTADOS
+
+COMPRAS > PEDIDO DE COMPRA
+→ CONCLUÍDO
+→ TESTADO
+→ HOMOLOGADO
+→ DOCUMENTADO
+→ APROVADO
 ~~~
 
 ---
@@ -2463,7 +3176,48 @@ PRODUTOS > CADASTROS AUXILIARES
 
 ---
 
-# Estado do Mapa Técnico em 14/08/2026
+# Documentação de Compras
+
+## Pedido de Compra
+
+Status:
+
+~~~text
+IMPLEMENTADO
+TESTADO
+HOMOLOGADO
+DOCUMENTADO
+APROVADO
+~~~
+
+Documentação:
+
+- [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
+A documentação específica deve ser consultada antes de alterações no fluxo de:
+
+- Pedido;
+- itens;
+- tipo;
+- Packs;
+- Forma de Pagamento;
+- Prazo;
+- parcelas;
+- aprovação;
+- Natureza;
+- Financeiro;
+- recebimento;
+- Fiscal;
+- status;
+- multiempresa.
+
+---
+
+# Estado do Mapa Técnico em 16/08/2026
 
 O Mapa Técnico central reconhece como domínios de Produtos concluídos:
 
@@ -2472,6 +3226,18 @@ PRODUTO VENDA
 PRODUTO USO/CONSUMO
 INSUMOS
 CADASTROS AUXILIARES DE PRODUTOS
+~~~
+
+Também reconhece no grupo Compras:
+
+~~~text
+PEDIDO DE COMPRA
+→ UNIFICADO
+→ IMPLEMENTADO
+→ TESTADO
+→ HOMOLOGADO
+→ DOCUMENTADO
+→ APROVADO
 ~~~
 
 Esses domínios possuem documentação específica própria.
