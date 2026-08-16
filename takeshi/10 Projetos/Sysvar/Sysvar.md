@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-14
+updated: 2026-08-16
 tags:
   - projeto
   - sysvar
@@ -19,6 +19,8 @@ tags:
   - produto-uso-consumo
   - insumos
   - cadastros-auxiliares
+  - compras
+  - pedido-de-compra
   - revenda
   - fabricação-própria
   - sku
@@ -31,6 +33,7 @@ tags:
   - unidades
   - material
   - estoque
+  - financeiro
   - fiscal
   - produção
   - auditoria
@@ -145,18 +148,21 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 
 ## Compras
 
-- Pedidos de Compra;
-- Produtos Venda;
-- Produtos Uso/Consumo;
+- Pedido de Compra unificado;
+- Revenda;
+- Produto Uso/Consumo;
 - Insumos;
 - Fornecedores;
 - Packs;
+- Forma de Pagamento;
+- Prazo de Pagamento;
+- parcelas planejadas;
 - aprovação;
-- cancelamento;
-- parcelas;
+- Natureza de Lançamento;
 - integração financeira;
 - recebimento;
-- Entrada Fiscal.
+- Entrada Fiscal;
+- acompanhamento de atendimento.
 
 ## Fiscal
 
@@ -491,6 +497,7 @@ A Auditoria registra eventos relacionados a:
 - Fornecedores;
 - Funcionários;
 - Produtos;
+- Compras;
 - ciclo de vida;
 - alterações cadastrais;
 - alterações fiscais;
@@ -1885,6 +1892,464 @@ Integridade histórica possui prioridade sobre exclusão física.
 
 ---
 
+# Grupo Compras
+
+## Situação do Pedido de Compra
+
+~~~text
+PEDIDO DE COMPRA
+→ CONCLUÍDO
+→ TESTADO
+→ HOMOLOGADO
+→ DOCUMENTADO
+→ APROVADO
+~~~
+
+O fluxo de Pedido de Compra foi consolidado em uma única funcionalidade.
+
+Não existem, como funcionalidades independentes para o usuário:
+
+- Pedido de Revenda;
+- Pedido de Uso/Consumo;
+- Pedido de Insumo.
+
+A diferenciação ocorre automaticamente através do primeiro item.
+
+---
+
+# Pedido de Compra Unificado
+
+Tipos participantes:
+
+~~~text
+1 = Revenda
+2 = Uso/Consumo
+4 = Insumo
+~~~
+
+Tipo não participante:
+
+~~~text
+3 = Fabricação Própria
+~~~
+
+Fabricação Própria pertence ao processo de Produção.
+
+---
+
+# Definição Automática do Tipo
+
+Pedido novo nasce:
+
+~~~text
+status = AB
+tipo = ''
+~~~
+
+O primeiro item define:
+
+~~~text
+Produto.tipo_produto
+        ↓
+Pedido.tipo
+~~~
+
+Depois disso, os demais itens precisam possuir o mesmo tipo.
+
+Não é permitido misturar:
+
+~~~text
+Revenda + Uso/Consumo
+Revenda + Insumo
+Uso/Consumo + Insumo
+~~~
+
+---
+
+# Pedido Vazio
+
+Enquanto o Pedido AB não possui itens:
+
+~~~text
+tipo = ''
+~~~
+
+Se o último item for excluído, o tipo volta para vazio.
+
+O Pedido pode então receber novamente um primeiro item de qualquer tipo permitido.
+
+---
+
+# Estados do Pedido de Compra
+
+Estados:
+
+~~~text
+AB = Aberto
+AP = Aprovado
+AT = Atendido
+CA = Cancelado
+~~~
+
+AB é o estado de manutenção estrutural.
+
+Somente Pedido AB pode ser excluído fisicamente pelo fluxo normal.
+
+---
+
+# Pedido de Revenda
+
+Para tipo 1:
+
+- Produto;
+- Cor;
+- Pack;
+- número de Packs;
+- quantidade calculada;
+- preço unitário;
+- desconto;
+- total;
+- observação.
+
+Quantidade:
+
+~~~text
+Número de Packs
+×
+Soma das quantidades dos itens do Pack
+=
+Quantidade
+~~~
+
+Revenda não aceita quantidade fracionária.
+
+---
+
+# Pedido de Uso/Consumo
+
+Para tipo 2:
+
+- Produto;
+- Unidade;
+- quantidade;
+- preço;
+- desconto;
+- total;
+- observação.
+
+Não utiliza Pack.
+
+Quantidade decimal depende de:
+
+~~~text
+Unidade.permite_decimal
+~~~
+
+---
+
+# Pedido de Insumo
+
+Para tipo 4:
+
+- Produto;
+- Unidade;
+- quantidade;
+- preço;
+- desconto;
+- total;
+- observação.
+
+Não utiliza Pack.
+
+A mecânica quantitativa é semelhante a Uso/Consumo, mas o tipo permanece próprio.
+
+---
+
+# Totais do Pedido
+
+Total do item:
+
+~~~text
+bruto = quantidade × preço unitário
+total_item = bruto - desconto_item
+~~~
+
+Total geral:
+
+~~~text
+total_pedido =
+total_itens
+- total_desconto
++ frete
+~~~
+
+Desconto geral e frete são opcionais.
+
+O total não pode ser negativo.
+
+Para aprovação, deve ser maior que zero.
+
+---
+
+# Forma de Pagamento e Prazo
+
+Forma de Pagamento é tratada em sobretela própria.
+
+A estrutura contempla:
+
+- Forma;
+- Prazo;
+- parcelas;
+- vencimentos;
+- valores;
+- Total do Pedido;
+- Total das Parcelas;
+- Diferença;
+- Situação.
+
+O planejamento é representado por:
+
+~~~text
+PedidoCompraParcela
+~~~
+
+---
+
+# Parcelas Planejadas
+
+Estado principal antes da aprovação:
+
+~~~text
+PLAN = Planejada
+~~~
+
+Invariante:
+
+~~~text
+Soma das parcelas
+=
+Total do Pedido
+~~~
+
+Alterações do total em Pedido AB devem manter o planejamento coerente.
+
+---
+
+# Natureza de Lançamento
+
+A Natureza financeira é escolhida no momento da aprovação.
+
+Ela não pertence ao fluxo principal de preenchimento do cabeçalho.
+
+---
+
+# Aprovação do Pedido
+
+Fluxo:
+
+~~~text
+Pedido AB
+   ↓
+validar itens
+   ↓
+validar tipo
+   ↓
+validar Forma/Prazo
+   ↓
+validar parcelas
+   ↓
+selecionar Natureza
+   ↓
+gerar Financeiro
+   ↓
+AP
+~~~
+
+A aprovação gera integração com:
+
+~~~text
+Pagar
+PagarItem
+~~~
+
+Não cria entrada física de Estoque.
+
+---
+
+# PedidoCompraParcela versus PagarItem
+
+Separação:
+
+~~~text
+PedidoCompraParcela
+→ planejamento
+
+PagarItem
+→ obrigação financeira
+~~~
+
+Não fundir essas responsabilidades.
+
+---
+
+# Recebimento do Pedido
+
+O recebimento real permanece ligado ao fluxo Fiscal.
+
+~~~text
+Pedido AP
+   ↓
+Nota Fiscal de Entrada
+   ↓
+Recebimento
+   ↓
+Estoque
+   ↓
+Atualização do atendimento
+~~~
+
+A sobretela de Recebimentos no Pedido é principalmente consultiva.
+
+---
+
+# Recebimento Parcial
+
+~~~text
+Recebimento parcial
+→ Pedido permanece AP
+~~~
+
+O Pedido continua aguardando as quantidades pendentes.
+
+---
+
+# Recebimento Integral
+
+Quando todo o Pedido for atendido:
+
+~~~text
+AP → AT
+~~~
+
+AT significa atendimento integral.
+
+---
+
+# Cancelamento Fiscal e Atendimento
+
+Se uma Nota Fiscal de Entrada relacionada ao recebimento for cancelada, o atendimento deve ser recalculado.
+
+Quando o Pedido deixar de estar totalmente atendido:
+
+~~~text
+AT → AP
+~~~
+
+conforme o fluxo Fiscal vigente.
+
+A cobertura específica dos testes de Compras não representa cobertura integral desse cenário fiscal.
+
+---
+
+# Pedido de Compra e Estoque
+
+Princípio:
+
+~~~text
+Pedido aprovado
+!=
+Mercadoria recebida
+~~~
+
+Não movimentar Estoque na simples aprovação.
+
+A movimentação ocorre através do processo operacional de recebimento.
+
+---
+
+# Pedido de Compra e Financeiro
+
+Compras define:
+
+- compromisso comercial;
+- valores;
+- Forma;
+- Prazo;
+- planejamento.
+
+Financeiro define:
+
+- títulos;
+- parcelas efetivas;
+- baixas;
+- pagamentos.
+
+A aprovação faz a ponte entre os módulos.
+
+---
+
+# Pedido de Compra e Fiscal
+
+Compras define:
+
+~~~text
+o que foi solicitado
+~~~
+
+Fiscal registra:
+
+~~~text
+o que efetivamente entrou
++
+documento fiscal
++
+tributação
+~~~
+
+Os processos se integram, mas não se substituem.
+
+---
+
+# Multiempresa em Compras
+
+Todo o fluxo deve respeitar:
+
+- Empresa;
+- Loja;
+- Fornecedor;
+- Produto;
+- Forma de Pagamento;
+- Prazo;
+- Natureza;
+- Financeiro;
+- recebimento.
+
+O backend permanece autoridade.
+
+---
+
+# Homologação do Pedido de Compra
+
+Resultado:
+
+~~~text
+APROVADO
+~~~
+
+Registro:
+
+[[Homologação - Compras - Pedido de Compra]]
+
+## Documentação
+
+- [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
+---
+
 # Integração entre os Domínios de Produtos
 
 Visão consolidada:
@@ -1912,62 +2377,86 @@ Cadastros Auxiliares fornecem estruturas compartilháveis somente quando pertenc
 
 ---
 
+# Produtos e Pedido de Compra
+
+Participação em Compras:
+
+~~~text
+Produto tipo 1
+→ Revenda
+→ participa
+
+Produto tipo 2
+→ Uso/Consumo
+→ participa
+
+Produto tipo 3
+→ Fabricação Própria
+→ não participa
+
+Produto tipo 4
+→ Insumo
+→ participa
+~~~
+
+O primeiro item determina o tipo do Pedido.
+
+---
+
 # Produto Venda e Compras
+
+Para Revenda, Compras reutiliza:
+
+- Produto;
+- Cor;
+- Pack;
+- itens do Pack;
+- informações cadastrais.
 
 Compras permanece responsável por:
 
 - Fornecedor;
 - Pedido;
-- itens;
-- Packs;
+- quantidade;
+- preço;
+- condições comerciais;
 - aprovação;
 - recebimento;
-- parcelas;
-- integração financeira;
-- entrada.
-
-Produto Venda fornece:
-
-- Produto;
-- SKU;
-- Grade;
-- Pack;
-- demais informações cadastrais necessárias.
+- integração financeira.
 
 ---
 
 # Produto Uso/Consumo e Compras
 
-Produto Uso/Consumo pode participar de Compras.
+Produto Uso/Consumo participa do Pedido de Compra tipo 2.
 
 Compras determina:
 
 - Fornecedor;
 - quantidade;
 - preço;
-- recebimento;
-- localização de Estoque;
-- custos;
-- Financeiro.
+- pagamento;
+- aprovação;
+- recebimento.
 
-O cadastro não executa essas operações.
+O cadastro do Produto não executa essas operações.
 
 ---
 
 # Insumos e Compras
 
-Insumos também podem participar de Compras.
+Insumos participam do Pedido de Compra tipo 4.
 
 Fluxo:
 
 ~~~text
 Fornecedor
    ↓
-Pedido
+Pedido de Compra
    ↓
 Insumo
    ↓
-Recebimento
+Recebimento Fiscal
    ↓
 Estoque
    ↓
@@ -2089,6 +2578,14 @@ Responsável por:
 - testes necessários;
 - commit.
 
+O protocolo geral vigente deve ser consultado em:
+
+[[Protocolo de Trabalho com IA]]
+
+E os prompts devem seguir:
+
+[[Padrao de Prompts para Codex]]
+
 ---
 
 # Regra de Economia de Codex
@@ -2197,6 +2694,13 @@ CADASTROS AUXILIARES DE PRODUTOS
 → CONCLUÍDOS
 → HOMOLOGADOS
 → DOCUMENTADOS
+
+COMPRAS
+→ PEDIDO DE COMPRA CONCLUÍDO
+→ TESTADO
+→ HOMOLOGADO
+→ DOCUMENTADO
+→ APROVADO
 ~~~
 
 ---
@@ -2291,6 +2795,24 @@ Documentos:
 - [[Modelo de Domínio - Produtos - Cadastros Auxiliares]]
 - [[Riscos e Cuidados - Produtos - Cadastros Auxiliares]]
 
+## Pedido de Compra
+
+~~~text
+IMPLEMENTADO
+TESTADO
+HOMOLOGADO
+APROVADO
+DOCUMENTAÇÃO CONCLUÍDA
+~~~
+
+Documentos:
+
+- [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
 ---
 
 # Estado Atual Consolidado
@@ -2335,13 +2857,20 @@ PRODUTOS > CADASTROS AUXILIARES
 → CONCLUÍDOS
 → HOMOLOGADOS
 → DOCUMENTADOS
+
+COMPRAS > PEDIDO DE COMPRA
+→ CONCLUÍDO
+→ TESTADO
+→ HOMOLOGADO
+→ APROVADO
+→ DOCUMENTADO
 ~~~
 
 ---
 
 # Marco Atual
 
-Em **14/08/2026**, o projeto atingiu o seguinte marco:
+Em **16/08/2026**, o projeto atingiu o seguinte marco:
 
 ~~~text
 INFRAESTRUTURA OPERACIONAL
@@ -2371,9 +2900,19 @@ CONCLUÍDO E HOMOLOGADO
 
 CADASTROS AUXILIARES DE PRODUTOS
 CONCLUÍDOS E HOMOLOGADOS
+
+PEDIDO DE COMPRA
+UNIFICADO
+CONCLUÍDO
+TESTADO
+HOMOLOGADO
+APROVADO
+DOCUMENTADO
 ~~~
 
-O ciclo cadastral atualmente revisado do grupo Produtos está concluído e documentado.
+O ciclo cadastral atualmente revisado de Produtos está concluído e documentado.
+
+O Pedido de Compra unificado também está concluído, homologado, aprovado e documentado.
 
 ---
 
@@ -2475,9 +3014,17 @@ Não transportar automaticamente regras de um domínio para outro.
 - [[Modelo de Domínio - Produtos - Cadastros Auxiliares]]
 - [[Riscos e Cuidados - Produtos - Cadastros Auxiliares]]
 
+## Compras - Pedido de Compra
+
+- [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
 ---
 
-# Estado do Projeto em 14/08/2026
+# Estado do Projeto em 16/08/2026
 
 A infraestrutura operacional central está concluída e homologada.
 
@@ -2489,7 +3036,7 @@ FORNECEDORES
 FUNCIONÁRIOS
 ~~~
 
-O ciclo cadastral atualmente revisado de Produtos também está encerrado:
+O ciclo cadastral atualmente revisado de Produtos está encerrado:
 
 ~~~text
 PRODUTO VENDA
@@ -2506,7 +3053,39 @@ Produto Venda possui homologação manual:
 
 Produto Uso/Consumo, Insumos e Cadastros Auxiliares foram funcionalmente validados e possuem seus respectivos conjuntos documentais concluídos.
 
-Todos os quatro blocos estão ligados ao nó principal [[Sysvar]].
+O grupo Compras passa a possuir também um domínio formalmente encerrado:
+
+~~~text
+PEDIDO DE COMPRA
+→ UNIFICADO
+→ TESTADO
+→ HOMOLOGADO
+→ APROVADO
+→ DOCUMENTADO
+~~~
+
+O Pedido de Compra contempla:
+
+~~~text
+REVenda
+→ tipo 1
+
+USO/CONSUMO
+→ tipo 2
+
+INSUMO
+→ tipo 4
+~~~
+
+Fabricação Própria:
+
+~~~text
+tipo 3
+→ Produção
+→ fora do Pedido de Compra
+~~~
+
+Todos esses blocos estão ligados ao nó principal [[Sysvar]].
 
 O desenvolvimento deve continuar preservando:
 
