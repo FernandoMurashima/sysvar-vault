@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-14
+updated: 2026-08-16
 tags:
   - sysvar
   - contexto
@@ -20,6 +20,9 @@ tags:
   - sessões
   - licenciamento
   - compras
+  - pedido-de-compra
+  - financeiro
+  - fiscal
   - estoque
   - produção
   - auditoria
@@ -50,7 +53,8 @@ Os fluxos atualmente consolidados abrangem:
 - Produto Venda;
 - Produto Uso/Consumo;
 - Insumos;
-- Cadastros Auxiliares de Produtos.
+- Cadastros Auxiliares de Produtos;
+- Pedido de Compra.
 
 ---
 
@@ -96,6 +100,14 @@ CADASTROS AUXILIARES DE PRODUTOS
 → CONCLUÍDOS
 → HOMOLOGADOS
 → DOCUMENTADOS
+
+PEDIDO DE COMPRA
+→ UNIFICADO
+→ CONCLUÍDO
+→ TESTADO
+→ HOMOLOGADO
+→ APROVADO
+→ DOCUMENTADO
 ~~~
 
 ---
@@ -154,6 +166,16 @@ Exemplo:
 Produto Empresa A
 +
 Grupo Empresa B
+        ↓
+REJEITAR
+~~~
+
+Outro exemplo:
+
+~~~text
+Pedido Empresa A
++
+Fornecedor Empresa B
         ↓
 REJEITAR
 ~~~
@@ -636,14 +658,18 @@ Pedido de Compra
         ↓
 Itens
         ↓
+Forma / Prazo
+        ↓
 Aprovação
         ↓
-Recebimento
+Financeiro
         ↓
-Financeiro / Estoque
+Recebimento Fiscal
+        ↓
+Estoque
 ~~~
 
-Compras continua sendo responsável pelo processo.
+Compras continua sendo responsável pela aquisição.
 
 ---
 
@@ -955,7 +981,7 @@ SKU
    ↓
 Pedido de Compra
    ↓
-Recebimento
+Recebimento Fiscal
    ↓
 Estoque
    ↓
@@ -982,6 +1008,8 @@ Estoque
    ↓
 Venda
 ~~~
+
+Produto tipo 3 não participa do Pedido de Compra.
 
 ---
 
@@ -1098,7 +1126,9 @@ Produto Uso/Consumo possui domínio próprio.
 ~~~text
 Produto cadastrado
         ↓
-Operação de Compra/Entrada
+Pedido de Compra
+        ↓
+Recebimento Fiscal
         ↓
 Operação determina local
         ↓
@@ -1134,17 +1164,21 @@ Produto Uso/Consumo
         ↓
 Pedido de Compra
         ↓
-Fornecedor
+Primeiro item define tipo 2
         ↓
-Quantidade
+Quantidade conforme Unidade
         ↓
 Preço
         ↓
-Recebimento
+Forma / Prazo
+        ↓
+Aprovação
+        ↓
+Financeiro
+        ↓
+Recebimento Fiscal
         ↓
 Estoque
-        ↓
-Custos
 ~~~
 
 ---
@@ -1237,9 +1271,19 @@ Fornecedor
    ↓
 Pedido de Compra
    ↓
+Primeiro item define tipo 4
+   ↓
 Insumo
    ↓
-Recebimento
+Quantidade conforme Unidade
+   ↓
+Forma / Prazo
+   ↓
+Aprovação
+   ↓
+Financeiro
+   ↓
+Recebimento Fiscal
    ↓
 Movimento de Estoque
    ↓
@@ -1500,6 +1544,8 @@ soma_itens_pack
 quantidade de peças
 ~~~
 
+Esse fluxo é utilizado pelo Pedido de Compra de Revenda.
+
 ---
 
 # 68. Coleções
@@ -1670,45 +1716,957 @@ JÁ UTILIZADO
         ↓
 Preservar histórico
         ↓
-Inativar / Desligar / Bloquear
+Inativar / Desligar / Bloquear / Cancelar
 conforme domínio
 ~~~
 
 ---
 
-# 77. Compras e Produtos
+# 77. Grupo Compras
 
-Fluxo geral:
+O fluxo consolidado é uma única funcionalidade:
+
+**Pedido de Compra**
+
+Tipos participantes:
 
 ~~~text
-Produto
-        ↓
+1 = Revenda
+2 = Uso/Consumo
+4 = Insumo
+~~~
+
+Não participante:
+
+~~~text
+3 = Fabricação Própria
+~~~
+
+Documentação específica:
+
+[[Workflows - Compras - Pedido de Compra]]
+
+---
+
+# 78. Pedido de Compra — Entrada
+
+~~~text
+Compras
+   ↓
 Pedido de Compra
+   ↓
+Listagem unificada
+~~~
+
+A listagem pode conter:
+
+- Revenda;
+- Uso/Consumo;
+- Insumo.
+
+Não existem telas funcionais independentes de Pedido para cada tipo.
+
+---
+
+# 79. Pedido de Compra — Novo
+
+~~~text
+Novo Pedido
+        ↓
+Cabeçalho
+        ↓
+Empresa
+        ↓
+Loja
         ↓
 Fornecedor
         ↓
-Itens
+Emissão
         ↓
-Quantidade / Pack quando aplicável
+Previsão quando informada
+        ↓
+Salvar
+        ↓
+status = AB
+tipo = ''
+~~~
+
+O usuário não escolhe manualmente o tipo.
+
+---
+
+# 80. Pedido de Compra — Fornecedor
+
+~~~text
+Fornecedor selecionado
+        ↓
+Backend valida:
+- Empresa
+- ativo
+- não bloqueado
+        ↓
+Válido?
+   ├── Sim → continuar
+   └── Não → rejeitar
+~~~
+
+---
+
+# 81. Pedido de Compra — Primeiro Item
+
+~~~text
+Pedido AB
+tipo = ''
+        ↓
+Abrir Itens
+        ↓
+Selecionar Produto
+        ↓
+Backend identifica tipo_produto
+        ↓
+Tipo permitido?
+   ├── 1 → Revenda
+   ├── 2 → Uso/Consumo
+   ├── 4 → Insumo
+   └── 3 → rejeitar
+        ↓
+Criar primeiro item
+        ↓
+Pedido.tipo = Produto.tipo_produto
+~~~
+
+---
+
+# 82. Pedido de Compra — Fabricação Própria
+
+Fluxo inválido:
+
+~~~text
+Pedido
+   ↓
+Selecionar Produto tipo 3
+   ↓
+Backend
+   ↓
+REJEITAR
+~~~
+
+Fabricação Própria pertence ao fluxo de Produção.
+
+---
+
+# 83. Pedido de Compra — Homogeneidade
+
+Após o primeiro item:
+
+~~~text
+Pedido.tipo definido
+        ↓
+Novo Produto
+        ↓
+Produto.tipo_produto == Pedido.tipo?
+   ├── Sim → permitir
+   └── Não → rejeitar
+~~~
+
+Não misturar:
+
+~~~text
+1 + 2
+1 + 4
+2 + 4
+~~~
+
+---
+
+# 84. Pedido de Compra — Revenda
+
+~~~text
+Pedido tipo 1
+        ↓
+Produto
+        ↓
+Cor
+        ↓
+Pack
+        ↓
+Número de Packs
+        ↓
+Backend soma PackItem
+        ↓
+Calcula quantidade
         ↓
 Preço
         ↓
+Desconto quando houver
+        ↓
+Total do item
+~~~
+
+Quantidade:
+
+~~~text
+qtd =
+n_packs
+×
+soma_itens_pack
+~~~
+
+A quantidade não é digitada livremente.
+
+---
+
+# 85. Pedido de Compra — Uso/Consumo
+
+~~~text
+Pedido tipo 2
+        ↓
+Produto
+        ↓
+Unidade
+        ↓
+Quantidade
+        ↓
+Validar permite_decimal
+        ↓
+Preço
+        ↓
+Desconto quando houver
+        ↓
+Total
+~~~
+
+Não utiliza Pack.
+
+---
+
+# 86. Pedido de Compra — Insumo
+
+~~~text
+Pedido tipo 4
+        ↓
+Insumo
+        ↓
+Unidade
+        ↓
+Quantidade
+        ↓
+Validar permite_decimal
+        ↓
+Preço
+        ↓
+Desconto quando houver
+        ↓
+Total
+~~~
+
+Não utiliza Pack.
+
+---
+
+# 87. Pedido de Compra — Quantidade Decimal
+
+Para tipos 2 e 4:
+
+~~~text
+Unidade.permite_decimal?
+   ├── true → fracionário permitido
+   └── false → exigir quantidade inteira
+~~~
+
+Revenda utiliza quantidade inteira derivada do Pack.
+
+---
+
+# 88. Pedido de Compra — Alterar Item
+
+Somente enquanto:
+
+~~~text
+status = AB
+~~~
+
+Fluxo:
+
+~~~text
+Selecionar item
+        ↓
+Editar
+        ↓
+Validar regras do tipo
+        ↓
+Salvar
+        ↓
+Recalcular item
+        ↓
+Recalcular Pedido
+~~~
+
+---
+
+# 89. Pedido de Compra — Excluir Item
+
+~~~text
+Pedido AB
+        ↓
+Selecionar item
+        ↓
+Excluir
+        ↓
+Recalcular Pedido
+~~~
+
+Se o item era o último:
+
+~~~text
+0 itens
+        ↓
+Pedido.tipo = ''
+~~~
+
+---
+
+# 90. Pedido de Compra — Redefinição de Tipo
+
+Exemplo válido:
+
+~~~text
+Pedido AB
+tipo = 1
+1 item
+        ↓
+Excluir último item
+        ↓
+tipo = ''
+        ↓
+Adicionar Produto tipo 4
+        ↓
+tipo = 4
+~~~
+
+---
+
+# 91. Pedido de Compra — Total do Item
+
+~~~text
+quantidade
+×
+preço unitário
+=
+valor bruto
+        ↓
+- desconto do item
+        ↓
+total_item
+~~~
+
+Backend permanece autoridade do cálculo.
+
+---
+
+# 92. Pedido de Compra — Total Geral
+
+~~~text
+Somar total_item
+        ↓
+total_itens
+        ↓
+- desconto geral
+        ↓
++ frete
+        ↓
+total_pedido
+~~~
+
+Fórmula:
+
+~~~text
+total_pedido =
+total_itens
+- total_desconto
++ frete
+~~~
+
+Total não pode ser negativo.
+
+---
+
+# 93. Pedido de Compra — Forma de Pagamento
+
+~~~text
+Pedido AB
+        ↓
+Abrir Forma de Pagamento
+        ↓
+Selecionar Forma
+        ↓
+Selecionar ou obter Prazo
+        ↓
+Aplicar
+        ↓
+Backend valida
+        ↓
+Gerar parcelas PLAN
+~~~
+
+---
+
+# 94. Pedido de Compra — Parcelas Planejadas
+
+~~~text
+Total do Pedido
+        ↓
+Forma / Prazo
+        ↓
+Dias / Percentuais
+        ↓
+PedidoCompraParcela
+        ↓
+PLAN
+~~~
+
+Cada parcela pode possuir:
+
+- número;
+- vencimento;
+- valor;
+- percentual.
+
+---
+
+# 95. Pedido de Compra — Vencimentos
+
+~~~text
+Data de emissão
++
+dias configurados
+=
+vencimento
+~~~
+
+A soma das parcelas deve permanecer coerente com o total.
+
+---
+
+# 96. Pedido de Compra — Sincronização de Parcelas
+
+Enquanto AB:
+
+~~~text
+Alterar item / desconto / frete
+        ↓
+Total do Pedido muda
+        ↓
+Recalcular
+        ↓
+Sincronizar parcelas PLAN
+~~~
+
+Invariante:
+
+~~~text
+soma(parcelas)
+=
+total_pedido
+~~~
+
+---
+
+# 97. Pedido de Compra — Preparação para Aprovação
+
+O Pedido deve possuir:
+
+- status AB;
+- pelo menos um item;
+- tipo permitido;
+- itens homogêneos;
+- total positivo;
+- Forma de Pagamento;
+- planejamento de parcelas consistente.
+
+A Natureza será informada durante a aprovação.
+
+---
+
+# 98. Pedido de Compra — Natureza
+
+~~~text
+Usuário solicita Aprovar
+        ↓
+Selecionar Natureza de Lançamento
+        ↓
+Backend valida Natureza
+        ↓
+Natureza pertence à Empresa?
+   ├── Sim → continuar
+   └── Não → rejeitar
+~~~
+
+A Natureza não precisa ocupar permanentemente o cabeçalho principal.
+
+---
+
+# 99. Pedido de Compra — Aprovação
+
+~~~text
+Pedido AB
+        ↓
+Aprovar
+        ↓
+Validar itens
+        ↓
+Validar tipo
+        ↓
+Validar homogeneidade
+        ↓
+Validar total > 0
+        ↓
+Validar Forma/Prazo
+        ↓
+Validar parcelas
+        ↓
+Validar Natureza
+        ↓
+Gerar Financeiro
+        ↓
+Alterar status para AP
+        ↓
+Auditar
+~~~
+
+---
+
+# 100. Pedido de Compra — Atomicidade
+
+A aprovação representa uma unidade lógica.
+
+~~~text
+Validações
++
+Pagar
++
+PagarItem
++
+Parcelas
++
+Status
++
+Auditoria quando obrigatória
+=
+uma operação
+~~~
+
+Em caso de falha:
+
+~~~text
+ROLLBACK
+~~~
+
+Não deixar aprovação parcial.
+
+---
+
+# 101. Pedido de Compra — Financeiro
+
+Fluxo:
+
+~~~text
+PedidoCompraParcela
+        ↓
 Aprovação
+        ↓
+Pagar
+        ↓
+PagarItem
+~~~
+
+Separação:
+
+~~~text
+PedidoCompraParcela
+→ planejamento
+
+PagarItem
+→ obrigação financeira
+~~~
+
+---
+
+# 102. Pedido de Compra — Estado AP
+
+Depois da aprovação:
+
+~~~text
+AB → AP
+~~~
+
+AP significa:
+
+- compra aprovada;
+- compromisso financeiro criado;
+- aguardando atendimento.
+
+Não significa mercadoria recebida.
+
+---
+
+# 103. Pedido de Compra — Aprovação não Movimenta Estoque
+
+Fluxo inválido:
+
+~~~text
+Aprovar Pedido
+        ↓
+Entrada de Estoque
+~~~
+
+Fluxo correto:
+
+~~~text
+Aprovar Pedido
+        ↓
+AP
+        ↓
+Nota Fiscal de Entrada
         ↓
 Recebimento
         ↓
 Estoque
-        ↓
-Financeiro
 ~~~
-
-Produto fornece identidade.
-
-Compras controla a aquisição.
 
 ---
 
-# 78. Estoque e Produto Venda
+# 104. Pedido de Compra — Recebimentos
+
+~~~text
+Pedido AP
+        ↓
+Abrir Recebimentos
+        ↓
+Consultar atendimento
+~~~
+
+A sobretela de Recebimentos é principalmente consultiva.
+
+A entrada efetiva ocorre através do Fiscal.
+
+---
+
+# 105. Pedido de Compra — Recebimento Parcial
+
+~~~text
+Quantidade pedida
+>
+Quantidade recebida acumulada
+        ↓
+Pedido permanece AP
+~~~
+
+Exemplo:
+
+~~~text
+Pedido = 100
+Recebido = 40
+        ↓
+AP
+~~~
+
+---
+
+# 106. Pedido de Compra — Recebimento Integral
+
+~~~text
+Quantidade pedida
+=
+Quantidade recebida válida
+        ↓
+Todos os itens atendidos
+        ↓
+AP → AT
+~~~
+
+AT significa atendimento integral.
+
+---
+
+# 107. Pedido de Compra — Múltiplos Recebimentos
+
+~~~text
+Pedido = 100
+        ↓
+NF 1 recebe 40
+        ↓
+AP
+        ↓
+NF 2 recebe 30
+        ↓
+AP
+        ↓
+NF 3 recebe 30
+        ↓
+AT
+~~~
+
+Não presumir:
+
+~~~text
+1 Pedido
+=
+1 Nota Fiscal
+~~~
+
+---
+
+# 108. Pedido de Compra — Cancelamento Fiscal
+
+~~~text
+Pedido AT
+        ↓
+NF relacionada é cancelada
+        ↓
+Recalcular recebimentos válidos
+        ↓
+Ainda integral?
+   ├── Sim → AT
+   └── Não → AP
+~~~
+
+Esse fluxo depende da integração Fiscal vigente.
+
+---
+
+# 109. Pedido de Compra — Exclusão
+
+~~~text
+Selecionar Pedido
+        ↓
+Excluir
+        ↓
+status == AB?
+   ├── Sim → permitir conforme regras
+   └── Não → rejeitar
+~~~
+
+Exclusão não substitui cancelamento.
+
+---
+
+# 110. Pedido de Compra — Consulta
+
+~~~text
+Selecionar Pedido
+        ↓
+Consultar
+        ↓
+Exibir:
+- cabeçalho
+- tipo
+- status
+- itens
+- totais
+- Forma
+- Prazo
+- parcelas
+- recebimentos
+~~~
+
+Após aprovação, o Pedido é predominantemente consultivo.
+
+---
+
+# 111. Pedido de Compra — Sobretelas
+
+Estruturas subordinadas:
+
+~~~text
+Pedido de Compra
+├── Itens
+├── Forma de Pagamento
+├── Recebimentos
+└── Aprovação / Natureza
+~~~
+
+A tela principal deve permanecer limpa.
+
+---
+
+# 112. Pedido de Compra — Seleção e Ações
+
+Padrão visual:
+
+~~~text
+Selecionar linha
+        ↓
+Linha destacada
+        ↓
+Barra de ações
+~~~
+
+Não reintroduzir como padrão:
+
+~~~text
+Coluna Ações
++
+Menu de três pontos
+~~~
+
+onde o padrão homologado utiliza seleção de linha.
+
+---
+
+# 113. Pedido de Compra — Multiempresa
+
+Em qualquer operação:
+
+~~~text
+Usuário
+        ↓
+Empresa
+        ↓
+Pedido
+        ↓
+Loja / Fornecedor / Produto / Forma / Prazo / Natureza
+        ↓
+Validar tenant
+~~~
+
+Relacionamentos de outra Empresa devem ser rejeitados.
+
+---
+
+# 114. Pedido de Compra — Auditoria
+
+Operações relevantes podem gerar Auditoria.
+
+Exemplos:
+
+- aplicação de Forma;
+- alteração relevante;
+- geração/regeneração de parcelas;
+- aprovação;
+- transições.
+
+Utilizar Auditoria Central.
+
+Não criar mecanismo paralelo exclusivo de Compras.
+
+---
+
+# 115. Pedido de Compra — Fluxo Completo Revenda
+
+~~~text
+Novo Pedido
+        ↓
+Cabeçalho
+        ↓
+Primeiro Produto tipo 1
+        ↓
+Pedido.tipo = 1
+        ↓
+Cor
+        ↓
+Pack
+        ↓
+Número de Packs
+        ↓
+Quantidade automática
+        ↓
+Preço / Desconto
+        ↓
+Demais itens tipo 1
+        ↓
+Forma / Prazo
+        ↓
+Parcelas
+        ↓
+Aprovação + Natureza
+        ↓
+Financeiro
+        ↓
+AP
+        ↓
+NF Entrada
+        ↓
+Recebimento
+        ↓
+AT quando integral
+~~~
+
+---
+
+# 116. Pedido de Compra — Fluxo Completo Uso/Consumo
+
+~~~text
+Novo Pedido
+        ↓
+Cabeçalho
+        ↓
+Primeiro Produto tipo 2
+        ↓
+Pedido.tipo = 2
+        ↓
+Quantidade conforme Unidade
+        ↓
+Preço / Desconto
+        ↓
+Demais itens tipo 2
+        ↓
+Forma / Prazo
+        ↓
+Parcelas
+        ↓
+Aprovação + Natureza
+        ↓
+Financeiro
+        ↓
+AP
+        ↓
+NF Entrada
+        ↓
+Recebimento
+        ↓
+AT quando integral
+~~~
+
+---
+
+# 117. Pedido de Compra — Fluxo Completo Insumo
+
+~~~text
+Novo Pedido
+        ↓
+Cabeçalho
+        ↓
+Primeiro Produto tipo 4
+        ↓
+Pedido.tipo = 4
+        ↓
+Quantidade conforme Unidade
+        ↓
+Preço / Desconto
+        ↓
+Demais itens tipo 4
+        ↓
+Forma / Prazo
+        ↓
+Parcelas
+        ↓
+Aprovação + Natureza
+        ↓
+Financeiro
+        ↓
+AP
+        ↓
+NF Entrada
+        ↓
+Recebimento
+        ↓
+AT quando integral
+~~~
+
+---
+
+# 118. Estoque e Produto Venda
 
 ~~~text
 SKU
@@ -1728,7 +2686,7 @@ Loja × SKU
 
 ---
 
-# 79. Estoque e Uso/Consumo
+# 119. Estoque e Uso/Consumo
 
 ~~~text
 Produto tipo 2
@@ -1744,7 +2702,7 @@ Não fixar Matriz no cadastro.
 
 ---
 
-# 80. Estoque e Insumos
+# 120. Estoque e Insumos
 
 ~~~text
 Insumo tipo 4
@@ -1760,7 +2718,7 @@ Não fixar fábrica ou facção no cadastro do Insumo.
 
 ---
 
-# 81. Fiscal e Produtos
+# 121. Fiscal e Produtos
 
 ~~~text
 Produto
@@ -1778,7 +2736,47 @@ Cadastro fiscal e operação fiscal são responsabilidades distintas.
 
 ---
 
-# 82. Produção
+# 122. Fiscal e Pedido de Compra
+
+~~~text
+Pedido AP
+        ↓
+Nota Fiscal de Entrada
+        ↓
+Vinculação ao Pedido
+        ↓
+Recebimento
+        ↓
+Movimento de Estoque
+        ↓
+Atualização do atendimento
+~~~
+
+Compras não deve executar recebimento paralelo independente do Fiscal.
+
+---
+
+# 123. Financeiro e Pedido de Compra
+
+~~~text
+Pedido AB
+        ↓
+Planejamento
+        ↓
+Aprovação
+        ↓
+Pagar
+        ↓
+PagarItem
+        ↓
+Financeiro assume controle da obrigação
+~~~
+
+Baixas e pagamentos pertencem ao Financeiro.
+
+---
+
+# 124. Produção
 
 Fluxo conceitual:
 
@@ -1804,7 +2802,7 @@ O detalhamento de baixa/reserva de Insumos ainda pertence à evolução do módu
 
 ---
 
-# 83. PDV
+# 125. PDV
 
 Fluxo conceitual de venda:
 
@@ -1832,7 +2830,7 @@ Produto Uso/Consumo e Insumos não devem entrar normalmente nesse fluxo.
 
 ---
 
-# 84. Auditoria nos Domínios
+# 126. Auditoria nos Domínios
 
 Ações relevantes podem produzir:
 
@@ -1854,7 +2852,7 @@ AuditLog
 
 ---
 
-# 85. Erro de Validação
+# 127. Erro de Validação
 
 Fluxo:
 
@@ -1874,7 +2872,7 @@ Evitar mensagens genéricas quando a causa é conhecida.
 
 ---
 
-# 86. Erro de Permissão
+# 128. Erro de Permissão
 
 ~~~text
 Usuário solicita operação
@@ -1890,7 +2888,7 @@ Botão oculto não substitui essa validação.
 
 ---
 
-# 87. Mudança Estrutural Sensível
+# 129. Mudança Estrutural Sensível
 
 Antes de alterar estrutura utilizada:
 
@@ -1914,7 +2912,7 @@ Exemplos:
 
 ---
 
-# 88. Não Reinterpretar Histórico
+# 130. Não Reinterpretar Histórico
 
 ~~~text
 Configuração atual
@@ -1937,9 +2935,13 @@ Unidade alterada
 
 ---
 
-# 89. Fluxo de Implementação
+# 131. Fluxo de Implementação
 
-Para nova funcionalidade:
+O protocolo oficial deve ser consultado em:
+
+[[Protocolo de Trabalho com IA]]
+
+Fluxo:
 
 ~~~text
 Definir regra funcional
@@ -1963,7 +2965,7 @@ Documentar
 
 ---
 
-# 90. Fluxo de Correção Localizada
+# 132. Fluxo de Correção Localizada
 
 ~~~text
 Problema identificado
@@ -1983,7 +2985,7 @@ Evitar investigação ampla pelo Codex quando a causa já está delimitada.
 
 ---
 
-# 91. Responsabilidades
+# 133. Responsabilidades
 
 ## Usuário
 
@@ -2017,7 +3019,7 @@ Responsável por:
 
 ---
 
-# 92. Regra de Economia de Implementação
+# 134. Regra de Economia de Implementação
 
 ~~~text
 ANALISAR ANTES
@@ -2035,7 +3037,7 @@ Não gastar recursos em investigação ampla quando o problema está identificad
 
 ---
 
-# 93. Fechamento de Escopo
+# 135. Fechamento de Escopo
 
 Um escopo somente está fechado após:
 
@@ -2053,9 +3055,11 @@ HOMOLOGAÇÃO
 DOCUMENTAÇÃO
 ~~~
 
+O Pedido de Compra já cumpriu esse fluxo.
+
 ---
 
-# 94. Documentação de Produto Venda
+# 136. Documentação de Produto Venda
 
 - [[Homologação - Produtos - Produto Venda]]
 - [[Mapa Técnico - Produtos - Produto Venda]]
@@ -2065,7 +3069,7 @@ DOCUMENTAÇÃO
 
 ---
 
-# 95. Documentação de Produto Uso/Consumo
+# 137. Documentação de Produto Uso/Consumo
 
 - [[Homologação - Produtos - Produto Uso e Consumo]]
 - [[Mapa Técnico - Produtos - Produto Uso e Consumo]]
@@ -2075,7 +3079,7 @@ DOCUMENTAÇÃO
 
 ---
 
-# 96. Documentação de Insumos
+# 138. Documentação de Insumos
 
 - [[Homologação - Produtos - Insumos]]
 - [[Mapa Técnico - Produtos - Insumos]]
@@ -2085,7 +3089,7 @@ DOCUMENTAÇÃO
 
 ---
 
-# 97. Documentação de Cadastros Auxiliares
+# 139. Documentação de Cadastros Auxiliares
 
 - [[Homologação - Produtos - Cadastros Auxiliares]]
 - [[Mapa Técnico - Produtos - Cadastros Auxiliares]]
@@ -2095,53 +3099,116 @@ DOCUMENTAÇÃO
 
 ---
 
-# 98. Relação Geral dos Fluxos
+# 140. Documentação de Compras
+
+## Pedido de Compra
+
+- [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
+Status:
 
 ~~~text
-                         [[Sysvar]]
-                             │
-                             ↓
-                       [[Workflows]]
-                             │
-         ┌───────────────────┼────────────────────┐
-         │                   │                    │
-         ↓                   ↓                    ↓
-    OPERACIONAL          CADASTROS            PRODUTOS
-         │                   │                    │
-         │            ┌──────┼──────┐      ┌──────┼────────┐
-         │            ↓      ↓      ↓      ↓      ↓        ↓
-         │         Clientes Forn. Func.  Venda Uso/Cons. Insumos
-         │                                      │
-         │                                      ↓
-         │                              Cadastros Auxiliares
-         │
-         ↓
- Autenticação / Sessões
- Permissões / Auditoria
+IMPLEMENTADO
+TESTADO
+HOMOLOGADO
+APROVADO
+DOCUMENTADO
 ~~~
 
 ---
 
-# 99. Estado Atual dos Workflows
+# 141. Relação Geral dos Fluxos
 
-Em **14/08/2026**, estão formalmente consolidados neste mapa:
+~~~text
+                              [[Sysvar]]
+                                  │
+                                  ↓
+                            [[Workflows]]
+                                  │
+       ┌──────────────────────────┼───────────────────────────┐
+       │                          │                           │
+       ↓                          ↓                           ↓
+  OPERACIONAL                 CADASTROS                   PRODUTOS
+       │                          │                           │
+       │                   ┌──────┼──────┐           ┌────────┼─────────┐
+       │                   ↓      ↓      ↓           ↓        ↓         ↓
+       │                Clientes Forn. Func.      Venda   Uso/Cons.  Insumos
+       │                                                      │
+       │                                                      ↓
+       │                                             Cadastros Auxiliares
+       │
+       ↓
+ Autenticação / Sessões
+ Permissões / Auditoria
+
+                                  │
+                                  ↓
+                               COMPRAS
+                                  │
+                                  ↓
+                         PEDIDO DE COMPRA
+                                  │
+                     ┌────────────┼────────────┐
+                     ↓            ↓            ↓
+                  Revenda    Uso/Consumo    Insumo
+                     │            │            │
+                     └────────────┼────────────┘
+                                  ↓
+                             Aprovação
+                                  ↓
+                              Financeiro
+                                  ↓
+                           Recebimento Fiscal
+                                  ↓
+                               Estoque
+~~~
+
+---
+
+# 142. Estado Atual dos Workflows
+
+Em **16/08/2026**, estão formalmente consolidados neste mapa:
 
 ~~~text
 OPERACIONAL
+
 CLIENTES
+
 FORNECEDORES
+
 FUNCIONÁRIOS
+
 PRODUTO VENDA
+
 PRODUTO USO/CONSUMO
+
 INSUMOS
+
 CADASTROS AUXILIARES DE PRODUTOS
+
+PEDIDO DE COMPRA
+~~~
+
+O Pedido de Compra está:
+
+~~~text
+UNIFICADO
+IMPLEMENTADO
+TESTADO
+HOMOLOGADO
+APROVADO
+DOCUMENTADO
 ~~~
 
 O próximo domínio deverá ter suas regras definidas antes de ser incorporado a este documento central.
 
 ---
 
-# 100. Notas Relacionadas
+# 143. Notas Relacionadas
 
 ## Contexto Central
 
@@ -2158,3 +3225,21 @@ O próximo domínio deverá ter suas regras definidas antes de ser incorporado a
 - [[Workflows - Produtos - Produto Uso e Consumo]]
 - [[Workflows - Produtos - Insumos]]
 - [[Workflows - Produtos - Cadastros Auxiliares]]
+
+## Compras
+
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+- [[Homologação - Compras - Pedido de Compra]]
+
+---
+
+# 144. Última Atualização
+
+~~~text
+16/08/2026
+~~~
+
+Este documento representa os workflows centrais consolidados do SYSVAR após o fechamento, homologação e documentação do Pedido de Compra unificado.
