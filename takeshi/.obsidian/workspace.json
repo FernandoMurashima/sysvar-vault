@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "aadc7336647ddcd7",
+        "id": "a58ed65dd1737cea",
         "type": "tabs",
         "children": [
           {
-            "id": "c375e6189b80e381",
+            "id": "5e2c87411c86ce59",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -181,8 +181,9 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "c375e6189b80e381",
+  "active": "5e2c87411c86ce59",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Homologações/Homologação - Compras - Pedido de Compra.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Compras - Pedido de Compra.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Compras - Pedido de Compra.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Compras - Pedido de Compra.md",
@@ -208,7 +209,6 @@
     "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Cadastros Auxiliares.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Produtos - Insumos.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio - Produtos - Insumos.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Workflows - Produtos - Insumos.md",
     "10 Projetos/Sysvar/Operacao",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
