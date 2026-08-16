@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-14
+updated: 2026-08-16
 tags:
   - sysvar
   - riscos
@@ -17,6 +17,10 @@ tags:
   - produto-uso-consumo
   - insumos
   - cadastros-auxiliares
+  - compras
+  - pedido-de-compra
+  - financeiro
+  - fiscal
   - estoque
   - produção
   - auditoria
@@ -119,6 +123,18 @@ CADASTROS AUXILIARES
 → DOCUMENTADOS
 ~~~
 
+## Compras
+
+~~~text
+PEDIDO DE COMPRA
+→ UNIFICADO
+→ CONCLUÍDO
+→ TESTADO
+→ HOMOLOGADO
+→ APROVADO
+→ DOCUMENTADO
+~~~
+
 ---
 
 # 2. Regra Geral de Segurança
@@ -175,6 +191,10 @@ O backend deve impedir que um usuário de uma Empresa consiga:
 - utilizar Grade de outra Empresa;
 - utilizar Pack de outra Empresa;
 - utilizar Insumo de outra Empresa;
+- utilizar Pedido de Compra de outra Empresa;
+- utilizar Forma de Pagamento incompatível;
+- utilizar Prazo incompatível;
+- utilizar Natureza incompatível;
 - consultar sessões de outra Empresa;
 - consultar Auditoria de outra Empresa;
 - exportar dados de outra Empresa;
@@ -213,7 +233,11 @@ Validar:
 - Empresa do Grupo;
 - Empresa da Grade;
 - Empresa do Pack;
-- Empresa do Insumo.
+- Empresa do Insumo;
+- Empresa do Pedido;
+- Empresa da Forma de Pagamento;
+- Empresa do Prazo;
+- Empresa da Natureza financeira.
 
 Regra:
 
@@ -1975,7 +1999,811 @@ Não editar dados críticos baseando-se apenas no objeto armazenado anteriorment
 
 ---
 
-# 114. Banco de Dados
+# 114. Grupo Compras
+
+O Pedido de Compra unificado está:
+
+~~~text
+IMPLEMENTADO
+TESTADO
+HOMOLOGADO
+APROVADO
+DOCUMENTADO
+~~~
+
+Documentação específica:
+
+- [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
+As regras abaixo devem ser consideradas protegidas contra regressão.
+
+---
+
+# 115. Não Recriar Pedidos Separados
+
+A funcionalidade oficial é:
+
+~~~text
+PEDIDO DE COMPRA
+~~~
+
+Não reintroduzir como funcionalidades independentes:
+
+~~~text
+Pedido de Revenda
+Pedido de Uso/Consumo
+Pedido de Insumo
+~~~
+
+A diferenciação ocorre através dos itens.
+
+---
+
+# 116. Tipo não é Escolha Manual
+
+O usuário não escolhe o tipo do Pedido.
+
+Regra:
+
+~~~text
+Pedido novo
+tipo = ''
+        ↓
+Primeiro item
+        ↓
+Produto.tipo_produto
+        ↓
+Pedido.tipo
+~~~
+
+Adicionar seletor manual de tipo cria risco de divergência entre o cabeçalho e os Produtos.
+
+---
+
+# 117. Tipos Permitidos em Compras
+
+Permitidos:
+
+~~~text
+1 = Revenda
+2 = Uso/Consumo
+4 = Insumo
+~~~
+
+Não permitido:
+
+~~~text
+3 = Fabricação Própria
+~~~
+
+Fabricação Própria pertence ao domínio de Produção.
+
+Não criar exceção silenciosa para Produto tipo 3.
+
+---
+
+# 118. Homogeneidade do Pedido
+
+Todos os itens do Pedido devem possuir o mesmo tipo.
+
+Não permitir:
+
+~~~text
+1 + 2
+1 + 4
+2 + 4
+~~~
+
+A proteção deve existir no backend.
+
+Filtrar Produtos no frontend melhora a experiência, mas não substitui a validação.
+
+---
+
+# 119. Último Item e Redefinição do Tipo
+
+Quando o último item de um Pedido AB for excluído:
+
+~~~text
+0 itens
+        ↓
+tipo = ''
+~~~
+
+Não manter o tipo anterior em Pedido vazio.
+
+Isso bloquearia indevidamente a reutilização do Pedido.
+
+---
+
+# 120. Fabricação Própria em Compras
+
+Não permitir:
+
+~~~text
+Produto tipo 3
+        ↓
+Pedido de Compra
+~~~
+
+O fluxo correto é:
+
+~~~text
+Produto tipo 3
+        ↓
+Ficha Técnica
+        ↓
+Produção
+~~~
+
+Misturar os processos compromete:
+
+- origem do estoque;
+- custos;
+- Produção;
+- rastreabilidade.
+
+---
+
+# 121. Edição depois da Aprovação
+
+Manutenção estrutural pertence ao estado:
+
+~~~text
+AB
+~~~
+
+Não permitir livre alteração de:
+
+- cabeçalho;
+- Fornecedor;
+- Loja;
+- itens;
+- quantidades;
+- preços;
+- descontos;
+- Forma/Prazo;
+
+depois que o Pedido já estiver aprovado.
+
+Isso pode causar divergência entre:
+
+- Compras;
+- Financeiro;
+- Fiscal;
+- Estoque.
+
+---
+
+# 122. Exclusão do Pedido
+
+Somente Pedido AB pode ser fisicamente excluído pelo fluxo homologado.
+
+~~~text
+AB
+→ DELETE pode ser permitido
+
+AP
+AT
+CA
+→ preservar
+~~~
+
+Não utilizar exclusão como substituto de cancelamento.
+
+---
+
+# 123. Revenda e Pack
+
+Pedido tipo 1 utiliza:
+
+- Produto;
+- Cor;
+- Pack;
+- número de Packs;
+- quantidade calculada.
+
+Não permitir quantidade livre independente da composição do Pack.
+
+Regra:
+
+~~~text
+qtd =
+n_packs
+×
+soma dos PackItem
+~~~
+
+---
+
+# 124. Quantidade Fracionária em Revenda
+
+Revenda trabalha com peças.
+
+Não permitir quantidade fracionária resultante de edição manual.
+
+---
+
+# 125. Uso/Consumo e Insumo não Utilizam Pack
+
+Tipos:
+
+~~~text
+2
+4
+~~~
+
+utilizam quantidade direta.
+
+Não transportar automaticamente para esses tipos:
+
+- Cor;
+- Pack;
+- `n_packs`;
+- lógica comercial de Grade.
+
+---
+
+# 126. Uso/Consumo e Insumo Permanecem Distintos
+
+Embora os tipos 2 e 4 possuam mecânica quantitativa semelhante:
+
+~~~text
+tipo 2
+!=
+tipo 4
+~~~
+
+Não unificar a identidade funcional.
+
+Essa diferença será relevante para:
+
+- Estoque;
+- Produção;
+- relatórios;
+- análise gerencial.
+
+---
+
+# 127. Quantidade Decimal em Compras
+
+Para tipos 2 e 4:
+
+~~~text
+Unidade.permite_decimal
+~~~
+
+deve ser respeitado.
+
+Não aceitar valor fracionário quando a Unidade não permitir.
+
+---
+
+# 128. Cálculo dos Itens
+
+Backend deve continuar sendo autoridade.
+
+Regra:
+
+~~~text
+bruto =
+qtd × preco_unit
+
+total_item =
+bruto - desconto_item
+~~~
+
+O frontend pode apresentar prévia.
+
+Não confiar no valor enviado pelo navegador como cálculo definitivo.
+
+---
+
+# 129. Total do Pedido
+
+Regra homologada:
+
+~~~text
+total_pedido =
+total_itens
+- total_desconto
++ frete
+~~~
+
+Não alterar silenciosamente essa fórmula.
+
+Se houver novos componentes futuros, como despesas ou tributos compondo total comercial, deverão ser modelados explicitamente.
+
+---
+
+# 130. Total Negativo
+
+Nunca permitir:
+
+~~~text
+total_pedido < 0
+~~~
+
+Para aprovação:
+
+~~~text
+total_pedido > 0
+~~~
+
+---
+
+# 131. Desconto Negativo
+
+Não utilizar desconto negativo para representar acréscimo.
+
+Se acréscimo for necessário no futuro, criar conceito próprio após definição funcional.
+
+---
+
+# 132. Frete
+
+Frete é opcional.
+
+Não tornar frete obrigatório para aprovação.
+
+Em algumas operações o valor pode ser conhecido somente no recebimento.
+
+---
+
+# 133. Forma de Pagamento
+
+Forma de Pagamento possui ação própria.
+
+Não transformar a configuração em simples edição textual sem sincronizar o planejamento.
+
+Forma e Prazo possuem consequência sobre:
+
+- parcelas;
+- vencimentos;
+- valores.
+
+---
+
+# 134. Alteração de Forma e Parcelas
+
+Enquanto AB:
+
+~~~text
+Nova Forma/Prazo
+        ↓
+Reavaliar planejamento
+        ↓
+Regenerar parcelas PLAN
+~~~
+
+Não deixar o cabeçalho indicando uma condição e as parcelas refletindo outra.
+
+---
+
+# 135. Mudança do Total e Parcelas
+
+Mudanças em:
+
+- itens;
+- quantidades;
+- preços;
+- desconto geral;
+- frete;
+
+podem alterar o total.
+
+Quando houver planejamento:
+
+~~~text
+novo total
+        ↓
+sincronizar parcelas PLAN
+~~~
+
+Invariante:
+
+~~~text
+soma(parcelas)
+=
+total_pedido
+~~~
+
+---
+
+# 136. Arredondamento das Parcelas
+
+Percentuais podem gerar diferenças de centavos.
+
+A geração deve garantir soma final exata.
+
+Não aprovar Pedido com diferença residual.
+
+---
+
+# 137. PedidoCompraParcela não é PagarItem
+
+Separação:
+
+~~~text
+PedidoCompraParcela
+→ planejamento
+
+PagarItem
+→ obrigação financeira
+~~~
+
+Não eliminar uma estrutura em favor da outra sem reavaliar toda a integração.
+
+---
+
+# 138. Natureza de Lançamento
+
+A Natureza é escolhida na aprovação.
+
+Não mover silenciosamente essa decisão para o cabeçalho principal.
+
+Natureza deve ser compatível com a Empresa.
+
+---
+
+# 139. Aprovação sem Natureza
+
+A aprovação deve ser bloqueada quando a Natureza exigida não estiver válida.
+
+Não criar `Pagar` com classificação financeira incompleta quando a regra exige Natureza.
+
+---
+
+# 140. Aprovação sem Parcelas
+
+Não aprovar Pedido quando o planejamento financeiro necessário estiver ausente ou inconsistente.
+
+---
+
+# 141. Aprovação Repetida
+
+Não permitir que um Pedido já aprovado gere novamente:
+
+- `Pagar`;
+- `PagarItem`;
+- parcelas financeiras.
+
+A transição de status deve impedir duplicação da obrigação.
+
+---
+
+# 142. Atomicidade da Aprovação
+
+A aprovação é operação crítica.
+
+Conceitualmente:
+
+~~~text
+VALIDAR
++
+GERAR FINANCEIRO
++
+ATUALIZAR PARCELAS
++
+ALTERAR STATUS
++
+AUDITAR
+=
+UMA OPERAÇÃO
+~~~
+
+Falha deve provocar rollback.
+
+Não aceitar:
+
+- Pedido AP sem Financeiro correspondente;
+- `Pagar` criado com Pedido ainda AB por falha parcial;
+- parcelas geradas pela metade;
+- Auditoria de sucesso para operação revertida.
+
+---
+
+# 143. Aprovação não é Recebimento
+
+Regra fundamental:
+
+~~~text
+APROVAR PEDIDO
+!=
+RECEBER MERCADORIA
+~~~
+
+A aprovação não deve movimentar Estoque.
+
+---
+
+# 144. Recebimento deve Permanecer no Fiscal
+
+Fluxo correto:
+
+~~~text
+Pedido AP
+        ↓
+Nota Fiscal de Entrada
+        ↓
+Recebimento
+        ↓
+Estoque
+        ↓
+Atualização do Pedido
+~~~
+
+Não criar segundo processo independente de entrada dentro do Pedido.
+
+---
+
+# 145. Sobretela de Recebimentos
+
+A estrutura de Recebimentos do Pedido é prioritariamente consultiva.
+
+Não transformá-la silenciosamente em rotina paralela de entrada de mercadoria.
+
+---
+
+# 146. Recebimento Parcial
+
+Recebimento parcial não significa atendimento total.
+
+~~~text
+qtd_recebida
+<
+qtd_pedida
+        ↓
+Pedido = AP
+~~~
+
+Não alterar para AT prematuramente.
+
+---
+
+# 147. Recebimento Integral
+
+Somente quando todos os itens estiverem integralmente atendidos:
+
+~~~text
+AP → AT
+~~~
+
+AT representa atendimento total.
+
+---
+
+# 148. Múltiplos Recebimentos
+
+Não presumir:
+
+~~~text
+1 Pedido
+=
+1 Nota Fiscal
+~~~
+
+Pedido pode ser atendido em várias entradas.
+
+O cálculo deve considerar recebimentos válidos acumulados.
+
+---
+
+# 149. Cancelamento de Nota Fiscal
+
+Recebimento originado por Nota Fiscal cancelada não pode continuar contado como válido.
+
+Fluxo:
+
+~~~text
+NF cancelada
+        ↓
+recalcular recebimentos
+        ↓
+recalcular atendimento
+~~~
+
+Se um Pedido AT deixar de estar totalmente atendido:
+
+~~~text
+AT → AP
+~~~
+
+conforme o fluxo Fiscal vigente.
+
+---
+
+# 150. Cobertura de Teste do Cancelamento Fiscal
+
+A suíte específica de Compras não representa cobertura integral do cenário real de cancelamento de NF.
+
+Qualquer alteração nessa integração deve testar conjuntamente:
+
+- Compras;
+- Fiscal;
+- Estoque quando afetado.
+
+Não interpretar teste verde somente de Compras como validação integral desse cenário.
+
+---
+
+# 151. Recebimento Acima do Pedido
+
+Não aceitar silenciosamente recebimento acumulado acima da quantidade solicitada.
+
+Caso compra excedente seja necessária no futuro, a regra deve ser definida explicitamente.
+
+---
+
+# 152. Loja e Pedido
+
+Loja precisa ser compatível com a Empresa.
+
+Não aceitar:
+
+~~~text
+Pedido Empresa A
++
+Loja Empresa B
+~~~
+
+---
+
+# 153. Fornecedor e Pedido
+
+Fornecedor deve ser:
+
+- da Empresa permitida;
+- ativo;
+- não bloqueado;
+
+quando usado na criação/manutenção do Pedido AB.
+
+Não confiar somente no combo filtrado do frontend.
+
+---
+
+# 154. Forma, Prazo e Natureza Multiempresa
+
+Validar tenant também nas estruturas financeiras relacionadas.
+
+Não aceitar objetos apenas porque o ID existe.
+
+---
+
+# 155. Frontend Unificado de Compras
+
+A rota canônica é a funcionalidade única de Pedido de Compra.
+
+Não reativar telas antigas como processos independentes.
+
+Rotas legadas, quando ainda necessárias, devem apenas preservar compatibilidade/redirecionamento.
+
+---
+
+# 156. Código Legado de Compras
+
+Não reutilizar arquivo antigo de Pedido separado apenas porque o nome parece adequado.
+
+Antes:
+
+1. verificar imports;
+2. verificar rotas;
+3. verificar serviços;
+4. verificar consumidores;
+5. verificar testes.
+
+Também não apagar código antigo sem comprovar ausência de consumidores.
+
+---
+
+# 157. Padrão Visual do Pedido
+
+Preservar o layout homologado:
+
+- tela principal limpa;
+- indicadores compactos;
+- seleção de linha;
+- barra de ações;
+- Itens em sobretela;
+- Forma de Pagamento em sobretela;
+- Recebimentos em sobretela;
+- aprovação/Natureza em contexto próprio.
+
+Não redesenhar sem requisito.
+
+---
+
+# 158. Ações por Linha
+
+Nas estruturas que seguem o padrão homologado:
+
+~~~text
+SELEÇÃO DE LINHA
++
+BARRA DE AÇÕES
+~~~
+
+Não reintroduzir coluna `Ações` ou menu `⋮` de forma redundante.
+
+---
+
+# 159. Ações por Status
+
+Não habilitar ação apenas porque o endpoint existe.
+
+~~~text
+AB
+→ manutenção
+
+AP
+→ acompanhamento
+
+AT
+→ consulta histórica
+
+CA
+→ consulta histórica
+~~~
+
+A disponibilidade precisa respeitar a regra funcional.
+
+---
+
+# 160. Permissões em Compras
+
+Não proteger Pedido apenas pela rota Angular.
+
+Backend continua sendo autoridade.
+
+Acesso ao módulo e às operações deve seguir a infraestrutura de Permissões vigente.
+
+---
+
+# 161. Auditoria em Compras
+
+Utilizar Auditoria Central.
+
+Não criar:
+
+- `PedidoAuditLog` paralelo;
+- tabela específica redundante;
+- serviço de Auditoria exclusivo sem necessidade.
+
+Operações relevantes incluem, conforme implementação:
+
+- aplicação de Forma;
+- sincronização de parcelas;
+- aprovação;
+- transições;
+- alterações críticas.
+
+---
+
+# 162. Integridade Histórica em Compras
+
+Alterações cadastrais posteriores não devem reinterpretar Pedido histórico.
+
+Exemplo:
+
+~~~text
+Pack mudou
+→ Pedido antigo permanece
+
+Unidade mudou
+→ significado histórico deve ser preservado
+
+Produto foi inativado
+→ Pedido histórico continua existindo
+~~~
+
+---
+
+# 163. Banco de Dados
 
 Toda alteração estrutural deve possuir migration.
 
@@ -1983,7 +2811,7 @@ Não editar migration já aplicada em produção.
 
 ---
 
-# 115. Data Migrations
+# 164. Data Migrations
 
 Utilizar o model histórico fornecido pelo mecanismo de migrations.
 
@@ -2001,7 +2829,7 @@ Considerar:
 
 ---
 
-# 116. Saneamento de Dados
+# 165. Saneamento de Dados
 
 Nunca atribuir Empresa arbitrariamente para corrigir registro ambíguo.
 
@@ -2016,7 +2844,7 @@ Quando não houver fonte segura, interromper e analisar.
 
 ---
 
-# 117. Constraints e MySQL
+# 166. Constraints e MySQL
 
 Antes de depender de constraint específica:
 
@@ -2029,7 +2857,7 @@ Não assumir comportamento idêntico entre SQLite e MySQL.
 
 ---
 
-# 118. Mudanças em Models Compartilhados
+# 167. Mudanças em Models Compartilhados
 
 `Produto` atende vários domínios.
 
@@ -2044,9 +2872,17 @@ tipo 4
 
 Antes da mudança, revisar todos os consumidores.
 
+Compras é agora um consumidor formal dos tipos:
+
+~~~text
+1
+2
+4
+~~~
+
 ---
 
-# 119. Performance
+# 168. Performance
 
 Evitar:
 
@@ -2068,7 +2904,7 @@ Utilizar quando apropriado:
 
 ---
 
-# 120. Frontend — Permissão Visual
+# 169. Frontend — Permissão Visual
 
 Frontend deve esconder ações sem autorização.
 
@@ -2084,7 +2920,7 @@ Backend deve continuar bloqueando ação direta.
 
 ---
 
-# 121. 401 e 403
+# 170. 401 e 403
 
 Não tratar toda resposta `403` como logout automático.
 
@@ -2100,7 +2936,7 @@ Interpretar o código funcional retornado.
 
 ---
 
-# 122. Separação de Responsabilidades
+# 171. Separação de Responsabilidades
 
 Regra transversal:
 
@@ -2115,13 +2951,16 @@ ESTOQUE
 → quantidade e localização
 
 FISCAL
-→ aplicação tributária
+→ aplicação tributária e documentos
 
 PRODUÇÃO
 → transformação e consumo produtivo
 
 PDV
 → venda
+
+FINANCEIRO
+→ obrigações e direitos
 
 AUDITORIA
 → rastreabilidade
@@ -2131,7 +2970,7 @@ Evitar absorção indevida de responsabilidades entre módulos.
 
 ---
 
-# 123. Compras e Produtos
+# 172. Compras e Produtos
 
 Produto fornece identidade.
 
@@ -2141,16 +2980,66 @@ Compras define:
 - Pedido;
 - quantidade;
 - preço;
+- Forma;
+- Prazo;
 - aprovação;
-- recebimento;
-- parcelas;
-- Financeiro.
+- acompanhamento do recebimento;
+- planejamento financeiro.
 
 Não implementar Compra dentro do cadastro de Produto.
 
 ---
 
-# 124. Estoque e Produtos
+# 173. Compras e Estoque
+
+Separação:
+
+~~~text
+Pedido
+→ quantidade solicitada
+
+Recebimento
+→ evento físico
+
+Estoque
+→ quantidade existente
+~~~
+
+Não gerar saldo apenas porque o Pedido foi aprovado.
+
+---
+
+# 174. Compras e Fiscal
+
+Pedido não substitui Nota Fiscal de Entrada.
+
+~~~text
+PEDIDO
+!=
+DOCUMENTO FISCAL
+~~~
+
+Fiscal deve continuar responsável pelo documento da entrada e seus efeitos fiscais.
+
+---
+
+# 175. Compras e Financeiro
+
+Pedido não substitui Contas a Pagar.
+
+~~~text
+PedidoCompraParcela
+→ planejamento
+
+Pagar/PagarItem
+→ obrigação
+~~~
+
+Não duplicar rotina financeira dentro de Compras.
+
+---
+
+# 176. Estoque e Produtos
 
 Separação:
 
@@ -2166,7 +3055,7 @@ Não armazenar localização operacional como atributo fixo do Produto quando o 
 
 ---
 
-# 125. Fiscal e Produtos
+# 177. Fiscal e Produtos
 
 Produto armazena dados fiscais cadastrais.
 
@@ -2186,7 +3075,7 @@ operação fiscal
 
 ---
 
-# 126. Produção
+# 178. Produção
 
 Produto Venda tipo 3 representa o Produto acabado.
 
@@ -2204,9 +3093,11 @@ Produção
 
 Uso/Consumo tipo 2 não deve entrar automaticamente nesse fluxo.
 
+Produto tipo 3 não deve entrar em Pedido de Compra.
+
 ---
 
-# 127. Testes
+# 179. Testes
 
 Correção localizada:
 
@@ -2226,7 +3117,33 @@ Não deixar de executar testes essenciais quando o risco justificar.
 
 ---
 
-# 128. Homologação
+# 180. Testes de Pedido de Compra
+
+Alterações em Compras devem validar os pontos afetados.
+
+Entre os cenários críticos estão:
+
+- primeiro item define tipo;
+- mistura rejeitada;
+- tipo 3 rejeitado;
+- último item redefine tipo;
+- quantidade de Revenda pelo Pack;
+- decimal por Unidade;
+- total;
+- Forma/Prazo;
+- sincronização de parcelas;
+- Natureza;
+- aprovação;
+- geração financeira;
+- multiempresa;
+- edição após aprovação;
+- exclusão somente AB.
+
+Integrações fiscais precisam de cobertura adicional fora da suíte isolada de Compras quando necessário.
+
+---
+
+# 181. Homologação
 
 Uma feature não é considerada concluída apenas porque:
 
@@ -2242,9 +3159,11 @@ teste automatizado passou
 
 Quando a interface e regra operacional são relevantes, a homologação manual continua necessária.
 
+O Pedido de Compra já cumpriu essa etapa e foi aprovado.
+
 ---
 
-# 129. Documentação
+# 182. Documentação
 
 Após fechamento de escopo:
 
@@ -2256,11 +3175,9 @@ Após fechamento de escopo:
 
 ---
 
-# 130. Obsidian
+# 183. Obsidian
 
 Alteração de nome de arquivo exige atenção aos links.
-
-Documentos atuais de Produtos:
 
 ## Produto Venda
 
@@ -2294,9 +3211,17 @@ Documentos atuais de Produtos:
 - [[Modelo de Domínio - Produtos - Cadastros Auxiliares]]
 - [[Riscos e Cuidados - Produtos - Cadastros Auxiliares]]
 
+## Compras — Pedido de Compra
+
+- [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
 ---
 
-# 131. Riscos Ainda Abertos
+# 184. Riscos Ainda Abertos
 
 ## Licenciamento
 
@@ -2308,29 +3233,21 @@ Alterações futuras podem reintroduzir:
 - superusuário associado a Empresa;
 - divergência entre contador e listagem.
 
----
-
 ## Campos Legados de Loja
 
 Campos legados ainda devem ser tratados com cautela antes de eventual remoção.
 
 Não remover sem análise de consumidores e migration.
 
----
-
 ## Tipos Funcionais Antigos
 
 Campos antigos de classificação de Usuário não devem voltar a funcionar como fonte principal de Permissão.
-
----
 
 ## Automação de Suspensão
 
 Suspensão automática por cobrança não pertence à fase homologada atual.
 
 Qualquer automação futura exige projeto próprio.
-
----
 
 ## Recuperação Pública de Senha
 
@@ -2344,13 +3261,9 @@ Deve considerar:
 - Auditoria;
 - proteção de informações.
 
----
-
 ## Retenção da Auditoria
 
 A política de retenção e crescimento precisa continuar sendo observada conforme o volume do sistema aumentar.
-
----
 
 ## Backups
 
@@ -2365,8 +3278,6 @@ Backup precisa possuir:
 
 Backup que nunca foi restaurado em teste não comprova recuperabilidade.
 
----
-
 ## Imagens de Produto Venda
 
 Continuam sem definição homologada:
@@ -2379,8 +3290,6 @@ Continuam sem definição homologada:
 - qualidade da miniatura.
 
 Não inventar parâmetros.
-
----
 
 ## Produção e Consumo de Insumos
 
@@ -2398,9 +3307,23 @@ Ainda não estão definidos dentro do cadastro de Insumos:
 
 Essas regras devem ser definidas no módulo Produção.
 
+## Integração Completa de Cancelamento Fiscal com Compras
+
+O comportamento funcional esperado está definido:
+
+~~~text
+cancelamento da NF
+→ recalcular recebimento
+→ recalcular AP/AT
+~~~
+
+A cobertura automatizada isolada de Compras não representa teste completo do fluxo real de cancelamento Fiscal.
+
+Alterações futuras nessa área devem validar a integração entre módulos.
+
 ---
 
-# 132. Riscos de Regressão do Grupo Produtos
+# 185. Riscos de Regressão do Grupo Produtos
 
 Não reintroduzir:
 
@@ -2421,13 +3344,50 @@ Não reintroduzir:
 15. reciclagem de EAN;
 16. recriação de SKU em vez de reativação;
 17. alteração de Grade após SKU;
-18. Reference histórica recalculada;
+18. Referência histórica recalculada;
 19. Pack histórico reinterpretado;
 20. ações por linha redundantes nos auxiliares já padronizados.
 
 ---
 
-# 133. Checklist antes de Alterar Produto
+# 186. Riscos de Regressão do Pedido de Compra
+
+Não reintroduzir:
+
+1. pedidos separados por tipo;
+2. seletor manual de tipo;
+3. mistura entre tipos 1, 2 e 4;
+4. Produto tipo 3 em Compras;
+5. tipo antigo preservado depois da exclusão do último item;
+6. quantidade manual independente do Pack em Revenda;
+7. quantidade fracionária em Revenda;
+8. Pack em Uso/Consumo;
+9. Pack em Insumo;
+10. quantidade decimal ignorando Unidade;
+11. edição estrutural após AP;
+12. exclusão de Pedido fora de AB;
+13. Natureza obrigatória no cabeçalho inicial;
+14. aprovação sem planejamento financeiro consistente;
+15. parcelas divergentes do total;
+16. geração duplicada de `Pagar`;
+17. geração duplicada de `PagarItem`;
+18. movimentação de Estoque na aprovação;
+19. recebimento manual paralelo ao Fiscal;
+20. AT com recebimento parcial;
+21. cancelamento fiscal sem recálculo do atendimento;
+22. Loja de outra Empresa;
+23. Fornecedor de outra Empresa;
+24. Forma/Prazo/Natureza de tenant incompatível;
+25. rotas antigas voltando a ser telas funcionais independentes;
+26. coluna de ações redundante;
+27. menu de três pontos nas estruturas padronizadas;
+28. Auditoria paralela;
+29. alteração de Pack reinterpretando Pedido histórico;
+30. regras críticas protegidas somente no frontend.
+
+---
+
+# 187. Checklist antes de Alterar Produto
 
 Verificar:
 
@@ -2439,12 +3399,87 @@ Verificar:
 6. Estoque continua separado do cadastro?
 7. Fiscal continua separado da operação?
 8. algum módulo consumidor será afetado?
-9. existem migrations?
-10. existem dados legados?
+9. Compras será afetada?
+10. existem migrations?
+11. existem dados legados?
 
 ---
 
-# 134. Checklist antes de Alterar Estoque
+# 188. Checklist antes de Alterar Pedido de Compra
+
+Verificar:
+
+1. a unificação permanece preservada?
+2. o tipo continua definido pelo primeiro item?
+3. os tipos permitidos continuam 1, 2 e 4?
+4. tipo 3 continua fora de Compras?
+5. mistura continua bloqueada?
+6. último item continua limpando o tipo?
+7. Revenda continua usando Pack?
+8. quantidade decimal respeita Unidade?
+9. total continua correto?
+10. parcelas continuam sincronizadas?
+11. Forma e Prazo continuam coerentes?
+12. Natureza continua validada na aprovação?
+13. geração de Financeiro continua única?
+14. aprovação continua atômica?
+15. aprovação continua sem movimentar Estoque?
+16. recebimento continua pelo Fiscal?
+17. parcial continua AP?
+18. integral continua AT?
+19. cancelamento fiscal foi considerado?
+20. tenant continua protegido?
+21. Permissões continuam protegidas?
+22. Auditoria continua central?
+23. interface homologada foi preservada?
+
+---
+
+# 189. Checklist antes de Alterar Aprovação
+
+Verificar:
+
+1. Pedido está AB?
+2. possui itens?
+3. tipo é permitido?
+4. todos os itens são homogêneos?
+5. total é positivo?
+6. Forma está definida?
+7. Prazo está coerente?
+8. parcelas existem?
+9. soma das parcelas é igual ao total?
+10. Natureza é válida?
+11. Natureza pertence à Empresa?
+12. `Pagar` já existe?
+13. existe risco de duplicação?
+14. transação é atômica?
+15. Auditoria é coerente?
+16. falha provoca rollback completo?
+
+---
+
+# 190. Checklist antes de Alterar Recebimento de Compra
+
+Verificar:
+
+1. Pedido correto?
+2. item correto?
+3. Empresa correta?
+4. quantidade pedida?
+5. quantidade anteriormente recebida?
+6. nova quantidade recebida?
+7. existe recebimento parcial?
+8. existem múltiplas NFs?
+9. alguma NF foi cancelada?
+10. atendimento acumulado é válido?
+11. status deveria ser AP ou AT?
+12. movimento de Estoque está correto?
+13. existe risco de duplicação?
+14. Fiscal permanece fonte operacional do recebimento?
+
+---
+
+# 191. Checklist antes de Alterar Estoque
 
 Verificar:
 
@@ -2458,10 +3493,12 @@ Verificar:
 8. existe risco de baixa duplicada?
 9. reserva é distinta de saída?
 10. histórico será preservado?
+11. origem do movimento é real?
+12. Pedido aprovado foi indevidamente tratado como entrada?
 
 ---
 
-# 135. Checklist antes de Alterar Produção
+# 192. Checklist antes de Alterar Produção
 
 Verificar:
 
@@ -2475,10 +3512,11 @@ Verificar:
 8. reserva foi definida?
 9. perda foi definida?
 10. facção foi modelada adequadamente?
+11. Produto tipo 3 continua fora de Compras?
 
 ---
 
-# 136. Checklist antes de Alterar Cadastros Auxiliares
+# 193. Checklist antes de Alterar Cadastros Auxiliares
 
 Verificar:
 
@@ -2489,11 +3527,13 @@ Verificar:
 5. cross-tenant continua bloqueado?
 6. exclusão continua protegida?
 7. Produto consumidor será afetado?
-8. padrão visual homologado foi preservado?
+8. Compras será afetada?
+9. Pack histórico será preservado?
+10. padrão visual homologado foi preservado?
 
 ---
 
-# 137. Checklist antes de Migration
+# 194. Checklist antes de Migration
 
 Verificar:
 
@@ -2506,11 +3546,12 @@ Verificar:
 7. dados precisam de saneamento?
 8. rollback é possível?
 9. outros tipos do model compartilhado serão afetados?
-10. testes foram executados?
+10. Compras será afetada?
+11. testes foram executados?
 
 ---
 
-# 138. Estado Consolidado dos Riscos
+# 195. Estado Consolidado dos Riscos
 
 Os riscos centrais atualmente protegidos incluem:
 
@@ -2527,15 +3568,17 @@ Os riscos centrais atualmente protegidos incluem:
 - Produto Uso/Consumo;
 - Insumos;
 - Cadastros Auxiliares;
+- Pedido de Compra;
 - Estoque;
 - Fiscal;
+- Financeiro;
 - integrações futuras com Produção.
 
 A existência de documentação específica não elimina a necessidade de consultar este documento central.
 
 ---
 
-# 139. Regra de Continuidade
+# 196. Regra de Continuidade
 
 Antes de nova implementação:
 
@@ -2559,15 +3602,11 @@ DOCUMENTAR
 
 Não antecipar arquitetura de módulos ainda não definidos.
 
+Não reabrir regra já homologada sem evidência ou nova decisão funcional.
+
 ---
 
-# 140. Última Atualização
-
-~~~text
-14/08/2026
-~~~
-
-Marco atual:
+# 197. Estado Atual em 16/08/2026
 
 ~~~text
 OPERACIONAL
@@ -2593,11 +3632,19 @@ INSUMOS
 
 CADASTROS AUXILIARES DE PRODUTOS
 → CONCLUÍDOS
+
+PEDIDO DE COMPRA
+→ UNIFICADO
+→ CONCLUÍDO
+→ TESTADO
+→ HOMOLOGADO
+→ APROVADO
+→ DOCUMENTADO
 ~~~
 
 ---
 
-# 141. Notas Relacionadas
+# 198. Notas Relacionadas
 
 ## Contexto Central
 
@@ -2624,3 +3671,21 @@ CADASTROS AUXILIARES DE PRODUTOS
 - [[Riscos e Cuidados - Produtos - Insumos]]
 - [[Homologação - Produtos - Cadastros Auxiliares]]
 - [[Riscos e Cuidados - Produtos - Cadastros Auxiliares]]
+
+## Compras
+
+- [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
+---
+
+# 199. Última Atualização
+
+~~~text
+16/08/2026
+~~~
+
+Este documento representa os riscos e cuidados centrais consolidados do SYSVAR após o fechamento, testes, homologação, aprovação e documentação do Pedido de Compra unificado.
