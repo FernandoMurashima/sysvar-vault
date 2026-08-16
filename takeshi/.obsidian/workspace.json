@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "3a99aae189b56be6",
+        "id": "387fe4cc9728b78e",
         "type": "tabs",
         "children": [
           {
-            "id": "7b1f7e88a5fafe6b",
+            "id": "c2decf1153cd8e2a",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "10 Projetos/Sysvar/Contexto do Projeto/Arquitetura.md",
-                "mode": "source",
-                "source": true
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "Arquitetura"
+              "title": "Nova aba"
             }
           }
         ]
@@ -80,7 +76,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 470.5
+    "width": 252.5
   },
   "right": {
     "id": "0574bf7236bdcc9a",
@@ -185,8 +181,11 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "7b1f7e88a5fafe6b",
+  "active": "c2decf1153cd8e2a",
   "lastOpenFiles": [
+    "90 Sistema/Protocolo de Trabalho com IA.md",
+    "90 Sistema/Contexto para Agentes.md",
+    "10 Projetos/Sysvar/Contexto do Projeto/Arquitetura.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Visão Geral.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Modelo de Domínio.md",
     "10 Projetos/Sysvar/Contexto do Projeto/Workflows.md",
@@ -210,9 +209,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Bolao2026/Bolao2026.md",
-    "00 Inbox/Obsidian Skills.md",
-    "10 Projetos/Webfoto/Webfoto.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Produtos - Produto Venda.md",
     "10 Projetos/Sysvar/Operacao",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
