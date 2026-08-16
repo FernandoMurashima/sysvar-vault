@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-14
+updated: 2026-08-16
 tags:
   - sysvar
   - contexto
@@ -18,6 +18,7 @@ tags:
   - insumos
   - cadastros-auxiliares
   - compras
+  - pedido-de-compra
   - estoque
   - produção
   - distribuição
@@ -322,6 +323,7 @@ Pode registrar eventos relacionados a:
 - Estabelecimentos;
 - Cadastros;
 - Produtos;
+- Compras;
 - lifecycle;
 - alterações relevantes.
 
@@ -560,7 +562,7 @@ Tipo 1
         ↓
 SKU
         ↓
-Compra
+Pedido de Compra
         ↓
 Recebimento
         ↓
@@ -591,6 +593,8 @@ Estoque
         ↓
 Venda
 ~~~
+
+Fabricação Própria não participa do Pedido de Compra.
 
 ---
 
@@ -786,7 +790,17 @@ Itens
 Tamanho + Quantidade
 ~~~
 
-Pode ser utilizado em Compras de Produto Venda.
+É utilizado em Compras de Produto Venda tipo Revenda.
+
+Quantidade de compra em Revenda:
+
+~~~text
+Número de Packs
+×
+Soma das quantidades do Pack
+=
+Quantidade de peças
+~~~
 
 ---
 
@@ -811,6 +825,8 @@ permite_decimal
 ~~~
 
 orienta os processos que utilizam quantidades.
+
+Essa regra é utilizada pelo Pedido de Compra para Uso/Consumo e Insumos.
 
 ---
 
@@ -887,71 +903,480 @@ A localização decorre das operações.
 
 ---
 
-# 40. Compras
+# 40. Grupo Compras
 
-Compras representa aquisição.
+O primeiro domínio formalmente fechado do grupo Compras é:
 
-Fluxo geral:
+**Pedido de Compra**
+
+Situação:
 
 ~~~text
-Fornecedor
+IMPLEMENTADO
+TESTADO
+HOMOLOGADO
+APROVADO
+DOCUMENTADO
+~~~
+
+A funcionalidade foi consolidada em um único fluxo.
+
+Não existem como funções independentes para o usuário:
+
+- Pedido de Revenda;
+- Pedido de Uso/Consumo;
+- Pedido de Insumo.
+
+---
+
+# 41. Pedido de Compra Unificado
+
+O Pedido de Compra contempla:
+
+~~~text
+tipo 1
+→ Revenda
+
+tipo 2
+→ Uso/Consumo
+
+tipo 4
+→ Insumo
+~~~
+
+Não contempla:
+
+~~~text
+tipo 3
+→ Fabricação Própria
+~~~
+
+Fabricação Própria pertence ao domínio de Produção.
+
+---
+
+# 42. Definição do Tipo do Pedido
+
+O usuário não escolhe manualmente o tipo.
+
+Pedido novo nasce:
+
+~~~text
+tipo = ''
+status = AB
+~~~
+
+O primeiro item define automaticamente:
+
+~~~text
+Produto.tipo_produto
         ↓
-Pedido de Compra
+Pedido.tipo
+~~~
+
+Depois dessa definição, todos os demais itens devem possuir o mesmo tipo.
+
+---
+
+# 43. Proibição de Mistura
+
+Não é permitido misturar no mesmo Pedido:
+
+~~~text
+Revenda + Uso/Consumo
+Revenda + Insumo
+Uso/Consumo + Insumo
+~~~
+
+A regra é protegida no backend.
+
+---
+
+# 44. Pedido sem Itens
+
+Pedido AB sem itens utiliza:
+
+~~~text
+tipo = ''
+~~~
+
+Se o último item for removido:
+
+~~~text
+0 itens
+→ tipo = ''
+~~~
+
+O próximo primeiro item pode então definir um novo tipo válido.
+
+---
+
+# 45. Estados do Pedido de Compra
+
+Estados homologados:
+
+~~~text
+AB = Aberto
+AP = Aprovado
+AT = Atendido
+CA = Cancelado
+~~~
+
+AB representa o estado normal de edição.
+
+Somente Pedido AB pode ser excluído fisicamente pelo fluxo normal.
+
+---
+
+# 46. Pedido de Revenda
+
+Para:
+
+~~~text
+tipo = 1
+~~~
+
+o item utiliza:
+
+- Produto;
+- Cor;
+- Pack;
+- número de Packs;
+- quantidade calculada;
+- preço unitário;
+- desconto;
+- total;
+- observação.
+
+Quantidade:
+
+~~~text
+número de Packs
+×
+quantidade total do Pack
+=
+quantidade do item
+~~~
+
+Revenda não aceita quantidade fracionária.
+
+---
+
+# 47. Pedido de Uso/Consumo
+
+Para:
+
+~~~text
+tipo = 2
+~~~
+
+o item utiliza:
+
+- Produto;
+- Unidade;
+- quantidade;
+- preço;
+- desconto;
+- total;
+- observação.
+
+Não utiliza Pack.
+
+Quantidade decimal depende da Unidade.
+
+---
+
+# 48. Pedido de Insumo
+
+Para:
+
+~~~text
+tipo = 4
+~~~
+
+o item utiliza:
+
+- Produto;
+- Unidade;
+- quantidade;
+- preço;
+- desconto;
+- total;
+- observação.
+
+Não utiliza Pack.
+
+Uso/Consumo e Insumo compartilham mecânica quantitativa semelhante, mas permanecem tipos funcionalmente distintos.
+
+---
+
+# 49. Total do Item de Compra
+
+Regra:
+
+~~~text
+bruto =
+quantidade × preço unitário
+
+total_item =
+bruto - desconto do item
+~~~
+
+Para Revenda, a quantidade é obtida do Pack.
+
+---
+
+# 50. Total do Pedido
+
+Regra homologada:
+
+~~~text
+total_pedido =
+total_itens
+- total_desconto
++ frete
+~~~
+
+O Pedido pode possuir:
+
+- desconto geral opcional;
+- frete opcional.
+
+O total não pode ser negativo.
+
+Para aprovação:
+
+~~~text
+total_pedido > 0
+~~~
+
+---
+
+# 51. Forma de Pagamento
+
+Forma de Pagamento é tratada em estrutura subordinada própria.
+
+A sobretela apresenta:
+
+- Forma;
+- Prazo;
+- situação;
+- parcelas;
+- vencimentos;
+- valores;
+- Total do Pedido;
+- Total das Parcelas;
+- Diferença.
+
+O planejamento financeiro não precisa ocupar permanentemente o cabeçalho principal.
+
+---
+
+# 52. Parcelas Planejadas
+
+O planejamento utiliza:
+
+`PedidoCompraParcela`
+
+Estado principal antes da aprovação:
+
+~~~text
+PLAN = Planejada
+~~~
+
+Invariante:
+
+~~~text
+Soma das parcelas
+=
+Total do Pedido
+~~~
+
+Mudanças do total em Pedido AB devem manter o planejamento coerente.
+
+---
+
+# 53. Natureza de Lançamento
+
+A Natureza financeira é escolhida no momento da aprovação.
+
+Não é um campo que o usuário precise definir durante a criação inicial do cabeçalho.
+
+---
+
+# 54. Aprovação do Pedido
+
+Fluxo consolidado:
+
+~~~text
+Pedido AB
         ↓
-Produto
+Itens válidos
         ↓
-Quantidade
+Tipo válido
         ↓
-Preço
+Forma e Prazo
         ↓
-Aprovação
+Parcelas consistentes
         ↓
-Recebimento
+Selecionar Natureza
         ↓
-Estoque
+Aprovar
         ↓
 Financeiro
+        ↓
+Pedido AP
 ~~~
 
 ---
 
-# 41. Compras e Tipos de Produto
+# 55. Compras e Financeiro
 
-O objetivo arquitetural é permitir que Compras trate adequadamente diferentes tipos de item.
-
-Podem participar, conforme as regras do processo:
-
-- Produto Venda;
-- Produto Uso/Consumo;
-- Insumos.
-
-A operação deve adaptar as regras ao tipo do Produto.
-
----
-
-# 42. Recebimento
-
-Recebimento representa a ocorrência física da chegada do item.
+A aprovação pode gerar:
 
 ~~~text
-Pedido
-   ↓
-Recebimento
-   ↓
-Entrada
-   ↓
-Estoque
+PedidoCompra
+        ↓
+Pagar
+        ↓
+PagarItem
 ~~~
 
-Pode produzir impactos:
+Separação:
 
-- fiscais;
-- financeiros;
-- de custo.
+~~~text
+PedidoCompraParcela
+→ planejamento
+
+PagarItem
+→ obrigação financeira
+~~~
+
+Compras não deve duplicar Contas a Pagar.
 
 ---
 
-# 43. Produção
+# 56. Aprovação não é Recebimento
+
+Regra fundamental:
+
+~~~text
+Pedido aprovado
+!=
+Mercadoria recebida
+~~~
+
+A aprovação não deve gerar automaticamente entrada física de Estoque.
+
+---
+
+# 57. Recebimento
+
+O recebimento operacional da compra permanece ligado ao processo Fiscal.
+
+Fluxo:
+
+~~~text
+Pedido AP
+        ↓
+Nota Fiscal de Entrada
+        ↓
+Recebimento
+        ↓
+Estoque
+        ↓
+Atualização do atendimento do Pedido
+~~~
+
+A tela de Pedido possui acompanhamento dos recebimentos, mas não cria um processo paralelo de entrada.
+
+---
+
+# 58. Recebimento Parcial
+
+Quando somente parte da quantidade é recebida:
+
+~~~text
+Pedido permanece AP
+~~~
+
+O Pedido continua aguardando atendimento.
+
+---
+
+# 59. Recebimento Integral
+
+Quando todas as quantidades forem atendidas:
+
+~~~text
+AP → AT
+~~~
+
+AT significa:
+
+**Pedido integralmente atendido.**
+
+---
+
+# 60. Cancelamento Fiscal
+
+O cancelamento de Nota Fiscal relacionada ao recebimento pode alterar novamente a situação de atendimento.
+
+Quando um Pedido AT deixa de estar integralmente recebido:
+
+~~~text
+AT → AP
+~~~
+
+conforme o fluxo Fiscal vigente.
+
+A suíte específica de Compras não representa cobertura integral de todo o processo real de cancelamento fiscal.
+
+---
+
+# 61. Multiempresa em Compras
+
+Todo o processo deve respeitar o tenant.
+
+Devem permanecer coerentes:
+
+- Empresa;
+- Loja;
+- Fornecedor;
+- Produto;
+- Forma de Pagamento;
+- Prazo;
+- Natureza;
+- Financeiro;
+- recebimentos.
+
+A proteção definitiva pertence ao backend.
+
+---
+
+# 62. Documentação do Pedido de Compra
+
+O domínio possui conjunto documental próprio:
+
+- [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
+A situação oficial é:
+
+~~~text
+CONCLUÍDO
+TESTADO
+HOMOLOGADO
+APROVADO
+DOCUMENTADO
+~~~
+
+---
+
+# 63. Produção
 
 Produção transforma Insumos em Produto acabado.
 
@@ -969,9 +1394,11 @@ Produção
 Produto Acabado
 ~~~
 
+Produto tipo 3 não entra no Pedido de Compra.
+
 ---
 
-# 44. Ficha Técnica
+# 64. Ficha Técnica
 
 Ficha Técnica representa composição prevista.
 
@@ -987,7 +1414,7 @@ A quantidade pertence à relação Ficha Técnica × Insumo.
 
 ---
 
-# 45. Consumo Previsto e Real
+# 65. Consumo Previsto e Real
 
 Separação:
 
@@ -1004,11 +1431,11 @@ Criar OP não significa automaticamente:
 - baixar Insumo;
 - reservar Insumo.
 
-Essas regras ainda pertencem à evolução do processo produtivo.
+Essas regras pertencem à evolução do processo produtivo.
 
 ---
 
-# 46. Facção
+# 66. Facção
 
 O sistema prevê produção terceirizada.
 
@@ -1030,7 +1457,7 @@ Os eventos físicos devem ser representados por movimentos adequados.
 
 ---
 
-# 47. Distribuição
+# 67. Distribuição
 
 Distribuição representa envio de mercadoria do estoque central/fábrica para as Lojas.
 
@@ -1056,7 +1483,7 @@ Pode considerar:
 
 ---
 
-# 48. Vendas
+# 68. Vendas
 
 Venda representa o evento comercial.
 
@@ -1082,7 +1509,7 @@ Uso/Consumo e Insumos não devem aparecer como mercadorias normais de venda.
 
 ---
 
-# 49. PDV
+# 69. PDV
 
 O PDV é responsável pela operação de venda da Loja.
 
@@ -1099,7 +1526,7 @@ Deve considerar:
 
 ---
 
-# 50. PDV Offline
+# 70. PDV Offline
 
 Existe previsão de operação offline para Loja sem acesso à internet.
 
@@ -1116,7 +1543,7 @@ Vendas offline devem ser posteriormente sincronizadas com o SYSVAR central.
 
 ---
 
-# 51. NFC-e no PDV Offline
+# 71. NFC-e no PDV Offline
 
 O certificado fiscal pode permanecer na máquina da Loja responsável pela emissão.
 
@@ -1133,7 +1560,7 @@ Esse domínio exige documentação específica quando for implementado.
 
 ---
 
-# 52. Fiscal
+# 72. Fiscal
 
 Fiscal é responsável por aplicar as regras tributárias às operações.
 
@@ -1149,9 +1576,11 @@ Operação
 
 Não confundir cadastro fiscal com documento fiscal.
 
+No processo de Compras, a Nota Fiscal de Entrada representa o documento do recebimento.
+
 ---
 
-# 53. Financeiro
+# 73. Financeiro
 
 Financeiro representa obrigações e direitos decorrentes das operações.
 
@@ -1165,27 +1594,11 @@ Venda
 → Contas a Receber
 ~~~
 
----
-
-# 54. Integração Compras × Financeiro
-
-A aprovação de Pedido pode gerar:
-
-~~~text
-Pedido
-   ↓
-Pagar
-   ↓
-PagarItem
-   ↓
-Parcelas
-~~~
-
-O Financeiro não deve duplicar a operação de Compra.
+No Pedido de Compra, a integração financeira ocorre na aprovação.
 
 ---
 
-# 55. Contabilidade
+# 74. Contabilidade
 
 O domínio contábil deve receber informações das operações sem substituir os módulos operacionais.
 
@@ -1200,7 +1613,7 @@ Integrações futuras podem envolver:
 
 ---
 
-# 56. Auditoria como Camada Transversal
+# 75. Auditoria como Camada Transversal
 
 A Auditoria acompanha os diferentes domínios.
 
@@ -1222,7 +1635,7 @@ Quando aplicável.
 
 ---
 
-# 57. Lifecycle
+# 76. Lifecycle
 
 Cada domínio utiliza estados adequados ao seu significado.
 
@@ -1241,6 +1654,15 @@ AFASTADO
 DESLIGADO
 ~~~
 
+Pedido de Compra:
+
+~~~text
+AB
+AP
+AT
+CA
+~~~
+
 Contrato:
 
 ~~~text
@@ -1251,7 +1673,7 @@ Não utilizar um lifecycle genérico indiscriminadamente.
 
 ---
 
-# 58. Exclusão Protegida
+# 77. Exclusão Protegida
 
 Regra geral:
 
@@ -1268,11 +1690,22 @@ Alternativas dependem do domínio:
 - Inativar;
 - Bloquear;
 - Desligar;
-- Encerrar.
+- Encerrar;
+- Cancelar.
+
+No Pedido de Compra:
+
+~~~text
+AB
+→ pode ser excluído conforme regras
+
+AP / AT / CA
+→ preservar
+~~~
 
 ---
 
-# 59. Integridade Histórica
+# 78. Integridade Histórica
 
 Configuração atual não deve reinterpretar operação antiga.
 
@@ -1294,7 +1727,7 @@ Unidade mudou
 
 ---
 
-# 60. Paginação e Filtros
+# 79. Paginação e Filtros
 
 Listagens de volume relevante devem utilizar:
 
@@ -1308,7 +1741,7 @@ Não carregar a base completa para paginar somente no navegador.
 
 ---
 
-# 61. Padrão Visual
+# 80. Padrão Visual
 
 O SYSVAR utiliza identidade visual consistente entre as telas.
 
@@ -1325,7 +1758,7 @@ Cada tela utiliza apenas as estruturas necessárias.
 
 ---
 
-# 62. Padrão Visual dos Cadastros Auxiliares
+# 81. Padrão Visual dos Cadastros Auxiliares
 
 Nas telas modernizadas de Produtos:
 
@@ -1343,7 +1776,31 @@ Ações redundantes por linha foram removidas quando não necessárias.
 
 ---
 
-# 63. Master-Detail
+# 82. Padrão Visual do Pedido de Compra
+
+O Pedido de Compra segue a mesma orientação de clareza visual.
+
+A tela principal concentra:
+
+- informações gerais;
+- indicadores;
+- filtros;
+- listagem;
+- seleção;
+- ações.
+
+Estruturas subordinadas são tratadas em sobretelas/modais, principalmente:
+
+- Itens;
+- Forma de Pagamento;
+- Recebimentos;
+- aprovação com Natureza.
+
+O objetivo é preservar uma tela principal limpa.
+
+---
+
+# 83. Master-Detail
 
 Alguns cadastros utilizam mestre-detalhe.
 
@@ -1362,7 +1819,7 @@ O detalhe é apresentado no contexto do mestre correspondente.
 
 ---
 
-# 64. Sobretelas e Modais
+# 84. Sobretelas e Modais
 
 Consultas e detalhes podem ser exibidos em sobretela/modal quando isso preserva melhor o contexto operacional.
 
@@ -1380,9 +1837,11 @@ Fechar
 Retornar à listagem
 ~~~
 
+Pedido de Compra utiliza esse princípio para suas estruturas subordinadas.
+
 ---
 
-# 65. Backend como Autoridade
+# 85. Backend como Autoridade
 
 Princípio estrutural:
 
@@ -1406,33 +1865,41 @@ como única proteção.
 
 ---
 
-# 66. Estratégia de Desenvolvimento
+# 86. Estratégia de Desenvolvimento
+
+O processo geral de trabalho está definido em:
+
+[[Protocolo de Trabalho com IA]]
 
 Fluxo consolidado:
 
 ~~~text
+ANÁLISE
+        ↓
 DEFINIÇÃO FUNCIONAL
         ↓
-ANÁLISE DO CÓDIGO
-        ↓
-IDENTIFICAÇÃO DE DEPENDÊNCIAS
-        ↓
-SOLUÇÃO
+FECHAMENTO DAS REGRAS
         ↓
 IMPLEMENTAÇÃO
         ↓
-TESTES
-        ↓
 REVISÃO
         ↓
+CORREÇÕES
+        ↓
 HOMOLOGAÇÃO
+        ↓
+APROVAÇÃO
         ↓
 DOCUMENTAÇÃO
 ~~~
 
 ---
 
-# 67. Uso do Codex
+# 87. Uso do Codex
+
+Os prompts devem seguir:
+
+[[Padrao de Prompts para Codex]]
 
 A utilização deve ser objetiva.
 
@@ -1447,6 +1914,8 @@ Implementação
         ↓
 Testes proporcionais
         ↓
+Revisão
+        ↓
 Homologação
 ~~~
 
@@ -1454,9 +1923,31 @@ Evitar investigação ampla pelo Codex quando o problema já estiver identificad
 
 ---
 
-# 68. Estado Atual Consolidado
+# 88. Hierarquia de Fontes
 
-Em **14/08/2026**:
+Em caso de divergência, consultar:
+
+[[Hierarquia de Fontes e Decisoes]]
+
+Ordem básica:
+
+~~~text
+Nova decisão aprovada
+        ↓
+Documentação vigente
+        ↓
+Código atual
+        ↓
+Inferência técnica
+~~~
+
+Não inventar regra de negócio para preencher lacunas.
+
+---
+
+# 89. Estado Atual Consolidado
+
+Em **16/08/2026**:
 
 ~~~text
 OPERACIONAL
@@ -1498,11 +1989,19 @@ CADASTROS AUXILIARES DE PRODUTOS
 → CONCLUÍDOS
 → HOMOLOGADOS
 → DOCUMENTADOS
+
+PEDIDO DE COMPRA
+→ UNIFICADO
+→ CONCLUÍDO
+→ TESTADO
+→ HOMOLOGADO
+→ APROVADO
+→ DOCUMENTADO
 ~~~
 
 ---
 
-# 69. Documentação de Produto Venda
+# 90. Documentação de Produto Venda
 
 - [[Homologação - Produtos - Produto Venda]]
 - [[Mapa Técnico - Produtos - Produto Venda]]
@@ -1512,7 +2011,7 @@ CADASTROS AUXILIARES DE PRODUTOS
 
 ---
 
-# 70. Documentação de Produto Uso/Consumo
+# 91. Documentação de Produto Uso/Consumo
 
 - [[Homologação - Produtos - Produto Uso e Consumo]]
 - [[Mapa Técnico - Produtos - Produto Uso e Consumo]]
@@ -1522,7 +2021,7 @@ CADASTROS AUXILIARES DE PRODUTOS
 
 ---
 
-# 71. Documentação de Insumos
+# 92. Documentação de Insumos
 
 - [[Homologação - Produtos - Insumos]]
 - [[Mapa Técnico - Produtos - Insumos]]
@@ -1532,7 +2031,7 @@ CADASTROS AUXILIARES DE PRODUTOS
 
 ---
 
-# 72. Documentação de Cadastros Auxiliares
+# 93. Documentação de Cadastros Auxiliares
 
 - [[Homologação - Produtos - Cadastros Auxiliares]]
 - [[Mapa Técnico - Produtos - Cadastros Auxiliares]]
@@ -1542,7 +2041,29 @@ CADASTROS AUXILIARES DE PRODUTOS
 
 ---
 
-# 73. Documentação Central
+# 94. Documentação de Compras
+
+## Pedido de Compra
+
+- [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Pedido de Compra]]
+- [[Workflows - Compras - Pedido de Compra]]
+- [[Modelo de Domínio - Compras - Pedido de Compra]]
+- [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
+Situação:
+
+~~~text
+IMPLEMENTADO
+TESTADO
+HOMOLOGADO
+APROVADO
+DOCUMENTADO
+~~~
+
+---
+
+# 95. Documentação Central
 
 - [[Sysvar]]
 - [[Mapa Técnico]]
@@ -1550,10 +2071,12 @@ CADASTROS AUXILIARES DE PRODUTOS
 - [[Workflows]]
 - [[Riscos e Cuidados]]
 - [[Arquitetura]]
+- [[Protocolo de Trabalho com IA]]
+- [[Mapa de Consulta por Projeto]]
 
 ---
 
-# 74. Próxima Evolução
+# 96. Próxima Evolução
 
 O próximo domínio ou módulo deverá ser definido funcionalmente antes de nova implementação.
 
@@ -1570,9 +2093,11 @@ O processo deve começar por:
 9. definir testes;
 10. somente então implementar.
 
+Não transportar automaticamente regras de um domínio para outro.
+
 ---
 
-# 75. Princípio Final
+# 97. Princípio Final
 
 ~~~text
 SYSVAR
@@ -1590,7 +2115,7 @@ PRODUTOS
 definem os itens.
 
 COMPRAS
-adquirem.
+adquirem e formalizam o compromisso de aquisição.
 
 ESTOQUE
 controla quantidade e localização.
@@ -1616,10 +2141,17 @@ preserva rastreabilidade.
 
 ---
 
-# 76. Última Atualização
+# 98. Última Atualização
 
 ~~~text
-14/08/2026
+16/08/2026
 ~~~
 
-Este documento representa a visão geral consolidada do SYSVAR após o fechamento do ciclo cadastral atual de Produtos.
+Este documento representa a visão geral consolidada do SYSVAR após:
+
+- fechamento do ciclo cadastral atual de Produtos;
+- conclusão;
+- testes;
+- homologação;
+- aprovação;
+- documentação do Pedido de Compra unificado.
