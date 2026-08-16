@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "454b33d73b1b68dd",
+        "id": "8ee8d4d411fbf5a5",
         "type": "tabs",
         "children": [
           {
-            "id": "c72113da7daa224f",
+            "id": "a4c4274c7fb1e0b4",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -181,8 +181,9 @@
       "bases:Criar nova base": false
     }
   },
-  "active": "c72113da7daa224f",
+  "active": "a4c4274c7fb1e0b4",
   "lastOpenFiles": [
+    "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Compras - Pedido de Compra.md",
     "90 Sistema/Mapa do Cofre.md",
     "90 Sistema/Contexto para Agentes.md",
     "90 Sistema/Mapa de Consulta por Projeto.md",
@@ -208,7 +209,6 @@
     "10 Projetos/Sysvar/Contexto do Projeto/Mapa Técnico - Produtos - Insumos.md",
     "10 Projetos/Sysvar/Homologações/Homologação - Produtos - Insumos.md",
     "10 Projetos/Sysvar/Homologações/Sem título 1.md",
-    "10 Projetos/Sysvar/Contexto do Projeto/Riscos e Cuidados - Produtos - Produto Uso e Consumo.md",
     "10 Projetos/Sysvar/Operacao",
     "10 Projetos/Bolao2026/Migração Kinghost",
     "10 Projetos/Bolao2026/Operação",
