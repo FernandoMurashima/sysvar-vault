@@ -4,7 +4,7 @@ status: active
 project: ""
 source: ""
 created: 2026-08-16
-updated: 2026-08-16
+updated: 2026-08-18
 tags:
   - sistema
   - ia
@@ -231,6 +231,52 @@ A discussão continua apenas nos pontos ainda pendentes.
 
 Não reabrir regras já aprovadas sem motivo concreto.
 
+### Regra para checklists de revisão
+
+Quando a investigação resultar em uma lista de correções ou melhorias, o checklist deve conter somente itens que exijam ação.
+
+Entram no checklist:
+
+- problema real identificado;
+- funcionalidade ausente;
+- vulnerabilidade;
+- inconsistência;
+- comportamento incorreto;
+- regra incompleta;
+- melhoria realmente necessária;
+- implementação existente que precise ser corrigida ou aperfeiçoada.
+
+Não entram no checklist:
+
+- regras já implementadas e funcionando corretamente;
+- comportamentos corretos citados apenas para serem preservados;
+- funcionalidades que não precisam de alteração;
+- confirmações genéricas de que determinada regra já existe.
+
+Uma regra correta só deve aparecer no checklist quando existir uma razão concreta para alterá-la ou quando estiver diretamente envolvida em uma falha identificada.
+
+O objetivo do checklist é responder:
+
+**o que realmente precisa ser feito?**
+
+e não:
+
+**o que existe nessa funcionalidade?**
+
+Regras existentes que apenas precisam ser preservadas devem ser consideradas contexto da implementação e dos testes, sem serem apresentadas ao usuário como correções pendentes.
+
+Antes de apresentar um checklist, a IA deve classificar internamente cada possível item como:
+
+~~~text
+CORREÇÃO
+AUSÊNCIA
+VULNERABILIDADE
+MELHORIA NECESSÁRIA
+JÁ FUNCIONA
+~~~
+
+Somente os quatro primeiros grupos entram na lista apresentada ao usuário.
+
 ---
 
 ## Fase 3 — Fechamento funcional
@@ -372,9 +418,9 @@ Antes de criar qualquer estrutura nova, verificar se já existe:
 
 A prioridade é:
 
-REAPROVEITAR
-→ REFATORAR
-→ ESTENDER
+REAPROVEITAR  
+→ REFATORAR  
+→ ESTENDER  
 → CRIAR
 
 Criar algo novo somente quando as estruturas existentes não atenderem adequadamente.
@@ -552,18 +598,35 @@ Raiz atual do cofre:
 
 `C:\takeshi\takeshi`
 
-Formato padrão:
+O caminho fornecido no comando deve ser relativo a essa raiz.
+
+Não repetir `takeshi/` antes do caminho quando o terminal já estiver em:
+
+~~~text
+C:\takeshi\takeshi
+~~~
+
+Preferir adicionar somente o arquivo ou conjunto de arquivos de documentação alterados.
+
+Não utilizar `git add .` quando existirem arquivos operacionais do Obsidian, como:
+
+- `.obsidian/graph.json`;
+- `.obsidian/workspace.json`;
+
+que não façam parte da alteração documental pretendida.
+
+Formato padrão para um arquivo:
 
 ~~~powershell
 cd C:\takeshi\takeshi
-git add .
+git add "caminho relativo do arquivo.md"
 git commit -m "Mensagem objetiva da alteração"
 git push origin main
 ~~~
 
-A mensagem de commit deve refletir o documento ou conjunto de documentos alterados.
+Quando vários documentos fizerem parte da mesma etapa, todos podem ser adicionados explicitamente no mesmo commit.
 
-Quando vários documentos forem alterados na mesma etapa, pode ser utilizado um único commit coerente.
+A mensagem de commit deve refletir o documento ou conjunto de documentos alterados.
 
 Essa etapa faz parte do protocolo e não depende de solicitação adicional do usuário.
 
@@ -658,6 +721,8 @@ Durante o trabalho com projetos, evitar:
 - criar modelos redundantes;
 - mudar regras aprovadas silenciosamente;
 - reabrir decisões encerradas sem evidência;
+- apresentar como pendência uma regra já implementada e funcionando corretamente;
+- misturar, no mesmo checklist, correções reais com simples confirmações do que já funciona;
 - usar Codex para investigação ampla desnecessária;
 - executar baterias enormes de testes para pequenas correções;
 - declarar conclusão sem verificar o que foi realmente implementado;
