@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-16
+updated: 2026-08-18
 tags:
   - sysvar
   - domínio
@@ -1216,29 +1216,53 @@ Mudança posterior na composição do Pack não deve reinterpretar Pedido antigo
 
 # 53. Grupo Compras
 
-Compras representa o domínio de aquisição.
+Compras representa o domínio de aquisição e do recebimento das compras.
 
-O primeiro processo formalmente encerrado desse grupo é:
+Os processos formalmente encerrados desse grupo são:
 
-**Pedido de Compra**
+~~~text
+Pedido de Compra
+        ↓
+Entrada de NF-e
+~~~
 
 Situação:
 
 ~~~text
+PEDIDO DE COMPRA
 IMPLEMENTADO
 TESTADO
 HOMOLOGADO
 APROVADO
 DOCUMENTADO
+
+ENTRADA DE NF-e
+IMPLEMENTADA
+TESTADA
+HOMOLOGADA
+APROVADA
+DOCUMENTADA
 ~~~
 
-Documentação específica:
+O Pedido de Compra representa a intenção formal de aquisição.
+
+A Entrada de NF-e representa o recebimento efetivo dessa aquisição.
+
+Documentação específica do Pedido de Compra:
 
 - [[Homologação - Compras - Pedido de Compra]]
 - [[Mapa Técnico - Compras - Pedido de Compra]]
 - [[Workflows - Compras - Pedido de Compra]]
 - [[Modelo de Domínio - Compras - Pedido de Compra]]
 - [[Riscos e Cuidados - Compras - Pedido de Compra]]
+
+Documentação específica da Entrada de NF-e:
+
+- [[Homologação - Compras - Entrada de NF-e]]
+- [[Mapa Técnico - Compras - Entrada de NF-e]]
+- [[Workflows - Compras - Entrada de NF-e]]
+- [[Modelo de Domínio - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
 
 ---
 
@@ -2087,6 +2111,370 @@ A proteção final pertence ao backend.
 
 ---
 
+## Entrada de NF-e — Agregado
+
+A raiz do agregado de recebimento fiscal é:
+
+~~~text
+NotaFiscalEntrada
+~~~
+
+Estrutura subordinada:
+
+~~~text
+NotaFiscalEntrada
+└── NotaFiscalEntradaItem
+        ↓
+    PedidoCompraItem
+~~~
+
+Integrações principais:
+
+- PedidoCompra;
+- PedidoCompraItem;
+- Empresa;
+- Loja;
+- Fornecedor;
+- Produto;
+- SKU;
+- Estoque;
+- Custos;
+- Pagar;
+- PagarItem;
+- Auditoria.
+
+A Entrada de NF-e pertence funcionalmente ao domínio de Compras, embora sua implementação backend esteja localizada no app `fiscal`.
+
+---
+
+## Entrada de NF-e — Identidade
+
+A identidade técnica é:
+
+~~~text
+NotaFiscalEntrada.id
+~~~
+
+A identidade documental homologada é:
+
+~~~text
+Empresa
++ Fornecedor
++ Modelo
++ Série
++ Número
+~~~
+
+O Pedido de Compra não participa da unicidade documental.
+
+Quando informada, a chave de acesso também deve ser única e válida.
+
+---
+
+## Entrada de NF-e — Estados
+
+Estados homologados:
+
+~~~text
+AB = Aberta
+FE = Fechada
+CA = Cancelada
+~~~
+
+Fluxo principal:
+
+~~~text
+AB
+↓
+Fechamento
+↓
+FE
+↓
+eventual Cancelamento
+↓
+CA
+~~~
+
+DELETE físico não faz parte do fluxo operacional.
+
+---
+
+## Entrada de NF-e — Relação com Pedido
+
+Relacionamento conceitual:
+
+~~~text
+PedidoCompra 1:N NotaFiscalEntrada
+~~~
+
+Portanto:
+
+~~~text
+1 Pedido
+→ pode possuir várias NFs
+~~~
+
+Uma NF representa um recebimento efetivo daquele Pedido.
+
+O recebimento pode ser parcial ou total.
+
+---
+
+## Entrada de NF-e — Recebimento
+
+Para cada item existe conceitualmente:
+
+~~~text
+Quantidade pedida
+-
+Quantidade já recebida em NFs válidas
+=
+Saldo pendente
+~~~
+
+A quantidade desta NF não pode ultrapassar o saldo.
+
+NF cancelada deixa de compor o recebido válido.
+
+---
+
+## Entrada de NF-e — Item
+
+`NotaFiscalEntradaItem` representa a parcela recebida de um `PedidoCompraItem`.
+
+Invariante:
+
+~~~text
+NotaFiscalEntrada.pedido_compra
+=
+NotaFiscalEntradaItem.pedido_item.pedido
+~~~
+
+Não é permitido utilizar item de outro Pedido.
+
+---
+
+## Entrada de NF-e — Confirmação do Item
+
+Na interface homologada:
+
+~~~text
+checkbox OK desmarcado
+→ item não persistido na NF
+
+checkbox OK marcado
+→ item persistido na NF
+~~~
+
+A seleção visual da linha é independente da confirmação do item.
+
+---
+
+## Entrada de NF-e — Revenda
+
+Para Revenda:
+
+~~~text
+Produto
++ Cor
++ Pack
++ Tamanhos
+→ SKUs
+~~~
+
+O recebimento movimenta os SKUs correspondentes.
+
+A quantidade deve respeitar a composição válida do Pack.
+
+---
+
+## Entrada de NF-e — Uso/Consumo e Insumo
+
+Para tipos 2 e 4:
+
+~~~text
+Produto
++ Unidade
++ Quantidade direta
+~~~
+
+Quantidade decimal depende de:
+
+~~~text
+Unidade.permite_decimal
+~~~
+
+Não utilizam Pack.
+
+---
+
+## Entrada de NF-e — Estoque
+
+O fechamento produz entrada física.
+
+Identificação:
+
+~~~text
+NFE:<id>:ENTRADA
+~~~
+
+O cancelamento produz estorno:
+
+~~~text
+NFE:<id>:CANCEL
+~~~
+
+O ID interno da NF, e não apenas seu número comercial, identifica tecnicamente os movimentos.
+
+---
+
+## Entrada de NF-e — Custos
+
+O fechamento participa da atualização de custos.
+
+Conceitualmente:
+
+~~~text
+Revenda
+→ custo por SKU
+
+Uso/Consumo
+→ custo do Produto
+
+Insumo
+→ custo do Produto
+~~~
+
+No cancelamento, o custo é recalculado com base nas entradas válidas remanescentes.
+
+NF CA não deve continuar compondo o custo vigente.
+
+---
+
+## Entrada de NF-e — Financeiro
+
+O Pedido aprovado possui planejamento financeiro.
+
+A NF representa realização efetiva desse compromisso.
+
+~~~text
+Pedido aprovado
+→ previsão
+
+NF fechada
+→ realização correspondente
+
+saldo não recebido
+→ previsão remanescente
+~~~
+
+Múltiplas NFs devem realizar o Pedido gradualmente sem duplicar obrigações.
+
+---
+
+## Entrada de NF-e — Cancelamento
+
+Cancelar uma NF fechada precisa desfazer somente os efeitos daquela NF.
+
+Pode envolver:
+
+- estoque;
+- custos;
+- financeiro;
+- recebimento;
+- status do Pedido.
+
+Exemplo:
+
+~~~text
+Pedido AT
+↓
+cancelamento de uma NF
+↓
+volta a existir saldo
+↓
+Pedido AP
+~~~
+
+Se houver baixa financeira incompatível com reversão automática segura, o cancelamento deve ser bloqueado.
+
+---
+
+## Entrada de NF-e — Atomicidade
+
+Fechamento e cancelamento são operações transacionais.
+
+Regra:
+
+~~~text
+SUCESSO COMPLETO
+OU
+ROLLBACK COMPLETO
+~~~
+
+Não deve existir estado parcialmente aplicado entre:
+
+- NF;
+- Pedido;
+- Estoque;
+- Custos;
+- Financeiro.
+
+---
+
+## Entrada de NF-e — Multiempresa
+
+Toda a cadeia permanece limitada pela Empresa:
+
+~~~text
+Empresa
+├── Pedido
+├── NF
+├── Itens
+├── Loja
+├── Estoque
+└── Financeiro
+~~~
+
+Uma Empresa não pode consultar ou relacionar dados de outra.
+
+---
+
+## Entrada de NF-e — Permissões
+
+A funcionalidade pertence ao módulo:
+
+~~~text
+compras
+~~~
+
+Níveis:
+
+~~~text
+VIEW
+→ consulta
+
+EDIT
+→ operações permitidas
+~~~
+
+Possuir somente o módulo Fiscal não concede acesso à Entrada de NF-e.
+
+---
+
+## Entrada de NF-e — Documentação
+
+Documentação específica:
+
+- [[Homologação - Compras - Entrada de NF-e]]
+- [[Mapa Técnico - Compras - Entrada de NF-e]]
+- [[Workflows - Compras - Entrada de NF-e]]
+- [[Modelo de Domínio - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
+
+A funcionalidade encontra-se homologada e deve ser preservada até que novo requisito ou defeito comprovado justifique alteração.
+
+---
 # 96. Estoque
 
 Estoque representa a posição física dos itens.
