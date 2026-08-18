@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-16
+updated: 2026-08-18
 tags:
   - sysvar
   - riscos
@@ -133,6 +133,13 @@ PEDIDO DE COMPRA
 → HOMOLOGADO
 → APROVADO
 → DOCUMENTADO
+
+ENTRADA DE NF-e
+→ CONCLUÍDA
+→ TESTADA
+→ HOMOLOGADA
+→ APROVADA
+→ DOCUMENTADA
 ~~~
 
 ---
