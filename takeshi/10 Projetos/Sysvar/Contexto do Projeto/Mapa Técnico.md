@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-16
+updated: 2026-08-18
 tags:
   - sysvar
   - contexto
@@ -448,19 +448,31 @@ Documentação:
 
 # Grupo Compras
 
-Status do Pedido de Compra unificado:
+Status do ciclo homologado:
 
 ~~~text
+PEDIDO DE COMPRA
 IMPLEMENTADO
 TESTADO AUTOMATICAMENTE
 HOMOLOGADO MANUALMENTE
 DOCUMENTADO
 APROVADO
+
+ENTRADA DE NF-e
+IMPLEMENTADA
+TESTADA AUTOMATICAMENTE
+HOMOLOGADA MANUALMENTE
+DOCUMENTADA
+APROVADA
 ~~~
 
-A funcionalidade oficial é:
+As funcionalidades consolidadas são:
 
-**Pedido de Compra**
+~~~text
+Compras
+├── Pedido de Compra
+└── Entrada de NF-e
+~~~
 
 Tipos contemplados:
 
@@ -476,6 +488,14 @@ Tipo não participante:
 3 = Fabricação Própria
 → Produção
 ~~~
+
+---
+
+## Pedido de Compra
+
+A funcionalidade oficial é:
+
+**Pedido de Compra**
 
 Princípios consolidados:
 
@@ -493,7 +513,7 @@ Princípios consolidados:
 - Natureza de Lançamento é escolhida na aprovação;
 - aprovação integra com Financeiro;
 - aprovação não representa entrada de Estoque;
-- recebimento ocorre através do fluxo Fiscal;
+- recebimento efetivo ocorre através da Entrada de NF-e;
 - recebimento parcial mantém AP;
 - atendimento integral leva a AT;
 - somente Pedido AB pode ser excluído;
@@ -510,6 +530,112 @@ Documentação:
 
 ---
 
+## Entrada de NF-e
+
+Status:
+
+~~~text
+IMPLEMENTADA
+TESTADA AUTOMATICAMENTE
+HOMOLOGADA MANUALMENTE
+DOCUMENTADA
+APROVADA
+~~~
+
+Data da homologação:
+
+~~~text
+18/08/2026
+~~~
+
+A Entrada de NF-e representa o recebimento efetivo do Pedido de Compra.
+
+Pertence funcionalmente ao módulo:
+
+~~~text
+Compras
+~~~
+
+A implementação backend permanece concentrada tecnicamente no app:
+
+~~~text
+fiscal
+~~~
+
+A existência do app `fiscal` não transforma a funcionalidade em dependência obrigatória do módulo comercial Fiscal.
+
+A permissão efetiva da tela é baseada em:
+
+~~~text
+compras
+~~~
+
+Princípios consolidados:
+
+- uma única funcionalidade denominada Entrada de NF-e;
+- não existe tela independente de Notas Lançadas;
+- a própria listagem da Entrada de NF-e consulta notas existentes;
+- Pedido de Compra é obrigatório no fluxo atual;
+- um Pedido pode receber várias NFs;
+- recebimento parcial é permitido;
+- recebimento total altera Pedido para AT;
+- cancelamento pode retornar Pedido de AT para AP;
+- status da NF são AB, FE e CA;
+- DELETE físico da NF é bloqueado;
+- fechamento integra Estoque, Custos, Financeiro e recebimento;
+- cancelamento desfaz somente os efeitos da própria NF;
+- fechamento e cancelamento são transacionais;
+- Revenda utiliza SKUs e regras de Pack;
+- Uso/Consumo utiliza quantidade direta;
+- Insumo utiliza quantidade direta;
+- quantidades decimais são preservadas quando permitidas pela Unidade;
+- isolamento multiempresa é obrigatório;
+- paginação é server-side;
+- filtros são executados no backend;
+- indicadores utilizam o conjunto filtrado completo;
+- confirmação dos itens utiliza checkbox `OK`;
+- checkbox marcado representa item efetivamente persistido;
+- seleção visual da linha é independente da confirmação do item.
+
+Identidade documental:
+
+~~~text
+Empresa
++ Fornecedor
++ Modelo
++ Série
++ Número
+~~~
+
+O Pedido de Compra não participa da regra de unicidade documental.
+
+Quando informada, a chave de acesso:
+
+~~~text
+44 dígitos
++ DV válido
++ única
+~~~
+
+Identificação das movimentações de estoque:
+
+~~~text
+Entrada:
+NFE:<id>:ENTRADA
+
+Cancelamento:
+NFE:<id>:CANCEL
+~~~
+
+Documentação:
+
+- [[Homologação - Compras - Entrada de NF-e]]
+- [[Mapa Técnico - Compras - Entrada de NF-e]]
+- [[Workflows - Compras - Entrada de NF-e]]
+- [[Modelo de Domínio - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
+
+---
 # Estrutura Local
 
 Projeto:
