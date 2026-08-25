@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-18
+updated: 2026-08-25
 tags:
   - sysvar
   - contexto
@@ -20,6 +20,12 @@ tags:
   - cadastros-auxiliares
   - compras
   - pedido-de-compra
+  - cotacao
+  - almoxarifado
+  - ti
+  - manutencao
+  - ordem-de-servico
+  - requisicoes
   - financeiro
   - fiscal
   - sku
@@ -1346,6 +1352,19 @@ Backend\\compras
 
 Responsabilidades consolidadas:
 
+- Requisições Internas;
+- itens de Requisição;
+- Setores;
+- Matriz de Responsabilidade;
+- resolução de setor de atendimento e aquisição;
+- Almoxarifado Central;
+- Ordens de Serviço;
+- materiais de Ordens de Serviço;
+- necessidades de compra de origem REQ e OS;
+- Cotação;
+- propostas de fornecedores;
+- definição de vencedor;
+- geração de Pedido a partir de Cotação;
 - Pedido de Compra unificado;
 - cabeçalho do Pedido;
 - itens;
@@ -1367,6 +1386,9 @@ Responsabilidades consolidadas:
 - integração com Contas a Pagar;
 - acompanhamento de entregas;
 - integração com recebimento;
+- sincronização pós-NF;
+- atendimento de Requisição;
+- atendimento de material de OS;
 - Auditoria;
 - isolamento multiempresa.
 
@@ -1393,6 +1415,315 @@ Documentação complementar:
 
 ---
 
+# Compras — Requisições e Ordens de Serviço
+
+Estruturas principais do fluxo homologado incluem:
+
+~~~text
+Requisicao
+RequisicaoItem
+RequisicaoSetor
+RequisicaoMatrizResponsabilidade
+OrdemServico
+OrdemServicoMaterial
+~~~
+
+A Requisição representa a necessidade interna.
+
+~~~text
+Requisicao
+→ Loja solicitante
+→ Setor solicitante
+→ Tipo
+→ Motivo
+→ Prioridade
+→ Status
+~~~
+
+Tipos:
+
+~~~text
+USO_CONSUMO
+MANUTENCAO
+TI
+~~~
+
+A Loja e o Setor representam a origem da necessidade.
+
+O Setor deve pertencer à Loja selecionada.
+
+---
+
+# Compras — Matriz de Responsabilidade
+
+Estrutura:
+
+~~~text
+RequisicaoMatrizResponsabilidade
+~~~
+
+Relaciona:
+
+~~~text
+Empresa
++ Tipo de Requisição
+→ Setor de Atendimento
+→ Setor de Aquisição
+~~~
+
+A resolução deve utilizar a configuração ativa da Empresa.
+
+Ausência de Matriz válida bloqueia o fluxo dependente dessa definição.
+
+---
+
+# Compras — Setores Centrais
+
+`RequisicaoSetor` pode representar capacidades operacionais como:
+
+- recebimento de Requisições;
+- central de Uso/Consumo;
+- central de Manutenção;
+- central de TI;
+- responsável por Compras;
+- controle de estoque de Uso/Consumo;
+- Loja física associada.
+
+No fluxo de Almoxarifado:
+
+~~~text
+Setor de Atendimento
+→ Loja associada
+→ estoque físico central
+~~~
+
+---
+
+# Compras — Ciclo da Requisição
+
+Preparação:
+
+~~~text
+RASCUNHO
+→ edição
+→ inclusão de itens
+→ envio
+→ AGUARDANDO_APROVACAO
+~~~
+
+Para Manutenção e TI:
+
+~~~text
+RASCUNHO
+→ sem OS
+
+AGUARDANDO_APROVACAO
+→ sem OS
+
+APROVAÇÃO
+→ garantir uma OrdemServico
+~~~
+
+A criação da OS deve ser idempotente.
+
+---
+
+# Compras — Ordem de Serviço
+
+Estrutura principal:
+
+~~~text
+OrdemServico
+~~~
+
+Relacionamento:
+
+~~~text
+Requisicao
+1
+↓
+1
+OrdemServico
+~~~
+
+Estados homologados:
+
+~~~text
+ABERTA
+EM_TRIAGEM
+EM_ATENDIMENTO
+AGUARDANDO_MATERIAL
+AGUARDANDO_TERCEIRO
+CONCLUIDA
+CANCELADA
+~~~
+
+Depois da criação da OS, ela é a fonte operacional do atendimento da Requisição de Manutenção/TI.
+
+~~~text
+OS em execução
+→ Requisição EM_ATENDIMENTO
+
+OS CONCLUIDA
+→ Requisição CONCLUIDA
+~~~
+
+OS CANCELADA não cancela automaticamente a Requisição.
+
+---
+
+# Compras — Materiais da Ordem de Serviço
+
+Estrutura:
+
+~~~text
+OrdemServicoMaterial
+~~~
+
+Principais informações:
+
+- Produto;
+- descrição;
+- Unidade;
+- quantidade necessária;
+- quantidade atendida;
+- quantidade pendente;
+- status.
+
+Estados:
+
+~~~text
+PENDENTE
+DISPONIVEL
+EM_COMPRA
+ATENDIDA
+CANCELADA
+~~~
+
+Material pertence diretamente à OS.
+
+Não criar segunda Requisição para representar material da mesma Ordem de Serviço.
+
+---
+
+# Compras — Necessidades de Aquisição
+
+A fila de necessidades de Cotação aceita duas origens:
+
+~~~text
+REQ
+→ item de Requisição de Uso/Consumo
+
+OS
+→ OrdemServicoMaterial
+~~~
+
+A necessidade líquida considera:
+
+~~~text
+quantidade pendente
+- estoque central disponível
+- quantidade já coberta por processo de compra
+~~~
+
+Para Manutenção e TI com OS, o item original da Requisição não deve aparecer também como necessidade de compra.
+
+---
+
+# Compras — Estoque de Uso/Consumo
+
+Produto:
+
+~~~text
+tipo_produto = '2'
+~~~
+
+utiliza estruturas dedicadas:
+
+~~~text
+ProdutoUsoConsumoEstoque
+ProdutoUsoConsumoMovimentacao
+~~~
+
+Essa regra independe da origem do Pedido.
+
+Aplica-se inclusive a Pedido manual de Uso/Consumo.
+
+O ledger genérico de Produto Venda não deve ser utilizado para Produto tipo 2.
+
+---
+
+# Compras — Sincronização pós-NF
+
+Depois do fechamento da Entrada de NF-e, o fluxo deve sincronizar necessidades relacionadas.
+
+Exemplos:
+
+~~~text
+OrdemServicoMaterial EM_COMPRA
+→ estoque disponível
+→ DISPONIVEL
+~~~
+
+~~~text
+Requisição aguardando aquisição
+→ estoque disponível
+→ retorna ao atendimento
+~~~
+
+A sincronização deve ser idempotente.
+
+---
+
+# Compras — Atendimento Final
+
+Uso/Consumo:
+
+~~~text
+Requisição
+→ estoque central
+→ Atender
+→ baixa ProdutoUsoConsumoEstoque
+→ Conclusão
+~~~
+
+Material de OS:
+
+~~~text
+DISPONIVEL
+→ Atender
+→ baixa de estoque
+→ ATENDIDA
+~~~
+
+Atender todos os materiais não conclui automaticamente a OS.
+
+A conclusão da OS permanece ação operacional explícita.
+
+---
+
+# Compras — Proteção de Estados Finais
+
+Requisição `CONCLUIDA`:
+
+- consultável;
+- cabeçalho protegido;
+- itens protegidos;
+- atendimento bloqueado;
+- nova Cotação bloqueada.
+
+Ordem de Serviço `CONCLUIDA`:
+
+- consultável;
+- PUT/PATCH bloqueado;
+- inclusão de material bloqueada;
+- edição de material bloqueada;
+- exclusão de material bloqueada;
+- atendimento de material bloqueado.
+
+A proteção é responsabilidade do backend.
+
+---
 # Compras — Entidades Principais
 
 Estruturas centrais:
