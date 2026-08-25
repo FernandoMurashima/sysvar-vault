@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-16
+updated: 2026-08-25
 tags:
   - sysvar
   - contexto
@@ -19,6 +19,12 @@ tags:
   - cadastros-auxiliares
   - compras
   - pedido-de-compra
+  - cotacao
+  - almoxarifado
+  - ti
+  - manutencao
+  - ordem-de-servico
+  - requisicoes
   - estoque
   - produção
   - distribuição
@@ -905,27 +911,119 @@ A localização decorre das operações.
 
 # 40. Grupo Compras
 
-O primeiro domínio formalmente fechado do grupo Compras é:
+O grupo Compras possui atualmente os seguintes blocos homologados e documentados:
 
-**Pedido de Compra**
+- Requisições Internas;
+- Ordens de Serviço;
+- Compras de Uso/Consumo;
+- Pedido de Compra;
+- Entrada de NF-e.
 
 Situação:
 
 ~~~text
-IMPLEMENTADO
-TESTADO
-HOMOLOGADO
-APROVADO
-DOCUMENTADO
+REQUISIÇÕES INTERNAS
+→ IMPLEMENTADAS
+→ TESTADAS
+→ HOMOLOGADAS
+→ APROVADAS
+→ DOCUMENTADAS
+
+ORDENS DE SERVIÇO
+→ IMPLEMENTADAS
+→ TESTADAS
+→ HOMOLOGADAS
+→ APROVADAS
+→ DOCUMENTADAS
+
+COMPRAS DE USO/CONSUMO
+→ IMPLEMENTADAS
+→ TESTADAS
+→ HOMOLOGADAS
+→ APROVADAS
+→ DOCUMENTADAS
+
+PEDIDO DE COMPRA
+→ IMPLEMENTADO
+→ TESTADO
+→ HOMOLOGADO
+→ APROVADO
+→ DOCUMENTADO
+
+ENTRADA DE NF-e
+→ IMPLEMENTADA
+→ TESTADA
+→ HOMOLOGADA
+→ APROVADA
+→ DOCUMENTADA
 ~~~
 
-A funcionalidade foi consolidada em um único fluxo.
+As Requisições Internas atendem três tipos principais:
+
+~~~text
+USO_CONSUMO
+MANUTENCAO
+TI
+~~~
+
+A responsabilidade operacional é separada entre:
+
+~~~text
+Origem da necessidade
+!=
+Setor de atendimento
+!=
+Setor de aquisição
+~~~
+
+A Matriz de Responsabilidade determina os setores envolvidos.
+
+Para Uso/Consumo, o atendimento pode ocorrer diretamente pelo Almoxarifado Central.
+
+Quando não existe estoque suficiente:
+
+~~~text
+Requisição
+→ Cotação
+→ Pedido de Compra
+→ Entrada de NF-e
+→ Estoque
+→ Atendimento
+~~~
+
+Para Manutenção e TI:
+
+~~~text
+Requisição aprovada
+→ Ordem de Serviço
+→ execução
+→ conclusão da OS
+→ conclusão da Requisição
+~~~
+
+Materiais necessários à execução pertencem diretamente à Ordem de Serviço.
+
+A fila de necessidades de compra aceita origens:
+
+~~~text
+REQ
+→ Requisição de Uso/Consumo
+
+OS
+→ Material de Ordem de Serviço
+~~~
+
+O Pedido de Compra permanece consolidado em uma única funcionalidade.
 
 Não existem como funções independentes para o usuário:
 
 - Pedido de Revenda;
 - Pedido de Uso/Consumo;
 - Pedido de Insumo.
+
+Documentação da homologação:
+
+[[Homologação - Compras - Requisições e Ordens de Serviço]]
 
 ---
 
