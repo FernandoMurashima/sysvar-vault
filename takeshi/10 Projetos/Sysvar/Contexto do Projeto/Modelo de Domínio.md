@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-18
+updated: 2026-08-25
 tags:
   - sysvar
   - domínio
@@ -19,6 +19,12 @@ tags:
   - estoque
   - compras
   - pedido-de-compra
+  - cotacao
+  - almoxarifado
+  - ti
+  - manutencao
+  - ordem-de-servico
+  - requisicoes
   - financeiro
   - fiscal
   - produção
@@ -1216,11 +1222,21 @@ Mudança posterior na composição do Pack não deve reinterpretar Pedido antigo
 
 # 53. Grupo Compras
 
-Compras representa o domínio de aquisição e do recebimento das compras.
+Compras representa o domínio das necessidades internas, aquisição e recebimento.
 
-Os processos formalmente encerrados desse grupo são:
+Os processos formalmente encerrados desse grupo incluem:
 
 ~~~text
+Necessidade Interna
+        ↓
+Requisição
+        ↓
+Atendimento Interno
+ou
+Ordem de Serviço
+ou
+Cotação
+        ↓
 Pedido de Compra
         ↓
 Entrada de NF-e
@@ -1229,6 +1245,20 @@ Entrada de NF-e
 Situação:
 
 ~~~text
+REQUISIÇÕES INTERNAS
+IMPLEMENTADAS
+TESTADAS
+HOMOLOGADAS
+APROVADAS
+DOCUMENTADAS
+
+ORDENS DE SERVIÇO
+IMPLEMENTADAS
+TESTADAS
+HOMOLOGADAS
+APROVADAS
+DOCUMENTADAS
+
 PEDIDO DE COMPRA
 IMPLEMENTADO
 TESTADO
@@ -1244,9 +1274,21 @@ APROVADA
 DOCUMENTADA
 ~~~
 
-O Pedido de Compra representa a intenção formal de aquisição.
+Requisição representa uma necessidade interna da Empresa.
 
-A Entrada de NF-e representa o recebimento efetivo dessa aquisição.
+Ordem de Serviço representa a execução operacional de necessidades de Manutenção ou TI.
+
+Pedido de Compra representa a intenção formal de aquisição.
+
+Entrada de NF-e representa o recebimento efetivo dessa aquisição.
+
+Documentação específica de Requisições e Ordens de Serviço:
+
+- [[Homologação - Compras - Requisições e Ordens de Serviço]]
+- [[Mapa Técnico - Compras - Requisições e Ordens de Serviço]]
+- [[Workflows - Compras - Requisições e Ordens de Serviço]]
+- [[Modelo de Domínio - Compras - Requisições e Ordens de Serviço]]
+- [[Riscos e Cuidados - Compras - Requisições e Ordens de Serviço]]
 
 Documentação específica do Pedido de Compra:
 
@@ -1266,6 +1308,411 @@ Documentação específica da Entrada de NF-e:
 
 ---
 
+# Requisição Interna
+
+Requisição representa uma necessidade interna originada por uma Loja e um Setor.
+
+Relacionamento conceitual:
+
+~~~text
+Empresa
+   ↓
+Requisição
+   ├── Loja
+   ├── Setor
+   ├── Tipo
+   ├── Itens
+   └── Histórico
+~~~
+
+Tipos homologados:
+
+~~~text
+USO_CONSUMO
+MANUTENCAO
+TI
+~~~
+
+A Requisição não representa necessariamente uma compra.
+
+Ela pode ser resolvida internamente.
+
+---
+
+# Origem da Necessidade
+
+A origem é composta por:
+
+~~~text
+Loja
++
+Setor solicitante
+~~~
+
+Essa origem não deve ser confundida com:
+
+- setor que atenderá;
+- setor responsável pela compra;
+- localização física do estoque.
+
+Regra:
+
+~~~text
+Origem da necessidade
+!=
+Responsável pelo atendimento
+!=
+Responsável pela aquisição
+~~~
+
+---
+
+# Setor da Requisição
+
+O Setor solicitante pertence à Loja escolhida.
+
+~~~text
+Loja
+1
+↓
+N
+Setores
+~~~
+
+Uma Requisição não pode apontar para Setor de outra Loja.
+
+---
+
+# Matriz de Responsabilidade
+
+A Matriz define a responsabilidade operacional por tipo de Requisição.
+
+Relacionamento:
+
+~~~text
+Empresa
++
+Tipo de Requisição
+        ↓
+Matriz
+        ├── Setor de Atendimento
+        └── Setor de Aquisição
+~~~
+
+A Matriz é configuração empresarial.
+
+Não pertence à Requisição como texto livre.
+
+---
+
+# Requisição de Uso/Consumo
+
+Uso/Consumo representa necessidade de item interno não produtivo.
+
+Fluxo conceitual com estoque:
+
+~~~text
+Requisição
+→ Almoxarifado Central
+→ Estoque
+→ Atendimento
+~~~
+
+Sem estoque:
+
+~~~text
+Requisição
+→ Necessidade de Compra
+→ Cotação
+→ Pedido
+→ NF-e
+→ Estoque
+→ Atendimento
+~~~
+
+---
+
+# Almoxarifado Central
+
+Almoxarifado representa o responsável pelo atendimento físico de Uso/Consumo.
+
+A localização do estoque decorre do Setor de Atendimento configurado.
+
+~~~text
+Setor de Atendimento
+→ Loja associada
+→ Estoque físico
+~~~
+
+A Loja solicitante não é automaticamente a origem do estoque.
+
+---
+
+# Requisição de Manutenção e TI
+
+Manutenção e TI possuem execução operacional própria.
+
+~~~text
+Requisição aprovada
+→ Ordem de Serviço
+~~~
+
+A Requisição continua representando a necessidade.
+
+A OS representa a execução.
+
+---
+
+# Ordem de Serviço
+
+Relacionamento:
+
+~~~text
+Requisição
+1
+↓
+1
+Ordem de Serviço
+~~~
+
+A OS é criada somente após aprovação.
+
+~~~text
+RASCUNHO
+→ sem OS
+
+AGUARDANDO_APROVACAO
+→ sem OS
+
+APROVADA
+→ cria/garante OS
+~~~
+
+A relação deve permanecer idempotente.
+
+---
+
+# Ordem de Serviço como Fonte Operacional
+
+Depois de criada:
+
+~~~text
+OS
+→ fonte do estado operacional
+~~~
+
+Estados de execução mantêm a Requisição em atendimento.
+
+~~~text
+OS CONCLUIDA
+→ Requisição CONCLUIDA
+~~~
+
+Cancelar a OS não significa cancelar automaticamente a Requisição.
+
+---
+
+# Material da Ordem de Serviço
+
+Materiais necessários pertencem à OS.
+
+Relacionamento:
+
+~~~text
+Ordem de Serviço
+1
+↓
+N
+OrdemServicoMaterial
+~~~
+
+O material representa necessidade física para execução.
+
+Não criar nova Requisição para o mesmo material.
+
+---
+
+# Estados do Material
+
+Estados homologados:
+
+~~~text
+PENDENTE
+DISPONIVEL
+EM_COMPRA
+ATENDIDA
+CANCELADA
+~~~
+
+Separação:
+
+~~~text
+DISPONIVEL
+→ existe saldo
+
+ATENDIDA
+→ baixa realizada
+~~~
+
+Disponibilidade não é atendimento.
+
+---
+
+# Necessidade de Compra
+
+Necessidades internas podem originar aquisição.
+
+Origens homologadas:
+
+~~~text
+REQ
+→ Item de Requisição de Uso/Consumo
+
+OS
+→ Material de Ordem de Serviço
+~~~
+
+Essas origens alimentam o mesmo processo de Cotação.
+
+---
+
+# Necessidade Líquida
+
+A necessidade real considera:
+
+~~~text
+Quantidade pendente
+-
+Estoque disponível
+-
+Quantidade já coberta por compra
+~~~
+
+Não criar nova aquisição para quantidade já coberta.
+
+---
+
+# Não Duplicação entre Requisição e OS
+
+Para Manutenção e TI:
+
+~~~text
+Requisição
+→ cria OS
+
+Material necessário
+→ nasce na OS
+~~~
+
+O item original da Requisição não deve gerar simultaneamente outra necessidade física.
+
+Invariante:
+
+~~~text
+mesma necessidade
+!=
+REQ + OS
+~~~
+
+---
+
+# Cotação como Continuidade da Necessidade
+
+Cotação não substitui a Requisição.
+
+Relacionamento conceitual:
+
+~~~text
+Necessidade
+→ Cotação
+→ Propostas
+→ Fornecedor vencedor
+→ Pedido de Compra
+~~~
+
+A Cotação é o processo de escolha comercial para uma necessidade já identificada.
+
+---
+
+# Entrada de NF-e e Disponibilidade
+
+A NF-e representa entrada física.
+
+Após o recebimento:
+
+~~~text
+NF-e
+→ Estoque
+→ Necessidade recalculada
+~~~
+
+Exemplo:
+
+~~~text
+Material OS EM_COMPRA
+→ DISPONIVEL
+~~~
+
+---
+
+# Estoque de Uso/Consumo
+
+Produto tipo:
+
+~~~text
+2
+~~~
+
+utiliza domínio de estoque próprio:
+
+~~~text
+ProdutoUsoConsumoEstoque
+ProdutoUsoConsumoMovimentacao
+~~~
+
+Esse comportamento independe da origem da aquisição.
+
+---
+
+# Atendimento
+
+Atendimento representa execução física.
+
+Para Uso/Consumo:
+
+~~~text
+Estoque
+→ baixa
+→ Requisição atendida
+~~~
+
+Para material da OS:
+
+~~~text
+DISPONIVEL
+→ baixa
+→ ATENDIDA
+~~~
+
+Atender material não conclui automaticamente a Ordem de Serviço.
+
+---
+
+# Conclusão
+
+Requisição concluída representa necessidade encerrada.
+
+OS concluída representa execução encerrada.
+
+Ambas permanecem como histórico.
+
+~~~text
+CONCLUIDA
+→ consultável
+→ operacionalmente imutável
+~~~
+
+---
 # 54. Pedido de Compra
 
 Pedido de Compra representa a intenção formal de aquisição.
