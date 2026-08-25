@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-18
+updated: 2026-08-25
 tags:
   - sysvar
   - contexto
@@ -21,6 +21,12 @@ tags:
   - licenciamento
   - compras
   - pedido-de-compra
+  - cotacao
+  - almoxarifado
+  - ti
+  - manutencao
+  - ordem-de-servico
+  - requisicoes
   - financeiro
   - fiscal
   - estoque
@@ -54,6 +60,9 @@ Os fluxos atualmente consolidados abrangem:
 - Produto Uso/Consumo;
 - Insumos;
 - Cadastros Auxiliares de Produtos;
+- Requisições Internas;
+- Ordens de Serviço;
+- Cotação;
 - Pedido de Compra.
 
 ---
@@ -101,6 +110,26 @@ CADASTROS AUXILIARES DE PRODUTOS
 → HOMOLOGADOS
 → DOCUMENTADOS
 
+REQUISIÇÕES INTERNAS
+→ CONCLUÍDAS
+→ TESTADAS
+→ HOMOLOGADAS
+→ APROVADAS
+→ DOCUMENTADAS
+
+ORDENS DE SERVIÇO
+→ CONCLUÍDAS
+→ TESTADAS
+→ HOMOLOGADAS
+→ APROVADAS
+→ DOCUMENTADAS
+
+CICLO DE COMPRA DE USO/CONSUMO
+→ CONCLUÍDO
+→ TESTADO
+→ HOMOLOGADO
+→ APROVADO
+→ DOCUMENTADO
 PEDIDO DE COMPRA
 → UNIFICADO
 → CONCLUÍDO
@@ -1764,6 +1793,428 @@ Documentação específica:
 
 ---
 
+# Requisições Internas — Fluxo Geral
+
+~~~text
+Usuário
+↓
+Nova Requisição
+↓
+Seleciona Loja
+↓
+Seleciona Setor da Loja
+↓
+Define Tipo
+↓
+Inclui Itens
+↓
+RASCUNHO
+↓
+Enviar
+↓
+AGUARDANDO_APROVACAO
+↓
+Aprovar
+↓
+Fluxo operacional
+~~~
+
+Tipos homologados:
+
+~~~text
+USO_CONSUMO
+MANUTENCAO
+TI
+~~~
+
+A Requisição permanece em RASCUNHO durante a preparação.
+
+Criar ou alterar item não inicia atendimento.
+
+---
+
+# Requisições — Loja e Setor
+
+~~~text
+Seleciona Loja
+↓
+Sistema oferece Setores da Loja
+↓
+Seleciona Setor compatível
+~~~
+
+O backend também valida:
+
+~~~text
+Setor.loja
+=
+Requisicao.loja
+~~~
+
+Setor de outra Loja deve ser rejeitado.
+
+---
+
+# Requisições — Matriz de Responsabilidade
+
+Depois da aprovação:
+
+~~~text
+Empresa
++
+Tipo de Requisição
+↓
+Matriz de Responsabilidade
+↓
+Setor de Atendimento
++
+Setor de Aquisição
+~~~
+
+Regra:
+
+~~~text
+Origem da necessidade
+!=
+Responsável pelo atendimento
+!=
+Responsável pela aquisição
+~~~
+
+Sem Matriz válida, o fluxo dependente dela deve ser bloqueado.
+
+---
+
+# Uso/Consumo — Atendimento com Estoque
+
+~~~text
+Requisição aprovada
+↓
+Resolver Almoxarifado Central
+↓
+Consultar estoque dedicado
+↓
+Saldo suficiente?
+├── Sim
+│   ↓
+│   Atender
+│   ↓
+│   Baixar estoque
+│   ↓
+│   CONCLUIDA
+│
+└── Não
+    ↓
+    Necessidade de aquisição
+~~~
+
+A Loja solicitante não é automaticamente a origem do estoque.
+
+---
+
+# Uso/Consumo — Compra por Falta de Estoque
+
+~~~text
+Requisição aprovada
+↓
+Saldo insuficiente
+↓
+Aguardar Cotação
+↓
+Necessidade REQ
+↓
+Cotação
+↓
+Fornecedor / Proposta
+↓
+Aprovação da Cotação
+↓
+Pedido de Compra
+↓
+Entrada de NF-e
+↓
+ProdutoUsoConsumoEstoque
+↓
+Requisição volta ao atendimento
+↓
+Atender
+↓
+CONCLUIDA
+~~~
+
+A entrada física acontece na NF-e, não na aprovação do Pedido.
+
+---
+
+# Manutenção / TI — Criação da OS
+
+~~~text
+RASCUNHO
+↓
+sem OS
+
+AGUARDANDO_APROVACAO
+↓
+sem OS
+
+Aprovação
+↓
+criar ou garantir OS
+↓
+Requisição EM_ATENDIMENTO
+~~~
+
+A criação da OS deve ser idempotente.
+
+---
+
+# Manutenção / TI — Execução sem Material
+
+~~~text
+Requisição aprovada
+↓
+OS
+↓
+Execução
+↓
+Concluir OS
+↓
+OS CONCLUIDA
+↓
+Requisição CONCLUIDA
+~~~
+
+Uma OS pode ser concluída sem material quando o serviço não exigir consumo físico.
+
+---
+
+# Manutenção / TI — Material Disponível
+
+~~~text
+OS
+↓
+Adicionar Material
+↓
+Consultar estoque central
+↓
+Saldo disponível
+↓
+Material DISPONIVEL
+↓
+Atender Material
+↓
+Baixa de estoque
+↓
+Material ATENDIDA
+↓
+Concluir OS manualmente
+↓
+Requisição CONCLUIDA
+~~~
+
+`DISPONIVEL` não significa baixa realizada.
+
+---
+
+# Manutenção / TI — Material sem Estoque
+
+~~~text
+OS
+↓
+Material necessário
+↓
+Saldo insuficiente
+↓
+Material PENDENTE / EM_COMPRA
+↓
+OS AGUARDANDO_MATERIAL
+↓
+Necessidade OS
+↓
+Cotação
+↓
+Pedido de Compra
+↓
+Entrada de NF-e
+↓
+Estoque disponível
+↓
+Material DISPONIVEL
+↓
+OS EM_ATENDIMENTO
+↓
+Atender Material
+↓
+Material ATENDIDA
+↓
+Concluir OS
+↓
+Requisição CONCLUIDA
+~~~
+
+---
+
+# OS — Materiais Mistos
+
+~~~text
+Material A
+→ DISPONIVEL
+
+Material B
+→ EM_COMPRA
+↓
+OS AGUARDANDO_MATERIAL
+~~~
+
+Enquanto existir material realmente sem cobertura, a OS permanece aguardando material.
+
+---
+
+# OS — Conclusão
+
+~~~text
+Existe material pendente?
+├── Sim → bloquear conclusão
+└── Não → permitir ação Concluir
+~~~
+
+Mesmo com todos os materiais atendidos:
+
+~~~text
+Materiais ATENDIDOS
+!=
+OS CONCLUIDA
+~~~
+
+A conclusão da OS é explícita.
+
+---
+
+# Requisição e OS — Sincronização
+
+Enquanto a OS estiver em:
+
+~~~text
+ABERTA
+EM_TRIAGEM
+EM_ATENDIMENTO
+AGUARDANDO_MATERIAL
+AGUARDANDO_TERCEIRO
+~~~
+
+a Requisição permanece:
+
+~~~text
+EM_ATENDIMENTO
+~~~
+
+Quando:
+
+~~~text
+OS CONCLUIDA
+↓
+Requisição CONCLUIDA
+~~~
+
+OS CANCELADA não cancela automaticamente a Requisição.
+
+---
+
+# Necessidades de Compra — REQ e OS
+
+~~~text
+REQ
+→ RequisicaoItem de Uso/Consumo
+
+OS
+→ OrdemServicoMaterial
+~~~
+
+Necessidade líquida:
+
+~~~text
+Quantidade pendente
+-
+Estoque disponível
+-
+Quantidade já coberta por compra
+~~~
+
+Para Manutenção e TI com OS:
+
+~~~text
+Item da Requisição
+→ NÃO gerar necessidade física paralela
+
+Material da OS
+→ origem da necessidade
+~~~
+
+Evitar duplicidade `REQ + OS`.
+
+---
+
+# Pós-NF — Sincronização
+
+~~~text
+Entrada de NF-e
+↓
+Atualização de estoque
+↓
+Recalcular necessidades
+~~~
+
+Exemplo de OS:
+
+~~~text
+EM_COMPRA
+↓
+DISPONIVEL
+~~~
+
+Exemplo de Requisição:
+
+~~~text
+Aguardando aquisição
+↓
+saldo disponível
+↓
+EM_ATENDIMENTO
+~~~
+
+A sincronização deve ser idempotente.
+
+---
+
+# Estados Finais — Requisição e OS
+
+~~~text
+CONCLUIDA
+↓
+consulta permitida
+↓
+alteração operacional bloqueada
+~~~
+
+Requisição concluída não aceita:
+
+- edição de cabeçalho;
+- alteração de itens;
+- inclusão ou exclusão de itens;
+- novo atendimento;
+- nova Cotação.
+
+OS concluída não aceita:
+
+- alteração operacional;
+- inclusão, edição ou exclusão de material;
+- novo atendimento de material.
+
+Documentação específica:
+
+[[Workflows - Compras - Requisições e Ordens de Serviço]]
+
+---
 # 78. Pedido de Compra — Entrada
 
 ~~~text
