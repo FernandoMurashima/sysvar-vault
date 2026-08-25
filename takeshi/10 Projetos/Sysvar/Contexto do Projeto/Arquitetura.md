@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-16
+updated: 2026-08-25
 tags:
   - sysvar
   - arquitetura
@@ -20,6 +20,12 @@ tags:
   - cadastros-auxiliares
   - compras
   - pedido-de-compra
+  - cotacao
+  - almoxarifado
+  - ti
+  - manutencao
+  - ordem-de-servico
+  - requisicoes
   - financeiro
   - fiscal
   - estoque
@@ -943,8 +949,329 @@ Não existe localização fixa obrigatória no cadastro.
 
 A operação define onde o item está.
 
+O estoque operacional homologado de Produto Uso/Consumo utiliza estruturas próprias:
+
+~~~text
+ProdutoUsoConsumoEstoque
+ProdutoUsoConsumoMovimentacao
+~~~
+
+Produto:
+
+~~~text
+tipo_produto = '2'
+~~~
+
+deve utilizar esse estoque dedicado independentemente da origem da compra.
+
+Não direcionar Produto tipo 2 para o ledger genérico de Produto Venda.
+
+No fluxo de Requisições Internas, o estoque físico utilizado no atendimento é determinado pelo setor central configurado.
+
+~~~text
+Loja solicitante
+→ origem da necessidade
+
+Setor de atendimento
+→ responsável operacional
+
+Setor de atendimento.loja
+→ localização física do estoque
+~~~
+
 ---
 
+# Requisições Internas e Ordens de Serviço
+
+A Requisição representa uma necessidade interna originada por uma Loja e um Setor.
+
+Tipos homologados:
+
+~~~text
+USO_CONSUMO
+MANUTENCAO
+TI
+~~~
+
+A arquitetura separa três responsabilidades:
+
+~~~text
+Origem da necessidade
+!=
+Responsável pelo atendimento
+!=
+Responsável pela aquisição
+~~~
+
+Essa separação é resolvida pela Matriz de Responsabilidade.
+
+---
+
+## Matriz de Responsabilidade
+
+A estrutura central considera:
+
+- Empresa;
+- Tipo de Requisição;
+- Setor de Atendimento;
+- Setor de Aquisição;
+- situação ativa.
+
+Conceitualmente:
+
+~~~text
+Empresa + Tipo
+        ↓
+Matriz de Responsabilidade
+        ↓
+Setor de Atendimento
++
+Setor de Aquisição
+~~~
+
+A ausência de configuração válida bloqueia o fluxo que depende dela.
+
+Não inferir arbitrariamente responsáveis.
+
+---
+
+## Loja e Setor da Requisição
+
+A Loja representa a unidade onde surgiu a necessidade.
+
+O Setor solicitante deve pertencer à Loja selecionada.
+
+~~~text
+Requisição.loja
+→ limita
+Requisição.setor
+~~~
+
+Frontend filtra para experiência do usuário.
+
+Backend valida a relação como autoridade final.
+
+---
+
+## Ciclo pré-operacional da Requisição
+
+A preparação deve permanecer separada da execução.
+
+~~~text
+RASCUNHO
+→ edição
+
+AGUARDANDO_APROVACAO
+→ decisão
+
+APROVAÇÃO
+→ início operacional
+~~~
+
+Salvar cabeçalho ou itens não inicia atendimento.
+
+Para Manutenção e TI:
+
+~~~text
+RASCUNHO
+→ NÃO cria OS
+
+AGUARDANDO_APROVACAO
+→ NÃO cria OS
+
+APROVAÇÃO
+→ cria/garante exatamente uma OS
+~~~
+
+---
+
+## Uso/Consumo
+
+Para Uso/Consumo, a Requisição pode ser atendida pelo estoque central.
+
+~~~text
+Requisição
+→ Matriz
+→ Setor de Atendimento
+→ Loja física do Almoxarifado
+→ Estoque Uso/Consumo
+~~~
+
+Se houver saldo suficiente:
+
+~~~text
+Estoque
+→ Atendimento
+→ Baixa
+→ Conclusão
+~~~
+
+Se não houver:
+
+~~~text
+Necessidade
+→ Cotação
+→ Pedido de Compra
+→ Entrada de NF-e
+→ Estoque
+→ Atendimento
+~~~
+
+---
+
+## Ordem de Serviço
+
+Para Manutenção e TI, a Ordem de Serviço representa a execução operacional.
+
+~~~text
+Requisição
+→ necessidade
+
+Ordem de Serviço
+→ execução
+~~~
+
+Depois da criação da OS, ela é a fonte operacional do estado de atendimento.
+
+Estados operacionais da OS mantêm a Requisição em atendimento.
+
+~~~text
+OS CONCLUIDA
+→ Requisição CONCLUIDA
+~~~
+
+Cancelar OS não cancela automaticamente a Requisição.
+
+---
+
+## Materiais da Ordem de Serviço
+
+Materiais necessários à execução pertencem diretamente à OS.
+
+~~~text
+OrdemServico
+   ↓
+OrdemServicoMaterial
+~~~
+
+Não criar uma segunda Requisição para o material da mesma OS.
+
+Estados principais:
+
+~~~text
+PENDENTE
+DISPONIVEL
+EM_COMPRA
+ATENDIDA
+CANCELADA
+~~~
+
+`DISPONIVEL` significa que existe material para atendimento.
+
+Não significa que a baixa já ocorreu.
+
+A baixa acontece em ação explícita de atendimento.
+
+---
+
+## Necessidades de Compra
+
+Requisição e OS compartilham a mesma fila conceitual de necessidades de aquisição.
+
+Origens:
+
+~~~text
+REQ
+→ item de Requisição de Uso/Consumo
+
+OS
+→ material de Ordem de Serviço
+~~~
+
+Para Manutenção e TI com OS, o item original da Requisição não deve gerar necessidade de material paralela.
+
+Isso evita:
+
+~~~text
+REQ + OS
+→ duplicidade de compra
+~~~
+
+---
+
+## Integração com Cotação e Pedido
+
+A necessidade interna não cria uma infraestrutura paralela de Compras.
+
+Fluxo:
+
+~~~text
+Necessidade
+→ Cotação
+→ Pedido de Compra
+→ Entrada de NF-e
+~~~
+
+Devem ser reutilizados os domínios já existentes de:
+
+- Fornecedor;
+- Cotação;
+- Pedido de Compra;
+- Forma de Pagamento;
+- Prazo de Pagamento;
+- Entrada de NF-e;
+- Financeiro;
+- Estoque.
+
+---
+
+## Sincronização pós-NF
+
+A Entrada de NF-e é o evento físico de recebimento.
+
+Depois da entrada:
+
+~~~text
+Produto tipo 2
+→ Estoque Uso/Consumo
+~~~
+
+e as necessidades relacionadas devem ser recalculadas.
+
+Exemplos:
+
+~~~text
+Material OS EM_COMPRA
+→ DISPONIVEL
+~~~
+
+~~~text
+Requisição aguardando aquisição
+→ estoque disponível
+→ retorna ao atendimento
+~~~
+
+---
+
+## Estados finais
+
+Requisição e OS concluídas são registros históricos operacionais.
+
+~~~text
+CONCLUIDA
+→ consultável
+→ não editável operacionalmente
+~~~
+
+A proteção deve existir no backend.
+
+Frontend apenas reflete essa regra ocultando ou desabilitando ações incompatíveis.
+
+Documentação de homologação:
+
+[[Homologação - Compras - Requisições e Ordens de Serviço]]
+
+---
 # 39. Insumos
 
 Tipo:
