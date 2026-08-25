@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-18
+updated: 2026-08-25
 tags:
   - sysvar
   - riscos
@@ -19,6 +19,12 @@ tags:
   - cadastros-auxiliares
   - compras
   - pedido-de-compra
+  - cotacao
+  - almoxarifado
+  - ti
+  - manutencao
+  - ordem-de-servico
+  - requisicoes
   - financeiro
   - fiscal
   - estoque
@@ -126,6 +132,27 @@ CADASTROS AUXILIARES
 ## Compras
 
 ~~~text
+REQUISIÇÕES INTERNAS
+→ CONCLUÍDAS
+→ TESTADAS
+→ HOMOLOGADAS
+→ APROVADAS
+→ DOCUMENTADAS
+
+ORDENS DE SERVIÇO
+→ CONCLUÍDAS
+→ TESTADAS
+→ HOMOLOGADAS
+→ APROVADAS
+→ DOCUMENTADAS
+
+CICLO DE COMPRA DE USO/CONSUMO
+→ CONCLUÍDO
+→ TESTADO
+→ HOMOLOGADO
+→ APROVADO
+→ DOCUMENTADO
+
 PEDIDO DE COMPRA
 → UNIFICADO
 → CONCLUÍDO
@@ -2006,6 +2033,399 @@ Não editar dados críticos baseando-se apenas no objeto armazenado anteriorment
 
 ---
 
+# Requisições e Ordens de Serviço — Riscos Centrais
+
+Este domínio conecta:
+
+~~~text
+Requisição
++
+Estoque
++
+Ordem de Serviço
++
+Cotação
++
+Pedido de Compra
++
+Entrada de NF-e
+~~~
+
+Alterações aparentemente locais podem provocar efeitos em vários módulos.
+
+Documentação específica:
+
+[[Riscos e Cuidados - Compras - Requisições e Ordens de Serviço]]
+
+---
+
+## Não confundir origem com atendimento
+
+A Loja e o Setor solicitantes representam:
+
+~~~text
+origem da necessidade
+~~~
+
+Não representam automaticamente:
+
+- estoque de origem;
+- setor de atendimento;
+- setor responsável pela aquisição.
+
+Regra:
+
+~~~text
+Origem
+!=
+Atendimento
+!=
+Aquisição
+~~~
+
+Não voltar a utilizar a Loja solicitante como estoque físico apenas porque ela originou a Requisição.
+
+---
+
+## Não ignorar a Matriz de Responsabilidade
+
+O responsável pelo fluxo deve ser resolvido pela configuração vigente da Empresa.
+
+Não usar:
+
+- nome fixo de Setor;
+- ID fixo;
+- primeira Loja encontrada;
+- primeiro Setor encontrado;
+- fallback silencioso.
+
+Sem Matriz válida:
+
+~~~text
+bloquear
+~~~
+
+em vez de inventar responsabilidade.
+
+---
+
+## Não criar OS antes da aprovação
+
+Para Manutenção e TI:
+
+~~~text
+RASCUNHO
+→ sem OS
+
+AGUARDANDO_APROVACAO
+→ sem OS
+
+APROVAÇÃO
+→ cria ou garante OS
+~~~
+
+Criar OS ao salvar cabeçalho ou item altera indevidamente o estado operacional da Requisição.
+
+---
+
+## Não duplicar Ordem de Serviço
+
+A relação é:
+
+~~~text
+Requisição
+1
+↓
+1
+OS
+~~~
+
+A criação deve ser idempotente.
+
+Reprocessamento, abertura de tela ou sincronização não podem gerar segunda OS.
+
+---
+
+## Não usar item da Requisição e material da OS como duas necessidades
+
+Para Manutenção e TI:
+
+~~~text
+Requisição
+→ necessidade de serviço
+
+OrdemServicoMaterial
+→ necessidade física
+~~~
+
+Não gerar simultaneamente:
+
+~~~text
+REQ
++
+OS
+~~~
+
+para o mesmo material.
+
+Isso provoca compra duplicada.
+
+---
+
+## Não criar segunda Requisição para material da OS
+
+Material necessário à execução pertence diretamente a:
+
+~~~text
+OrdemServicoMaterial
+~~~
+
+Não transformar esse material em uma nova Requisição interna paralela.
+
+---
+
+## DISPONIVEL não significa ATENDIDA
+
+Para material da OS:
+
+~~~text
+DISPONIVEL
+→ há saldo
+
+ATENDIDA
+→ houve baixa/entrega
+~~~
+
+Não baixar estoque automaticamente apenas porque o item passou a estar disponível.
+
+---
+
+## AGUARDANDO_MATERIAL significa falta real
+
+Não manter a OS em `AGUARDANDO_MATERIAL` quando todo material pendente já está disponível.
+
+Também não retirar desse estado se ainda existir qualquer material sem cobertura.
+
+---
+
+## Não concluir OS automaticamente por materiais atendidos
+
+~~~text
+Materiais atendidos
+!=
+Serviço concluído
+~~~
+
+Mesmo após o último material:
+
+~~~text
+usuário responsável
+→ Concluir OS
+~~~
+
+A conclusão é evento operacional próprio.
+
+---
+
+## OS cancelada não cancela Requisição automaticamente
+
+~~~text
+OS CANCELADA
+!=
+Requisição CANCELADA
+~~~
+
+O cancelamento da execução não elimina automaticamente a necessidade original.
+
+---
+
+## OS concluída controla o encerramento da Requisição
+
+Depois que existe OS:
+
+~~~text
+OS
+→ fonte operacional
+~~~
+
+Quando:
+
+~~~text
+OS CONCLUIDA
+↓
+Requisição CONCLUIDA
+~~~
+
+Não criar lógica paralela baseada no status do item original para decidir se a Requisição terminou.
+
+---
+
+## Não misturar estoque de Uso/Consumo com estoque comercial
+
+Produto:
+
+~~~text
+tipo_produto = '2'
+~~~
+
+deve utilizar:
+
+~~~text
+ProdutoUsoConsumoEstoque
+ProdutoUsoConsumoMovimentacao
+~~~
+
+Não direcionar tipo 2 para o ledger genérico de Produto Venda.
+
+Essa regra também vale para Pedido manual tipo 2.
+
+---
+
+## Entrada de NF-e é o evento físico
+
+Não considerar material recebido em:
+
+- aprovação da Cotação;
+- geração do Pedido;
+- aprovação do Pedido.
+
+Fluxo:
+
+~~~text
+Pedido
+↓
+Entrada de NF-e
+↓
+Estoque físico
+~~~
+
+---
+
+## Sincronização pós-NF deve ser idempotente
+
+A mesma NF ou a mesma consulta posterior não pode:
+
+- duplicar movimento;
+- duplicar histórico;
+- duplicar atendimento;
+- duplicar necessidade;
+- duplicar OS.
+
+Sincronizar significa atualizar o estado derivado, não repetir o fato físico.
+
+---
+
+## Necessidade de compra deve considerar cobertura existente
+
+Antes de gerar nova necessidade:
+
+~~~text
+pendente
+-
+estoque disponível
+-
+quantidade já coberta por compra
+~~~
+
+Não criar nova compra para quantidade já coberta por Cotação/Pedido em andamento.
+
+---
+
+## Requisição concluída é histórica
+
+Depois de:
+
+~~~text
+CONCLUIDA
+~~~
+
+não permitir:
+
+- edição de cabeçalho;
+- alteração de itens;
+- inclusão;
+- exclusão;
+- novo atendimento;
+- nova Cotação.
+
+Frontend não substitui essa proteção no backend.
+
+---
+
+## OS concluída é histórica
+
+Depois de:
+
+~~~text
+CONCLUIDA
+~~~
+
+não permitir:
+
+- PUT/PATCH operacional;
+- inclusão de material;
+- edição de material;
+- exclusão de material;
+- novo atendimento de material.
+
+A proteção deve existir na API.
+
+---
+
+## Permissões específicas não devem virar acesso genérico ao módulo
+
+Permissões:
+
+~~~text
+requisicoes.fazer
+requisicoes.aprovar
+requisicoes.atender
+~~~
+
+possuem responsabilidades diferentes.
+
+Não inferir uma a partir da outra.
+
+Também não voltar a colocar essas permissões diretamente no Usuário como fonte principal.
+
+Perfil de Acesso continua sendo a fonte funcional.
+
+---
+
+## Risco de concorrência no atendimento
+
+Atendimento envolvendo estoque deve proteger contra duas operações simultâneas.
+
+Evitar:
+
+~~~text
+ler saldo
+↓
+liberar transação
+↓
+baixar depois
+~~~
+
+Usar proteção transacional e bloqueio apropriado dos registros envolvidos.
+
+---
+
+## Escopo futuro não deve contaminar o fluxo homologado
+
+Ainda não fazem parte deste domínio fechado:
+
+- Patrimônio;
+- Ativo Imobilizado;
+- gestão completa de prestador externo;
+- contratos de manutenção;
+- contratação formal de serviços;
+- SLA;
+- NFS-e de serviços;
+- múltiplos almoxarifados regionais.
+
+Não implementar esses conceitos por extensão implícita das estruturas atuais.
+
+---
 # 114. Grupo Compras
 
 O Pedido de Compra unificado está:
