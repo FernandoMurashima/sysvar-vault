@@ -1,10 +1,10 @@
----
+﻿---
 type: project
 status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-16
+updated: 2026-08-25
 tags:
   - projeto
   - sysvar
@@ -148,6 +148,16 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 
 ## Compras
 
+- Requisições Internas;
+- Uso/Consumo;
+- Manutenção;
+- TI;
+- Matriz de Responsabilidade;
+- Almoxarifado Central;
+- Ordens de Serviço;
+- Materiais de Ordens de Serviço;
+- necessidades de compra;
+- Cotação;
 - Pedido de Compra unificado;
 - Revenda;
 - Produto Uso/Consumo;
@@ -1894,6 +1904,153 @@ Integridade histórica possui prioridade sobre exclusão física.
 
 # Grupo Compras
 
+## Situação do Ciclo de Requisições e Ordens de Serviço
+
+~~~text
+REQUISIÇÕES INTERNAS
+→ CONCLUÍDAS
+→ TESTADAS
+→ HOMOLOGADAS
+→ DOCUMENTADAS
+→ APROVADAS
+
+ORDENS DE SERVIÇO
+→ CONCLUÍDAS
+→ TESTADAS
+→ HOMOLOGADAS
+→ DOCUMENTADAS
+→ APROVADAS
+
+COMPRAS DE USO/CONSUMO
+→ CONCLUÍDAS
+→ TESTADAS
+→ HOMOLOGADAS
+→ DOCUMENTADAS
+→ APROVADAS
+~~~
+
+O ciclo homologado contempla:
+
+- Uso/Consumo;
+- Manutenção;
+- TI;
+- Matriz de Responsabilidade;
+- setores de atendimento;
+- setores de aquisição;
+- Almoxarifado Central;
+- Ordens de Serviço;
+- materiais de OS;
+- necessidades de compra `REQ` e `OS`;
+- Cotação;
+- Pedido de Compra;
+- Entrada de NF-e;
+- estoque dedicado de Uso/Consumo;
+- atendimento;
+- sincronização de estados;
+- conclusão.
+
+Fluxos principais:
+
+~~~text
+USO/CONSUMO COM ESTOQUE
+
+Requisição
+→ Aprovação
+→ Estoque Central
+→ Atendimento
+→ Conclusão
+~~~
+
+~~~text
+USO/CONSUMO SEM ESTOQUE
+
+Requisição
+→ Aprovação
+→ Cotação
+→ Pedido de Compra
+→ Entrada de NF-e
+→ Estoque Central
+→ Atendimento
+→ Conclusão
+~~~
+
+~~~text
+MANUTENÇÃO / TI
+
+Requisição
+→ Aprovação
+→ Ordem de Serviço
+→ Atendimento
+→ Material, quando necessário
+→ Conclusão da OS
+→ Conclusão da Requisição
+~~~
+
+Regra estrutural:
+
+~~~text
+Origem da necessidade
+!=
+Responsável pelo atendimento
+!=
+Responsável pela aquisição
+~~~
+
+Para Manutenção e TI:
+
+~~~text
+Requisição aprovada
+→ cria OS
+
+Rascunho
+→ NÃO cria OS
+~~~
+
+Depois da criação da OS:
+
+~~~text
+OS
+→ fonte operacional do atendimento
+
+OS CONCLUIDA
+→ Requisição CONCLUIDA
+~~~
+
+Materiais necessários pertencem diretamente à OS.
+
+~~~text
+OrdemServicoMaterial
+→ material operacional
+
+NÃO
+→ criar segunda Requisição
+~~~
+
+Necessidades de compra são unificadas:
+
+~~~text
+REQ
+→ Uso/Consumo
+
+OS
+→ Material da Ordem de Serviço
+~~~
+
+Produto de Uso/Consumo utiliza estoque dedicado:
+
+~~~text
+Produto.tipo_produto = '2'
+→ ProdutoUsoConsumoEstoque
+→ ProdutoUsoConsumoMovimentacao
+~~~
+
+Estados concluídos de Requisição e Ordem de Serviço são finais e protegidos contra alteração operacional.
+
+Homologação:
+
+[[Homologação - Compras - Requisições e Ordens de Serviço]]
+
+---
 ## Situação do Pedido de Compra
 
 ~~~text
