@@ -1,4 +1,4 @@
-﻿---
+---
 type: project
 status: active
 project: Sysvar
@@ -21,6 +21,12 @@ tags:
   - cadastros-auxiliares
   - compras
   - pedido-de-compra
+  - requisicoes
+  - ordem-de-servico
+  - manutencao
+  - ti
+  - almoxarifado
+  - cotacao
   - revenda
   - fabricação-própria
   - sku
