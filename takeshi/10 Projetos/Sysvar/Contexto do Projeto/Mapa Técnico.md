@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-25
+updated: 2026-08-27
 tags:
   - sysvar
   - contexto
@@ -20,6 +20,7 @@ tags:
   - cadastros-auxiliares
   - compras
   - pedido-de-compra
+  - entrada-nfe
   - cotacao
   - almoxarifado
   - ti
@@ -548,13 +549,13 @@ DOCUMENTADA
 APROVADA
 ~~~
 
-Data da homologação:
+Data da homologação final:
 
 ~~~text
-18/08/2026
+27/08/2026
 ~~~
 
-A Entrada de NF-e representa o recebimento efetivo do Pedido de Compra.
+A Entrada de NF-e representa o recebimento fiscal e operacional de produtos, podendo ocorrer com ou sem Pedido de Compra.
 
 Pertence funcionalmente ao módulo:
 
@@ -581,29 +582,46 @@ Princípios consolidados:
 - uma única funcionalidade denominada Entrada de NF-e;
 - não existe tela independente de Notas Lançadas;
 - a própria listagem da Entrada de NF-e consulta notas existentes;
-- Pedido de Compra é obrigatório no fluxo atual;
+- o fluxo principal atual utiliza XML da NF-e;
+- o XML preservado representa a verdade fiscal recebida;
+- Pedido de Compra é opcional;
+- a NF-e pode ser recebida com Pedido ou sem Pedido;
+- quando houver Pedido, Empresa, Loja, Fornecedor, itens, saldo e preço são validados;
 - um Pedido pode receber várias NFs;
 - recebimento parcial é permitido;
 - recebimento total altera Pedido para AT;
 - cancelamento pode retornar Pedido de AT para AP;
-- status da NF são AB, FE e CA;
-- DELETE físico da NF é bloqueado;
-- fechamento integra Estoque, Custos, Financeiro e recebimento;
+- Produto × Fornecedor relaciona código externo ao Produto interno;
+- o vínculo Produto × Fornecedor pode preservar unidade e fator de conversão;
+- item XML sem Produto conciliado bloqueia efetivação;
+- conferência física não altera a verdade fiscal do XML;
+- divergências permanecem explícitas;
+- quantidade acima do saldo do Pedido pode ser importada e conferida, mas não efetivada;
+- preço da NF igual ou inferior ao aprovado no Pedido é permitido;
+- preço da NF superior ao Pedido bloqueia efetivação;
+- status operacionais da NF são AB, FE e CA;
+- status operacional e finalidade fiscal são conceitos diferentes;
+- finalidade fiscal incompatível com compra normal bloqueia a efetivação pelo fluxo comum;
+- DELETE físico operacional da NF é bloqueado;
+- efetivação integra Estoque, Custos, Financeiro e recebimento do Pedido quando houver;
 - cancelamento desfaz somente os efeitos da própria NF;
-- fechamento e cancelamento são transacionais;
-- Revenda utiliza SKUs e regras de Pack;
-- Uso/Consumo utiliza quantidade direta;
-- Insumo utiliza quantidade direta;
+- importação provisória elegível pode utilizar Recusar entrada;
+- Recusar entrada não é Cancelar NF;
+- recusa válida libera a chave para nova importação;
+- cancelamento de NF efetivada preserva a chave;
+- efetivação, cancelamento e recusa devem ser transacionais;
+- Revenda utiliza SKUs e regras próprias de Pack quando aplicáveis;
+- Produto tipo 2 utiliza estoque dedicado de Uso/Consumo independentemente da origem da compra;
+- Insumo utiliza seu fluxo próprio de quantidade e estoque;
 - quantidades decimais são preservadas quando permitidas pela Unidade;
 - isolamento multiempresa é obrigatório;
 - paginação é server-side;
 - filtros são executados no backend;
 - indicadores utilizam o conjunto filtrado completo;
-- confirmação dos itens utiliza checkbox `OK`;
-- checkbox marcado representa item efetivamente persistido;
-- seleção visual da linha é independente da confirmação do item.
+- o checkbox `OK` permanece pertencendo ao lançamento manual anteriormente homologado;
+- checkbox manual não deve ser confundido com conciliação e conferência do fluxo XML.
 
-Identidade documental:
+Identidade documental do lançamento manual:
 
 ~~~text
 Empresa
@@ -613,16 +631,79 @@ Empresa
 + Número
 ~~~
 
-O Pedido de Compra não participa da regra de unicidade documental.
+O Pedido de Compra não participa dessa identidade.
 
-Quando informada, a chave de acesso:
+No fluxo XML, a principal identidade fiscal é:
 
 ~~~text
-44 dígitos
-+ DV válido
-+ única
+Chave de acesso
 ~~~
 
+Quando importada ou informada, a chave deve respeitar as validações fiscais vigentes.
+
+Estados relevantes:
+
+~~~text
+NF AB válida
+→ chave ocupada
+
+NF FE
+→ chave ocupada
+
+NF CA após efetivação
+→ chave continua ocupada
+
+Importação provisória recusada
+→ chave liberada
+~~~
+
+Fluxo técnico principal atual:
+
+~~~text
+XML da NF-e
+↓
+Importação
+↓
+Identificação fiscal
+↓
+Fornecedor
+↓
+Produto × Fornecedor
+↓
+Conciliação
+↓
+Conferência física
+↓
+Divergências
+↓
+Pedido, quando houver
+↓
+Efetivação
+↓
+Estoque
+↓
+Custos
+↓
+Financeiro
+↓
+Recebimento do Pedido, quando houver
+↓
+Auditoria
+~~~
+
+Operações distintas:
+
+~~~text
+Recusar entrada
+→ importação XML provisória elegível
+→ sem efeitos operacionais
+→ libera chave
+
+Cancelar NF
+→ documento já efetivado
+→ estorna/recalcula efeitos
+→ preserva chave
+~~~
 Identificação das movimentações de estoque:
 
 ~~~text
