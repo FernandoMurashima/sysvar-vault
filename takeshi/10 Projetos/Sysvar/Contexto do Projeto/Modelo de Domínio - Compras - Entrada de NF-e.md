@@ -6,12 +6,19 @@ group: Compras
 module: Entrada de NF-e
 phase: Fase 1
 created: 2026-08-18
-updated: 2026-08-18
+updated: 2026-08-27
 tags:
   - sysvar
   - compras
   - entrada-nfe
   - nota-fiscal
+  - forma-pagamento-fiscal
+  - recusa-entrada
+  - divergencia
+  - conferencia
+  - conciliacao
+  - produto-fornecedor
+  - xml
   - recebimento
   - estoque
   - financeiro
@@ -34,7 +41,7 @@ tags:
 - **Funcionalidade:** Entrada de NF-e
 - **Tipos contemplados:** Revenda, Uso/Consumo e Insumo
 - **Situação:** IMPLEMENTADO E HOMOLOGADO
-- **Data da homologação:** 18/08/2026
+- **Data da homologação:** 27/08/2026
 
 ### Documentos relacionados
 
@@ -44,26 +51,49 @@ tags:
 - [[Workflows - Compras - Pedido de Compra]]
 - [[Mapa Técnico - Compras - Entrada de NF-e]]
 - [[Workflows - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
 - [[Homologação - Compras - Entrada de NF-e]]
 
 ---
 
 # 2. Objetivo do Modelo de Domínio
 
-O domínio de Entrada de NF-e representa o recebimento efetivo de produtos vinculados a um Pedido de Compra aprovado.
+O domínio de Entrada de NF-e representa o recebimento fiscal e operacional de produtos no Sysvar.
 
-A Entrada de NF-e transforma a intenção de compra registrada no Pedido em eventos efetivos de:
+A entrada pode ocorrer:
 
-- recebimento;
+- vinculada a Pedido de Compra;
+- sem Pedido de Compra.
+
+No fluxo atual, o XML da NF-e é a principal fonte da verdade fiscal do documento recebido.
+
+A Entrada de NF-e integra:
+
+- XML;
+- identificação fiscal;
+- fornecedor;
+- Produto × Fornecedor;
+- conversão de unidade;
+- conciliação;
+- conferência física;
+- divergências;
+- Pedido de Compra, quando houver;
 - estoque;
-- custo;
-- financeiro.
+- custos;
+- financeiro;
+- recebimento;
+- cancelamento;
+- recusa de importação provisória;
+- auditoria.
 
-A Nota Fiscal de Entrada também preserva:
+A Nota Fiscal de Entrada preserva:
 
-- identidade documental;
+- identidade fiscal;
+- chave de acesso;
+- dados fiscais recebidos;
 - histórico;
 - rastreabilidade;
+- efeitos operacionais;
 - cancelamento;
 - auditoria.
 
@@ -79,20 +109,27 @@ Estrutura diretamente subordinada:
 
 `NotaFiscalEntradaItem`
 
-Estruturas externas relacionadas:
+Estruturas externas e relacionadas:
 
-- PedidoCompra
-- PedidoCompraItem
-- PedidoCompraEntrega
 - Empresa
 - Loja
 - Fornecedor
 - Produto
+- Produto × Fornecedor
+- PedidoCompra, quando houver
+- PedidoCompraItem, quando houver
+- PedidoCompraEntrega, quando houver
 - Cor
 - Pack
 - SKU
 - Estoque
-- EstoqueMovimentacao
+- ProdutoUsoConsumoEstoque
+- movimentações de estoque
+- conciliação
+- conferência física
+- divergências
+- cobrança fiscal
+- forma de pagamento fiscal
 - Pagar
 - PagarItem
 - Auditoria
@@ -193,17 +230,36 @@ Isso significa que uma mesma combinação documental não pode ser registrada no
 
 # 7. Chave de acesso
 
-`chave_acesso` representa a chave fiscal da NF-e quando informada.
+`chave_acesso` representa a identidade fiscal principal da NF-e importada.
 
-Regras:
+No lançamento manual, pode permanecer ausente quando o fluxo permitir.
 
-- pode estar ausente no lançamento manual;
-- quando informada, deve possuir 44 dígitos;
-- deve ser numérica;
-- deve possuir dígito verificador válido;
-- deve ser única.
+Quando informada ou importada:
 
-A chave permanece associada ao documento mesmo após cancelamento.
+- deve possuir 44 dígitos;
+- deve possuir formato fiscal válido;
+- deve respeitar a validação da chave;
+- deve ser única dentro das regras de isolamento da aplicação.
+
+Estados relevantes:
+
+~~~text
+NF AB válida
+→ chave ocupada
+
+NF FE
+→ chave ocupada
+
+NF CA após efetivação
+→ chave continua ocupada
+
+Importação provisória recusada
+→ chave liberada
+~~~
+
+Cancelar uma NF efetivada não libera sua chave.
+
+Recusar uma importação XML provisória elegível libera a chave e permite nova importação do mesmo XML.
 
 ---
 
@@ -213,47 +269,73 @@ Relacionamento:
 
 `NotaFiscalEntrada.pedido_compra`
 
-O Pedido é a origem funcional da entrada.
+O vínculo com Pedido de Compra é opcional.
 
-A NF não duplica dados de:
+Fluxos válidos:
+
+~~~text
+NF-e com Pedido
+NF-e sem Pedido
+~~~
+
+Quando houver Pedido, ele participa das validações de:
 
 - Empresa;
 - Loja;
 - Fornecedor;
-
-quando essas informações já podem ser determinadas de forma segura pelo Pedido.
+- itens;
+- quantidade;
+- saldo restante;
+- preço aprovado;
+- recebimentos anteriores.
 
 Representação:
 
 ~~~text
 NotaFiscalEntrada
-        ↓
-PedidoCompra
-   ├── Empresa
-   ├── Loja
-   └── Fornecedor
+        │
+        ├── PedidoCompra, quando houver
+        │      ├── Empresa
+        │      ├── Loja
+        │      └── Fornecedor
+        │
+        └── Entrada sem Pedido
+               ├── Empresa
+               ├── Fornecedor
+               └── destino operacional
 ~~~
+
+O Pedido não compõe a identidade fiscal da NF-e.
 
 ---
 
 # 9. Empresa
 
-A Empresa da NF é derivada do Pedido de Compra.
+Toda NotaFiscalEntrada pertence a uma Empresa.
 
-Toda consulta e operação devem respeitar o tenant.
+A Empresa é a fronteira obrigatória do tenant, exista ou não Pedido de Compra.
 
 A NF não pode:
 
-- utilizar Pedido de outra empresa;
-- expor seus dados a usuário de outra empresa;
-- relacionar itens de outro tenant;
-- contaminar estoque ou financeiro de outra empresa.
+- utilizar Pedido de outra Empresa;
+- utilizar Fornecedor de outra Empresa;
+- utilizar Produto ou vínculo Produto × Fornecedor de outro tenant;
+- expor seus dados a usuário de outra Empresa;
+- contaminar estoque;
+- contaminar financeiro;
+- contaminar conciliação;
+- contaminar conferência;
+- contaminar cancelamento ou recusa de outra Empresa.
 
 ---
 
 # 10. Loja
 
-A Loja utilizada no recebimento é a Loja vinculada ao Pedido.
+A Loja representa o destino operacional da entrada.
+
+Quando houver Pedido, deve ser compatível com a Loja definida nele.
+
+Quando não houver Pedido, deve ser determinada dentro do contexto autorizado da Empresa.
 
 Ela participa principalmente de:
 
@@ -261,15 +343,19 @@ Ela participa principalmente de:
 - configuração de estoque negativo;
 - segregação operacional da entrada.
 
-A Loja deve pertencer à mesma Empresa do Pedido.
+A Loja deve pertencer à mesma Empresa da NotaFiscalEntrada.
 
 ---
 
 # 11. Fornecedor
 
-O Fornecedor é obtido a partir do Pedido de Compra.
+O Fornecedor pertence ao contexto fiscal da NF-e.
 
-Ele participa da identidade documental:
+No fluxo XML, sua identificação decorre dos dados fiscais do emitente.
+
+Quando houver Pedido de Compra, o Fornecedor da NF deve ser compatível com o Fornecedor do Pedido.
+
+No lançamento manual, ele continua participando da identidade documental composta por:
 
 ~~~text
 Empresa
@@ -279,7 +365,7 @@ Empresa
 + Número
 ~~~
 
-Não existe necessidade funcional de duplicar o Fornecedor diretamente na NF enquanto o relacionamento com o Pedido permanecer obrigatório e confiável.
+No fluxo XML, a chave de acesso é a identidade fiscal principal do documento.
 
 ---
 
@@ -291,27 +377,33 @@ Entidade:
 
 Responsabilidade:
 
-representar a quantidade efetivamente recebida de um item do Pedido dentro de uma determinada NF.
+representar um item fiscal recebido dentro de determinada NotaFiscalEntrada.
 
-Relacionamentos principais:
+O item pode existir:
 
-- `nota`
-- `pedido_item`
+- conciliado com item de Pedido;
+- sem Pedido de Compra;
+- conciliado diretamente com Produto interno.
 
-Campos principais:
+No fluxo XML devem ser preservados, conforme disponíveis:
 
-- `qtd_recebida`
-- `preco_unit_nf`
-- `desconto_item`
-- `total_item`
+- código do Produto no Fornecedor;
+- descrição fiscal;
+- GTIN/EAN;
+- unidade comercial;
+- quantidade fiscal;
+- preço fiscal;
+- total fiscal.
+
+O cadastro interno não deve sobrescrever a verdade fiscal do XML.
 
 ---
 
 # 13. Relação com PedidoCompraItem
 
-Todo item da NF deve apontar para um item do mesmo Pedido associado à NotaFiscalEntrada.
+O vínculo com PedidoCompraItem é obrigatório somente quando a NF-e estiver vinculada a Pedido.
 
-Regra estrutural:
+Nesse caso:
 
 ~~~text
 NotaFiscalEntrada.pedido_compra
@@ -321,25 +413,123 @@ NotaFiscalEntradaItem.pedido_item.pedido
 
 Não é permitida combinação entre itens de Pedidos diferentes.
 
+Quando não houver Pedido:
+
+~~~text
+Item XML
+↓
+Produto × Fornecedor
+↓
+Produto interno
+~~~
+
+A ausência de Pedido não elimina a necessidade de conciliação antes da efetivação.
+
 ---
 
-# 14. Confirmação do item
+# 14. XML, Produto × Fornecedor e conciliação
 
-No frontend, a existência efetiva de `NotaFiscalEntradaItem` é representada pelo checkbox:
+No fluxo XML, o documento recebido é a fonte da verdade fiscal.
 
-**OK**
+Regra:
+
+~~~text
+XML
+→ verdade fiscal
+
+Cadastro interno
+→ interpretação operacional
+~~~
+
+Os dados fiscais originais não devem ser sobrescritos silenciosamente.
+
+## Produto × Fornecedor
+
+O domínio mantém associação permanente entre:
+
+~~~text
+Fornecedor
++
+Código externo
+→
+Produto interno
+~~~
+
+O mesmo código externo pode representar Produtos diferentes para Fornecedores diferentes.
+
+O vínculo pode manter:
+
+- Produto interno;
+- unidade utilizada pelo Fornecedor;
+- fator de conversão;
+- situação do vínculo.
+
+O relacionamento é reutilizado em importações futuras.
+
+## Conversão de unidade
+
+A unidade comercial do XML pode ser diferente da unidade interna.
+
+Exemplo:
+
+~~~text
+1 PCT = 100 UN
+
+XML:
+100 PCT
+
+Estoque:
+10.000 UN
+~~~
+
+A quantidade fiscal original permanece preservada.
+
+## Conciliação
+
+Conciliação relaciona o item fiscal ao Produto interno correto.
+
+~~~text
+Item XML
+↓
+Produto × Fornecedor existente?
+├── sim → utilizar vínculo
+└── não → resolver conciliação
+               ↓
+         vínculo pode ser salvo
+~~~
+
+Item XML sem Produto conciliado bloqueia a efetivação.
+
+## Conferência física
+
+A conferência registra a quantidade efetivamente recebida.
+
+Ela não altera a quantidade fiscal constante no XML.
+
+Quando houver diferença:
+
+~~~text
+quantidade fiscal
+!=
+quantidade conferida
+→ divergência
+~~~
+
+A divergência deve ser registrada e tratada.
+
+## Lançamento manual
+
+O mecanismo de checkbox `OK` pertence ao lançamento manual anteriormente homologado e permanece válido enquanto esse fluxo for aplicável.
+
+Nesse caso:
 
 ~~~text
 Checkbox desmarcado
-→ ainda não existe item persistido na NF
+→ item ainda não persistido
 
 Checkbox marcado
-→ item está persistido na NF
+→ item persistido
 ~~~
-
-O checkbox não representa apenas estado visual.
-
-Ele reflete o estado real persistido.
 
 ---
 
@@ -377,7 +567,17 @@ Quantidade pedida
 = saldo pendente
 ~~~
 
-A quantidade da NF atual não pode ultrapassar esse saldo.
+Quando houver Pedido, a quantidade fiscal pode ser importada e conferida mesmo acima do saldo restante, pois o sistema preserva a verdade recebida.
+
+Porém:
+
+~~~text
+quantidade NF > saldo restante do Pedido
+→ alerta
+→ efetivação bloqueada
+~~~
+
+A validação definitiva ocorre novamente no backend.
 
 ---
 
@@ -400,31 +600,61 @@ O domínio permite várias NFs vinculadas ao mesmo Pedido.
 
 # 18. Status da NotaFiscalEntrada
 
-Estados:
+Estados operacionais:
 
 ~~~text
 AB = Aberta
-FE = Fechada
+FE = Fechada / efetivada
 CA = Cancelada
 ~~~
 
 ## AB
 
-Estado de preparação.
+Representa entrada ainda não efetivada.
 
-Permite alteração conforme as regras vigentes.
+Pode permanecer nesse estado durante:
+
+- importação;
+- conciliação;
+- conferência;
+- análise de divergências;
+- preparação para efetivação.
 
 ## FE
 
 Representa NF efetivada.
 
-Seus efeitos passam a integrar estoque, custos, financeiro e recebimento.
+Seus efeitos passam a integrar, conforme o caso:
+
+- estoque;
+- custos;
+- financeiro;
+- recebimento do Pedido.
 
 ## CA
 
-Representa documento cancelado.
+Representa NF efetivada e posteriormente cancelada.
 
-A entidade permanece persistida para histórico.
+A entidade permanece persistida para histórico e rastreabilidade.
+
+## Estado operacional e finalidade fiscal
+
+~~~text
+status operacional
+!=
+finalidade fiscal
+~~~
+
+Um XML pode permanecer AB e possuir finalidade fiscal que impeça sua efetivação no fluxo normal.
+
+Exemplo homologado:
+
+~~~text
+finNFe = 4
+→ devolução
+→ importação permitida
+→ efetivação normal bloqueada
+~~~
 
 ---
 
@@ -476,19 +706,60 @@ Também deve ser atômica.
 
 ---
 
-# 21. Exclusão física
+# 21. Exclusão física, cancelamento e recusa
 
-`NotaFiscalEntrada` não deve ser excluída fisicamente pelo fluxo operacional.
+DELETE direto de NotaFiscalEntrada é bloqueado no fluxo operacional normal.
 
-DELETE direto é bloqueado.
+Para NF efetivada, o desfazimento ocorre por:
+
+**Cancelar NF**
 
 O cancelamento preserva:
 
 - documento;
 - itens;
+- chave;
 - histórico;
 - identidade;
 - rastreabilidade.
+
+Para uma importação XML ainda provisória e elegível existe:
+
+**Recusar entrada**
+
+Fluxo:
+
+~~~text
+XML importado
+↓
+NF AB
+↓
+sem efeitos operacionais incompatíveis
+↓
+Recusar entrada
+↓
+registro provisório removido
+↓
+chave liberada
+~~~
+
+Recusar entrada:
+
+- não movimenta estoque;
+- não gera financeiro;
+- não atualiza Pedido;
+- não cria NF cancelada;
+- permite nova importação do mesmo XML;
+- deve ser atômica;
+- deve respeitar multiempresa.
+
+Regra:
+
+~~~text
+Recusar entrada
+!=
+Cancelar NF
+~~~
 
 ---
 
@@ -587,8 +858,6 @@ dt_entrada >= dt_emissao
 
 # 27. Tipo de compra
 
-O tipo da operação é determinado pelo Pedido.
-
 Tipos suportados:
 
 ~~~text
@@ -597,7 +866,11 @@ Tipos suportados:
 4 = Insumo
 ~~~
 
-A Entrada de NF-e não define um tipo independente do Pedido.
+Quando houver Pedido, seu tipo participa das validações.
+
+Quando não houver Pedido, o tratamento operacional decorre dos Produtos internos conciliados e das regras do domínio.
+
+Fabricação Própria não participa do fluxo normal de Compras.
 
 ---
 
@@ -643,12 +916,29 @@ Uso/Consumo utiliza quantidade direta.
 
 O domínio não depende de Pack.
 
-A entrada afeta:
+Produto:
 
-- estoque do Produto;
-- custos do Produto;
-- financeiro;
-- recebimento do Pedido.
+~~~text
+tipo_produto = 2
+~~~
+
+utiliza o estoque dedicado de Uso/Consumo.
+
+A regra depende do tipo do Produto, não da origem da compra.
+
+~~~text
+Pedido gerado por Cotação
+ou
+Pedido manual
+ou
+NF sem Pedido
+↓
+Produto tipo 2
+↓
+estoque dedicado de Uso/Consumo
+~~~
+
+Quando houver Pedido, a entrada também atualiza seu recebimento.
 
 ---
 
@@ -760,9 +1050,18 @@ A Entrada de NF-e integra com:
 - Pagar;
 - PagarItem.
 
-O Pedido aprovado pode possuir previsão financeira.
+Quando houver Pedido, ele pode possuir planejamento financeiro anterior.
 
-A NF realiza a parcela correspondente ao recebimento efetivo.
+O XML também pode possuir informações próprias de:
+
+- cobrança;
+- duplicatas;
+- pagamentos;
+- forma de pagamento fiscal.
+
+Esses dados representam a verdade fiscal recebida e não devem ser substituídos silenciosamente pelas condições comerciais planejadas no Pedido.
+
+A efetivação da NF produz os efeitos financeiros conforme as regras vigentes do documento recebido.
 
 ---
 
@@ -943,11 +1242,17 @@ As seguintes estruturas não podem atravessar tenants:
 ~~~text
 NotaFiscalEntrada
 NotaFiscalEntradaItem
+Fornecedor
+Produto
+Produto × Fornecedor
 PedidoCompra
 PedidoCompraItem
 Loja
 Estoque
 Financeiro
+Conciliação
+Conferência
+Divergência
 ~~~
 
 Toda operação deve preservar essa fronteira.
@@ -981,33 +1286,81 @@ Acesso ao módulo Fiscal não é requisito adicional.
 O domínio deve preservar:
 
 ~~~text
-NF pertence a um Pedido da mesma Empresa
+NF pertence a uma Empresa
 ~~~
 
 ~~~text
-Item da NF pertence ao mesmo Pedido da NF
+Pedido de Compra
+= opcional
+~~~
+
+~~~text
+Quando houver Pedido:
+Pedido pertence à mesma Empresa da NF
+~~~
+
+~~~text
+Quando houver Pedido:
+Item conciliado pertence ao mesmo Pedido da NF
+~~~
+
+~~~text
+XML
+= verdade fiscal preservada
+~~~
+
+~~~text
+Item XML sem Produto conciliado
+→ não efetiva
 ~~~
 
 ~~~text
 Empresa + Fornecedor + Modelo + Série + Número
-não pode duplicar documento
+não pode duplicar documento manual
 ~~~
 
 ~~~text
-Chave informada
-= 44 dígitos + DV válido + única
+Chave XML
+= identidade fiscal principal
+~~~
+
+~~~text
+NF cancelada após efetivação
+→ chave permanece ocupada
+~~~
+
+~~~text
+Importação provisória recusada
+→ chave liberada
+~~~
+
+~~~text
+quantidade NF > saldo do Pedido
+→ pode importar/conferir
+→ não pode efetivar
+~~~
+
+~~~text
+Preço NF <= preço aprovado
+→ permitido
+
+Preço NF > preço aprovado
+→ bloqueia efetivação
+~~~
+
+~~~text
+Produto tipo 2
+→ estoque dedicado de Uso/Consumo
+~~~
+
+~~~text
+Recusar entrada
+!=
+Cancelar NF
 ~~~
 
 ~~~text
 dt_entrada >= dt_emissao
-~~~
-
-~~~text
-qtd_recebida >= 0
-~~~
-
-~~~text
-qtd_recebida <= saldo disponível
 ~~~
 
 ~~~text
@@ -1033,7 +1386,7 @@ Movimento de cancelamento
 ~~~
 
 ~~~text
-DELETE físico
+DELETE físico operacional
 = bloqueado
 ~~~
 
@@ -1049,6 +1402,27 @@ NotaFiscalEntradaItem
 HOMOLOGADO
 
 Pedido obrigatório:
+NÃO
+
+Entrada sem Pedido:
+SIM
+
+Importação XML:
+SIM
+
+Produto × Fornecedor:
+SIM
+
+Conciliação:
+SIM
+
+Conferência física:
+SIM
+
+Divergências:
+SIM
+
+Recusa de importação provisória:
 SIM
 
 Recebimento parcial:
@@ -1084,10 +1458,16 @@ PROTEGIDO
 Identidade técnica:
 NotaFiscalEntrada.id
 
-Identidade documental:
+Identidade documental manual:
 Empresa + Fornecedor + Modelo + Série + Número
 
-Confirmação visual do item:
+Identidade fiscal XML:
+Chave de acesso
+
+Fonte fiscal:
+XML preservado
+
+Confirmação visual manual:
 checkbox OK
 ~~~
 
