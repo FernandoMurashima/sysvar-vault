@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-25
+updated: 2026-08-27
 tags:
   - sysvar
   - arquitetura
@@ -20,6 +20,7 @@ tags:
   - cadastros-auxiliares
   - compras
   - pedido-de-compra
+  - entrada-nfe
   - cotacao
   - almoxarifado
   - ti
@@ -1590,18 +1591,22 @@ Responsabilidade arquitetural:
 AQUISIÇÃO
 ~~~
 
-O primeiro domínio formalmente encerrado do grupo é:
+O grupo possui atualmente blocos formalmente encerrados, entre eles:
 
-**Pedido de Compra**
+- Requisições Internas;
+- Ordens de Serviço;
+- Cotação;
+- Pedido de Compra;
+- Entrada de NF-e.
 
-Situação:
+A Entrada de NF-e está:
 
 ~~~text
-IMPLEMENTADO
-TESTADO
-HOMOLOGADO
-APROVADO
-DOCUMENTADO
+IMPLEMENTADA
+TESTADA
+HOMOLOGADA
+APROVADA
+DOCUMENTADA
 ~~~
 
 Compras controla:
@@ -1625,9 +1630,13 @@ Compras controla:
 
 Produto fornece a identidade dos itens.
 
-Fiscal permanece responsável pelo recebimento documental e operacional.
+A Entrada de NF-e pertence funcionalmente ao processo de Compras.
 
-Estoque permanece responsável pela quantidade física e localização.
+Sua implementação backend permanece tecnicamente localizada no app fiscal.
+
+O XML recebido preserva a verdade fiscal do documento.
+
+Estoque permanece responsável pela quantidade física, localização e movimentos.
 
 ---
 
@@ -1983,42 +1992,235 @@ Aprovação
 → Entrada de Estoque
 ~~~
 
-Fluxo correto:
+Fluxos corretos:
 
 ~~~text
-Aprovação
+Pedido aprovado
 → AP
-→ Nota Fiscal de Entrada
-→ Recebimento
+→ Entrada de NF-e vinculada
+→ Efetivação
 → Estoque
 ~~~
+
+ou:
+
+~~~text
+NF-e sem Pedido
+→ Importação
+→ Conciliação
+→ Conferência
+→ Efetivação
+→ Estoque
+~~~
+
+Importação do XML, isoladamente, também não representa entrada física.
 
 ---
 
 # 65. Recebimento de Compras
 
-O recebimento operacional permanece integrado ao Fiscal.
+A Entrada de NF-e é o evento documental que, após efetivação, produz o recebimento físico.
 
-Fluxo:
+A funcionalidade pertence ao processo de Compras, embora sua implementação backend esteja localizada no app `fiscal`.
+
+Pedido de Compra é opcional.
+
+Fluxo com Pedido:
 
 ~~~text
 Pedido AP
-        ↓
-Nota Fiscal de Entrada
-        ↓
-Recebimento
-        ↓
+↓
+Entrada de NF-e
+↓
+XML
+↓
+Conciliação
+↓
+Conferência
+↓
+Validações do Pedido
+↓
+Efetivação
+↓
 Movimento de Estoque
-        ↓
-Atualização do atendimento
+↓
+Atualização do atendimento do Pedido
 ~~~
 
-A tela de Pedido pode apresentar recebimentos.
+Fluxo sem Pedido:
 
-Não deve criar processo paralelo de entrada física.
+~~~text
+Entrada de NF-e
+↓
+XML
+↓
+Fornecedor
+↓
+Produto × Fornecedor
+↓
+Conciliação
+↓
+Conferência
+↓
+Efetivação
+↓
+Movimento de Estoque
+~~~
+
+A tela de Pedido pode apresentar seus recebimentos.
+
+Não deve existir processo paralelo de entrada física dentro do Pedido.
 
 ---
 
+## 65.1 Arquitetura da Importação XML
+
+Separação obrigatória:
+
+~~~text
+Importar XML
+!=
+Efetivar NF
+~~~
+
+Importação:
+
+- identifica o documento;
+- preserva a verdade fiscal;
+- identifica Fornecedor;
+- cria contexto provisório;
+- permite conciliação;
+- permite conferência.
+
+Efetivação:
+
+- valida o estado completo;
+- valida finalidade fiscal;
+- valida Pedido, quando houver;
+- movimenta Estoque;
+- atualiza Custos;
+- produz efeitos Financeiros;
+- atualiza recebimento do Pedido, quando houver.
+
+---
+
+## 65.2 Produto × Fornecedor
+
+A arquitetura de conciliação utiliza o relacionamento:
+
+~~~text
+Fornecedor
++
+Código externo
+→
+Produto interno
+~~~
+
+Esse vínculo pertence ao contexto empresarial e não pode atravessar tenants.
+
+Pode preservar:
+
+- código externo;
+- Produto;
+- unidade utilizada pelo Fornecedor;
+- fator de conversão.
+
+Item XML não conciliado não pode ser efetivado.
+
+---
+
+## 65.3 Conversão de Unidade
+
+A quantidade fiscal e a quantidade operacional possuem responsabilidades distintas.
+
+Exemplo:
+
+~~~text
+1 PCT = 100 UN
+
+XML:
+100 PCT
+
+Operacional:
+10.000 UN
+~~~
+
+A conversão não deve sobrescrever a quantidade original do XML.
+
+---
+
+## 65.4 Conferência e Divergência
+
+A conferência física é uma camada operacional sobre o documento fiscal.
+
+~~~text
+XML
+→ quantidade fiscal
+
+Conferência
+→ quantidade física
+~~~
+
+Diferenças devem produzir divergência.
+
+Não alterar o XML para eliminar divergência.
+
+Quando houver Pedido:
+
+~~~text
+Quantidade NF > saldo
+→ importação permitida
+→ conferência permitida
+→ efetivação bloqueada
+~~~
+
+Preço:
+
+~~~text
+NF <= Pedido
+→ permitido
+
+NF > Pedido
+→ efetivação bloqueada
+~~~
+
+---
+
+## 65.5 Finalidade Fiscal
+
+Status operacional e finalidade fiscal são dimensões independentes.
+
+~~~text
+AB / FE / CA
+!=
+finalidade fiscal
+~~~
+
+Documento com finalidade incompatível com compra normal pode ser importado, mas não deve ser efetivado pelo fluxo normal.
+
+---
+
+## 65.6 Recusa e Cancelamento
+
+São operações arquiteturalmente distintas.
+
+~~~text
+Recusar entrada
+→ NF AB provisória elegível
+→ não possui efeitos de efetivação
+→ libera chave
+~~~
+
+~~~text
+Cancelar NF
+→ NF efetivada
+→ desfaz/recalcula efeitos
+→ preserva chave
+~~~
+
+Efetivação, recusa e cancelamento devem preservar atomicidade.
+
+---
 # 66. Atendimento Parcial e Integral
 
 Recebimento parcial:
@@ -2181,23 +2383,35 @@ Compras não deve implementar Contas a Pagar paralelo.
 
 # 72. Integração Compras × Fiscal
 
-Compras registra:
+Pedido de Compra registra, quando existir:
 
 ~~~text
 o que foi solicitado
 ~~~
 
-Fiscal registra:
+A Entrada de NF-e registra:
 
 ~~~text
-o que efetivamente entrou
+o documento fiscal recebido
 +
-documento fiscal
+a verdade fiscal do XML
 +
-tributação
+o recebimento operacional após efetivação
 ~~~
 
-A integração deve permitir acompanhar o atendimento sem duplicar o recebimento.
+A Entrada de NF-e pertence funcionalmente a Compras.
+
+Sua implementação backend no app `fiscal` preserva a responsabilidade técnica sobre o documento fiscal.
+
+A arquitetura deve suportar:
+
+~~~text
+NF-e com Pedido
+ou
+NF-e sem Pedido
+~~~
+
+sem duplicar o recebimento.
 
 ---
 
@@ -2207,16 +2421,19 @@ Separação:
 
 ~~~text
 Pedido
-→ intenção de aquisição
+→ intenção de aquisição, quando houver
 
-Recebimento
+XML importado
+→ documento fiscal provisório
+
+NF efetivada
 → ocorrência física
 
 Estoque
-→ quantidade e localização
+→ quantidade, localização e movimentos
 ~~~
 
-A aprovação por si só não altera saldo.
+Nem aprovação do Pedido nem importação do XML alteram saldo por si sós.
 
 ---
 
@@ -2252,17 +2469,33 @@ Inicialização de estrutura com zero não significa entrada física.
 
 # 76. Estoque de Uso/Consumo e Insumos
 
-Para esses domínios:
+Uso/Consumo e Insumo possuem naturezas operacionais distintas.
+
+Para Produto Uso/Consumo:
 
 ~~~text
-Produto / Insumo
-+
-Local determinado pela operação
-=
-posição de Estoque
+tipo_produto = 2
+↓
+estoque dedicado de Uso/Consumo
 ~~~
 
-Não fixar localização no cadastro principal.
+Essa regra independe da origem da NF:
+
+- Pedido gerado por Cotação;
+- Pedido manual;
+- NF sem Pedido.
+
+Para Insumos:
+
+~~~text
+tipo_produto = 4
+↓
+estoque próprio do domínio de Insumos
+~~~
+
+Não utilizar a origem do Pedido para decidir se Produto tipo 2 usa ou não o estoque dedicado.
+
+A localização continua sendo determinada pela operação e não deve ser fixada indevidamente no cadastro principal.
 
 ---
 
