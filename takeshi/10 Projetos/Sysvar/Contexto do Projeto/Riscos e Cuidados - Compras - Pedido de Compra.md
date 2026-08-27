@@ -6,11 +6,12 @@ group: Compras
 module: Pedido de Compra
 phase: Fase 1
 created: 2026-08-16
-updated: 2026-08-16
+updated: 2026-08-27
 tags:
   - sysvar
   - compras
   - pedido-de-compra
+  - entrada-nfe
   - revenda
   - uso-consumo
   - insumo
@@ -650,24 +651,58 @@ AB → AP
 
 # 40. Risco — criar recebimento paralelo no Pedido
 
-Recebimento real deve permanecer integrado à Nota Fiscal de Entrada.
+Recebimento físico não deve ser executado diretamente pelo Pedido.
 
-Não criar botão ou rotina que faça entrada física independente diretamente pelo Pedido sem considerar Fiscal.
+O evento de entrada ocorre pela Entrada de NF-e efetivada.
+
+~~~text
+Pedido aprovado
+!=
+Mercadoria recebida
+~~~
+
+Quando a NF estiver vinculada ao Pedido:
+
+~~~text
+Pedido
+↓
+Entrada de NF-e
+↓
+Efetivação
+↓
+Estoque
+↓
+Atualização do recebimento
+~~~
+
+Não criar botão ou rotina que movimente estoque diretamente pelo Pedido.
 
 Isso poderia gerar:
 
 - duplicidade;
 - estoque incorreto;
-- fiscal sem correspondência;
-- divergência de custo.
+- documento fiscal sem correspondência;
+- divergência de custo;
+- divergência financeira;
+- recebimento do Pedido incoerente.
 
 ---
 
 # 41. Risco — transformar modal de Recebimentos em tela de entrada
 
-A sobretela de Recebimentos no Pedido é principalmente consultiva.
+A sobretela de Recebimentos do Pedido é principalmente consultiva.
 
-Não transformá-la silenciosamente em uma segunda rotina de entrada de mercadoria.
+Ela deve representar as entradas efetivamente vinculadas àquele Pedido.
+
+Não transformá-la silenciosamente em uma segunda rotina de:
+
+- importação XML;
+- conciliação;
+- conferência;
+- efetivação;
+- movimentação física.
+
+Essas responsabilidades pertencem à funcionalidade Entrada de NF-e.
 
 ---
 
@@ -685,11 +720,21 @@ Se existir qualquer saldo ainda pendente, Pedido deve permanecer AP.
 
 ---
 
-# 43. Risco — não recalcular depois de cancelamento fiscal
+# 43. Risco — não recalcular depois de cancelamento de NF
 
-Uma NF cancelada pode invalidar quantidades anteriormente recebidas.
+Uma NF vinculada ao Pedido e posteriormente cancelada deixa de representar recebimento válido.
 
-Se o Pedido estava AT e deixa de estar integralmente atendido, seu status precisa refletir novamente a realidade.
+Se o Pedido estava AT e deixa de estar integralmente atendido:
+
+~~~text
+AT
+↓
+recalcular recebimentos válidos
+↓
+AP
+~~~
+
+quando voltar a existir saldo pendente.
 
 Não tratar AT como estado irreversível.
 
@@ -697,15 +742,30 @@ Não tratar AT como estado irreversível.
 
 # 44. Risco — cancelamento de NF sem reflexo no estoque
 
-O fluxo fiscal de cancelamento precisa permanecer coerente também com Estoque.
+O cancelamento da Entrada de NF-e precisa permanecer coerente com:
 
-Ao evoluir o recebimento de Pedido, não atualizar apenas o status de Compras ignorando o movimento físico.
+- Estoque;
+- Custos;
+- Financeiro;
+- recebimento do Pedido, quando houver.
+
+Não atualizar apenas o status do Pedido ignorando os demais efeitos da NF.
+
+O cancelamento deve afetar somente os efeitos produzidos pela própria NF.
 
 ---
 
 # 45. Risco — vínculo insuficiente entre Pedido e NF
 
-A integração precisa permitir rastrear qual recebimento corresponde a qual Pedido/item.
+Quando uma NF estiver recebendo um Pedido, a integração precisa permitir rastrear estruturalmente:
+
+~~~text
+Pedido
+↓
+NF
+↓
+Itens recebidos
+~~~
 
 Não depender apenas de:
 
@@ -714,6 +774,24 @@ Não depender apenas de:
 - número digitado manualmente.
 
 Relacionamentos estruturados devem ser priorizados.
+
+Essa regra não significa que toda NF precise possuir Pedido.
+
+Também é válido:
+
+~~~text
+NF-e sem Pedido
+~~~
+
+Nesse caso, a entrada segue seu próprio fluxo de:
+
+- XML;
+- Fornecedor;
+- Produto × Fornecedor;
+- conciliação;
+- conferência;
+- divergências;
+- efetivação.
 
 ---
 
