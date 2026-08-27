@@ -166,6 +166,14 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 - necessidades de compra;
 - Cotação;
 - Pedido de Compra unificado;
+- Entrada de NF-e;
+- importação de XML;
+- NF-e com Pedido ou sem Pedido;
+- Produto × Fornecedor;
+- conversão de unidade;
+- conciliação;
+- conferência física;
+- divergências;
 - Revenda;
 - Produto Uso/Consumo;
 - Insumos;
@@ -178,9 +186,84 @@ Centralizar toda a operação da empresa em uma única plataforma, mantendo:
 - Natureza de Lançamento;
 - integração financeira;
 - recebimento;
-- Entrada Fiscal;
+- estoque;
+- custos;
+- financeiro;
+- cancelamento;
+- recusa de entrada provisória;
 - acompanhamento de atendimento.
 
+### Entrada de NF-e
+
+Status:
+
+~~~text
+IMPLEMENTADA
+TESTADA
+HOMOLOGADA
+APROVADA
+DOCUMENTADA
+~~~
+
+A Entrada de NF-e admite:
+
+~~~text
+NF-e com Pedido
+ou
+NF-e sem Pedido
+~~~
+
+O XML é preservado como verdade fiscal.
+
+Fluxo principal:
+
+~~~text
+XML
+↓
+Fornecedor
+↓
+Produto × Fornecedor
+↓
+Conciliação
+↓
+Conferência física
+↓
+Divergências
+↓
+Pedido, quando houver
+↓
+Efetivação
+↓
+Estoque
+↓
+Custos
+↓
+Financeiro
+~~~
+
+Regras consolidadas:
+
+- Pedido de Compra é opcional;
+- importação do XML não representa entrada física;
+- item XML sem Produto conciliado não pode ser efetivado;
+- conferência física não altera a verdade fiscal do XML;
+- quantidade acima do saldo do Pedido pode ser importada e conferida, mas bloqueia a efetivação;
+- preço da NF superior ao preço do Pedido bloqueia a efetivação;
+- preço igual ou inferior ao Pedido é permitido;
+- Produto tipo 2 utiliza estoque dedicado de Uso/Consumo independentemente da origem da compra;
+- finalidade fiscal e status operacional são conceitos distintos;
+- recusa de entrada provisória e cancelamento são operações diferentes;
+- recusa válida libera a chave;
+- cancelamento de NF efetivada preserva a ocupação da chave;
+- operações críticas preservam atomicidade e isolamento multiempresa.
+
+Documentação específica:
+
+- [[Mapa Técnico - Compras - Entrada de NF-e]]
+- [[Modelo de Domínio - Compras - Entrada de NF-e]]
+- [[Workflows - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
+- [[Homologação - Compras - Entrada de NF-e]]
 ## Fiscal
 
 - vendas;
