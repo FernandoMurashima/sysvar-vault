@@ -4,7 +4,7 @@ status: active
 project: ""
 source: ""
 created: 2026-08-16
-updated: 2026-08-18
+updated: 2026-08-27
 tags:
   - sistema
   - ia
@@ -383,7 +383,7 @@ Depois disso, não reabrir a funcionalidade sem:
 
 ## Fase 9 — Documentação
 
-A documentação definitiva deve ser atualizada depois da implementação e da homologação.
+A documentação definitiva deve ser atualizada depois da implementação, da homologação e da aprovação.
 
 A documentação deve refletir:
 
@@ -396,8 +396,154 @@ A documentação deve refletir:
 
 Não documentar como concluído algo ainda não homologado quando a homologação for necessária.
 
----
+### Procedimento obrigatório antes de alterar documentação
 
+Quando chegar a etapa de documentação, o usuário não precisa localizar arquivos, mostrar conteúdos ou indicar manualmente quais documentos precisam ser modificados.
+
+O ChatGPT deve consultar primeiro a documentação vigente no repositório.
+
+Fluxo obrigatório:
+
+~~~text
+FUNCIONALIDADE APROVADA
+↓
+CONSULTAR REPOSITÓRIO DE DOCUMENTAÇÃO
+↓
+LER DOCUMENTAÇÃO VIGENTE
+↓
+LOCALIZAR DOCUMENTOS RELACIONADOS
+↓
+COMPARAR COM O COMPORTAMENTO HOMOLOGADO
+↓
+IDENTIFICAR DIVERGÊNCIAS REAIS
+↓
+SELECIONAR SOMENTE OS DOCUMENTOS AFETADOS
+↓
+PREPARAR DIF
+↓
+VALIDAR ALTERAÇÃO NO REPOSITÓRIO
+↓
+VARREDURA FINAL
+↓
+DOCUMENTAÇÃO ENCERRADA
+~~~
+
+Antes de fornecer qualquer alteração documental, o ChatGPT deve:
+
+1. consultar o repositório de documentação vigente;
+2. consultar a branch principal atual;
+3. localizar os documentos relacionados ao módulo ou funcionalidade;
+4. ler o conteúdo atual dos documentos potencialmente afetados;
+5. comparar documentação, homologação e comportamento aprovado;
+6. decidir quais arquivos realmente precisam ser alterados;
+7. não alterar arquivos que já estejam corretos;
+8. não pedir ao usuário que mostre arquivos acessíveis pelo repositório;
+9. não trabalhar apenas com memória da conversa;
+10. somente depois preparar as alterações.
+
+Princípio obrigatório:
+
+~~~text
+CONSULTAR PRIMEIRO
+→ DECIDIR O QUE REALMENTE MUDA
+→ ALTERAR SOMENTE O NECESSÁRIO
+~~~
+
+Quando o usuário disser:
+
+~~~text
+documente
+~~~
+
+ou:
+
+~~~text
+procure na documentação e me passe as alterações
+~~~
+
+todo este procedimento deve ser executado automaticamente.
+
+### Padrão para documentos existentes
+
+Para documentos já existentes, o padrão é fornecer um DIF executável em PowerShell.
+
+O DIF deve:
+
+- ser baseado no conteúdo atual de `origin/main`;
+- alterar somente arquivos realmente afetados;
+- preservar conteúdo não relacionado;
+- validar seções ou marcadores antes da alteração;
+- interromper quando uma premissa necessária não for verdadeira;
+- evitar duplicações;
+- gravar UTF-8 sem BOM;
+- executar `git diff --check`;
+- mostrar `git diff`;
+- adicionar somente os arquivos alterados intencionalmente;
+- realizar commit;
+- realizar push;
+- finalizar com `git status`.
+
+Não utilizar por padrão:
+
+~~~text
+git add .
+~~~
+
+Preferir adição seletiva dos arquivos envolvidos.
+
+O usuário não deve precisar mostrar o conteúdo atual dos arquivos quando o repositório estiver acessível.
+
+### Falha durante atualização documental
+
+Se o DIF falhar:
+
+1. interromper a execução;
+2. não continuar para commit ou push;
+3. consultar novamente o conteúdo real do repositório;
+4. localizar a causa;
+5. preparar um DIF corrigido.
+
+Não pedir ao usuário que reconstrua manualmente o arquivo.
+
+### Confirmação após execução
+
+Depois que o usuário executar o DIF, o ChatGPT deve consultar novamente o repositório remoto.
+
+Não presumir que:
+
+- o commit ocorreu;
+- o push ocorreu;
+- todo o script foi aplicado;
+- o conteúdo final ficou correto.
+
+A confirmação deve ser feita pelo estado real do repositório.
+
+### Varredura final
+
+Depois dos documentos necessários serem atualizados, executar uma única varredura final.
+
+Verificar somente divergências reais, como:
+
+- regra antiga apresentada como atual;
+- fluxo incompatível;
+- relacionamento obsoleto;
+- nomenclatura antiga;
+- documento central não sincronizado;
+- homologação incompatível;
+- duplicidade;
+- metadado diretamente afetado.
+
+Não transformar a revisão em uma sequência infinita de novos documentos.
+
+Quando não restar divergência relevante:
+
+~~~text
+DOCUMENTAÇÃO ENCERRADA
+~~~
+
+e parar.
+
+---
 # 7. Regra de reaproveitamento
 
 Antes de criar qualquer estrutura nova, verificar se já existe:
