@@ -6,11 +6,12 @@ group: Compras
 module: Pedido de Compra
 phase: Fase 1
 created: 2026-08-16
-updated: 2026-08-16
+updated: 2026-08-27
 tags:
   - sysvar
   - compras
   - pedido-de-compra
+  - entrada-nfe
   - revenda
   - uso-consumo
   - insumo
@@ -42,6 +43,11 @@ tags:
 - [[Modelo de Domínio - Compras - Pedido de Compra]]
 - [[Riscos e Cuidados - Compras - Pedido de Compra]]
 - [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Entrada de NF-e]]
+- [[Modelo de Domínio - Compras - Entrada de NF-e]]
+- [[Workflows - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
+- [[Homologação - Compras - Entrada de NF-e]]
 
 ---
 
@@ -88,7 +94,9 @@ Financeiro
     ↓
 Pedido AP
     ↓
-NF Entrada / Recebimento
+Entrada de NF-e vinculada
+    ↓
+Efetivação
     ↓
 Parcial → AP
 Total → AT
@@ -979,25 +987,41 @@ O usuário não deve alterar livremente a composição já aprovada.
 
 # 44. Recebimento fora do Pedido
 
-O recebimento real ocorre pelo fluxo Fiscal.
+A tela do Pedido não realiza a entrada física da mercadoria.
+
+Quando uma Entrada de NF-e estiver recebendo aquele Pedido, o vínculo deve existir de forma estruturada.
 
 Fluxo:
 
 ~~~text
 Pedido AP
-   ↓
-Nota Fiscal de Entrada
-   ↓
-Vinculação ao Pedido
-   ↓
-Recebimento
-   ↓
+↓
+Entrada de NF-e vinculada
+↓
+Importação / preparação
+↓
+Conciliação
+↓
+Conferência
+↓
+Validações do Pedido
+↓
+Efetivação
+↓
 Estoque
-   ↓
+↓
 Atualização do atendimento
 ~~~
 
-A tela do Pedido não substitui a Nota Fiscal de Entrada.
+A tela do Pedido não substitui a Entrada de NF-e.
+
+A existência desse fluxo não significa:
+
+~~~text
+Toda NF-e exige Pedido
+~~~
+
+Também existe Entrada de NF-e sem Pedido.
 
 ---
 
@@ -1015,13 +1039,24 @@ Abrir sobretela
 
 A função principal é consulta.
 
+Deve representar somente recebimentos efetivamente vinculados ao Pedido.
+
 Pode apresentar:
 
 - quantidade prevista;
 - quantidade recebida;
 - datas;
 - situação;
-- informações relacionadas.
+- Entradas de NF-e relacionadas;
+- informações operacionais disponíveis.
+
+Essa sobretela não executa:
+
+- importação de XML;
+- conciliação;
+- conferência;
+- efetivação;
+- movimentação direta de estoque.
 
 ---
 
@@ -1033,7 +1068,7 @@ Exemplo:
 Pedido:
 100 unidades
 
-Recebido:
+Recebido em NF-e válida vinculada:
 40 unidades
 ~~~
 
@@ -1044,11 +1079,13 @@ Entrega = Parcial
 Pedido = AP
 ~~~
 
-O Pedido continua aguardando saldo pendente.
+O Pedido continua aguardando o saldo pendente.
 
 ---
 
 # 47. Novo recebimento parcial
+
+Um mesmo Pedido pode possuir várias Entradas de NF-e válidas.
 
 Exemplo:
 
@@ -1059,7 +1096,7 @@ Pedido:
 Recebido anteriormente:
 40
 
-Novo recebimento:
+Nova NF-e válida:
 30
 
 Acumulado:
@@ -1076,12 +1113,12 @@ Pedido continua AP
 
 # 48. Recebimento integral
 
-Quando o acumulado atingir integralmente o Pedido:
+Quando o acumulado das Entradas de NF-e válidas atingir integralmente o Pedido:
 
 ~~~text
 Quantidade pedida
 =
-Quantidade recebida
+Quantidade recebida válida
 ~~~
 
 Resultado:
@@ -1106,15 +1143,15 @@ Não significa apenas:
 
 ---
 
-# 50. Cancelamento de Nota Fiscal
+# 50. Cancelamento de Entrada de NF-e
 
-Se uma Nota Fiscal que participou do recebimento for cancelada:
+Se uma Entrada de NF-e vinculada ao Pedido for cancelada:
 
 ~~~text
 NF cancelada
-    ↓
-desfazer/recalcular reflexos do recebimento
-    ↓
+↓
+deixa de compor recebimento válido
+↓
 recalcular atendimento
 ~~~
 
@@ -1124,21 +1161,33 @@ Se o Pedido deixar de estar integralmente recebido:
 AT → AP
 ~~~
 
-conforme o fluxo fiscal vigente.
+quando voltar a existir saldo pendente.
+
+O cancelamento da NF também deve tratar seus próprios efeitos de Estoque, Custos e Financeiro.
 
 ---
 
 # 51. Não duplicar recebimento
 
-É proibido criar dois processos independentes para a mesma entrada:
+É proibido criar processo físico paralelo dentro do Pedido.
+
+Fluxo inválido:
 
 ~~~text
-Pedido recebe manualmente
+Pedido movimenta Estoque
 +
-Fiscal recebe novamente
+Entrada de NF-e movimenta Estoque novamente
 ~~~
 
-O fluxo correto é único e integrado.
+Fluxo correto:
+
+~~~text
+Pedido
+→ acompanha
+
+Entrada de NF-e efetivada
+→ produz o recebimento físico
+~~~
 
 ---
 
@@ -1154,19 +1203,25 @@ Aprovar Pedido
 Entrada de estoque
 ~~~
 
-Fluxo correto:
+Fluxo correto quando houver Pedido:
 
 ~~~text
 Aprovar Pedido
-      ↓
+↓
 AP
-      ↓
-NF Entrada
-      ↓
-Recebimento
-      ↓
+↓
+Entrada de NF-e vinculada
+↓
+Efetivação
+↓
 Estoque
 ~~~
+
+A aprovação do Pedido não movimenta estoque.
+
+A importação do XML também não movimenta estoque.
+
+O movimento ocorre na efetivação da Entrada de NF-e.
 
 ---
 
