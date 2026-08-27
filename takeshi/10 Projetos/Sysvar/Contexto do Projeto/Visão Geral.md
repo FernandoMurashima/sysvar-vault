@@ -20,6 +20,7 @@ tags:
   - compras
   - pedido-de-compra
   - entrada-nfe
+  - entrada-nfe
   - cotacao
   - almoxarifado
   - ti
