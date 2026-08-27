@@ -48,6 +48,11 @@ tags:
 - [[Modelo de Domínio - Compras - Entrada de NF-e]]
 - [[Workflows - Compras - Entrada de NF-e]]
 - [[Riscos e Cuidados - Compras - Entrada de NF-e]]
+- [[Homologação - Compras - Entrada de NF-e]]
+- [[Mapa Técnico - Compras - Entrada de NF-e]]
+- [[Modelo de Domínio - Compras - Entrada de NF-e]]
+- [[Workflows - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
 
 ---
 
