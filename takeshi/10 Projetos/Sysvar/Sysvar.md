@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-25
+updated: 2026-08-27
 tags:
   - projeto
   - sysvar
@@ -21,6 +21,7 @@ tags:
   - cadastros-auxiliares
   - compras
   - pedido-de-compra
+  - entrada-nfe
   - requisicoes
   - ordem-de-servico
   - manutencao
