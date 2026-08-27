@@ -6,12 +6,19 @@ group: Compras
 module: Entrada de NF-e
 phase: Fase 1
 created: 2026-08-18
-updated: 2026-08-18
+updated: 2026-08-27
 tags:
   - sysvar
   - compras
   - entrada-nfe
   - nota-fiscal
+  - recusa-entrada
+  - forma-pagamento-fiscal
+  - divergencia
+  - conferencia
+  - conciliacao
+  - produto-fornecedor
+  - xml
   - recebimento
   - estoque
   - financeiro
@@ -35,7 +42,7 @@ tags:
 - **Situação:** IMPLEMENTADO E HOMOLOGADO
 - **Homologação técnica:** aprovada
 - **Homologação manual:** aprovada pelo usuário
-- **Data da homologação final:** 18/08/2026
+- **Data da homologação final:** 27/08/2026
 
 ### Documentos relacionados
 
@@ -51,14 +58,24 @@ tags:
 
 # 2. Objetivo
 
-A Entrada de NF-e é a etapa de recebimento efetivo de mercadorias e materiais originados de um Pedido de Compra.
+A Entrada de NF-e é o fluxo responsável por registrar no Sysvar o documento fiscal de entrada efetivamente recebido.
 
-O fluxo parte de um Pedido previamente aprovado e registra o documento fiscal efetivamente recebido.
+A funcionalidade evoluiu para um processo completo baseado em XML de NF-e, sem tornar o Pedido de Compra obrigatório.
 
-A Entrada de NF-e é responsável pela integração entre:
+A entrada pode ocorrer:
 
-- Pedido de Compra;
-- recebimento;
+- vinculada a Pedido de Compra;
+- sem Pedido de Compra.
+
+O fluxo integra:
+
+- documento fiscal XML;
+- fornecedor;
+- Produto × Fornecedor;
+- conciliação de itens;
+- conferência física;
+- divergências;
+- Pedido de Compra, quando existente;
 - estoque;
 - custos;
 - financeiro;
@@ -76,32 +93,49 @@ Fabricação Própria não participa deste fluxo de Compras.
 
 # 3. Princípio funcional
 
-O processo homologado é:
+O fluxo vigente é:
 
 ~~~text
-Pedido de Compra aprovado
+XML da NF-e
         ↓
-Entrada de NF-e
+Importação
         ↓
-Seleção do Pedido
+Preservação dos dados fiscais
         ↓
-Informação dos dados da NF
+Identificação do fornecedor
         ↓
-Confirmação dos itens recebidos
+Produto × Fornecedor
         ↓
-Fechamento da NF
+Conciliação dos itens
+        ↓
+Conferência física
+        ↓
+Análise de divergências
+        ↓
+Validação com Pedido, quando houver
+        ↓
+Efetivação
         ↓
 Estoque
 Custos
 Financeiro
-Recebimento do Pedido
-        ↓
-Pedido AP ou AT
+Recebimento do Pedido, quando houver
+Auditoria
 ~~~
 
-Uma mesma compra pode ser recebida em mais de uma Nota Fiscal.
+A NF-e pode ser recebida sem Pedido.
 
-Portanto:
+Quando vinculada a Pedido, o sistema também controla:
+
+- fornecedor;
+- Loja;
+- item;
+- quantidade;
+- saldo do Pedido;
+- preço aprovado;
+- recebimentos anteriores.
+
+Uma mesma compra pode ser recebida em várias NFs.
 
 ~~~text
 1 Pedido de Compra
@@ -214,14 +248,31 @@ Serviço:
 src/app/core/services/notas-fiscais-entrada.service.ts
 ~~~
 
-A tela concentra:
+A tela atual concentra:
 
 - consulta das NFs;
-- inclusão;
-- edição de NF aberta;
-- itens;
-- fechamento;
-- cancelamento.
+- importação de XML;
+- seleção opcional de Pedido;
+- resumo fiscal;
+- conciliação;
+- vínculo Produto × Fornecedor;
+- conferência física;
+- divergências;
+- cobrança fiscal;
+- financeiro;
+- efetivação;
+- cancelamento de NF efetivada;
+- recusa de importação provisória;
+- bloqueios de finalidade fiscal especial.
+
+A tela Produto × Fornecedor também permite administrar:
+
+- fornecedor;
+- código externo;
+- produto interno;
+- unidade do fornecedor;
+- fator de conversão;
+- status do vínculo.
 
 ---
 
@@ -233,39 +284,65 @@ Model principal:
 fiscal.models.NotaFiscalEntrada
 ~~~
 
-Campos funcionais principais incluem:
+A entidade representa tanto o lançamento operacional quanto a identidade fiscal da entrada.
 
-- `pedido_compra`
-- `modelo`
-- `serie`
-- `numero`
-- `chave_acesso`
-- `dt_emissao`
-- `dt_entrada`
-- `status`
-- `valor_produtos`
-- `valor_desconto`
-- `valor_frete`
-- `valor_total`
-- `observacoes`
-- `criado_por`
-- timestamps
+Entre os dados relevantes estão, conforme o fluxo:
+
+- empresa;
+- fornecedor;
+- Pedido de Compra opcional;
+- modelo;
+- série;
+- número;
+- chave de acesso;
+- datas de emissão e entrada;
+- status operacional;
+- dados fiscais do XML;
+- ambiente fiscal;
+- finalidade da NF-e;
+- cobrança;
+- pagamentos;
+- totais;
+- cancelamento;
+- usuário e timestamps.
+
+O XML original é preservado como fonte fiscal e não deve ser sobrescrito por dados internos.
+
+A implementação também utiliza estruturas relacionadas para:
+
+- itens XML;
+- conciliação;
+- conferência;
+- divergências;
+- eventos;
+- forma de pagamento fiscal;
+- Produto × Fornecedor.
 
 ---
 
 # 9. Status da Nota Fiscal
 
-Os estados utilizados são:
+Os estados operacionais utilizados permanecem:
 
 ~~~text
 AB = Aberta
-FE = Fechada
+FE = Fechada / efetivada
 CA = Cancelada
 ~~~
 
 ## AB — Aberta
 
-Permite edição dos dados e dos itens dentro das regras vigentes.
+Representa uma entrada ainda não efetivada.
+
+Pode permitir, conforme a origem e o estado atual:
+
+- edição operacional;
+- importação/conciliação;
+- conferência;
+- resolução de vínculos;
+- análise de divergências;
+- efetivação;
+- recusa da entrada provisória, quando elegível.
 
 ## FE — Fechada
 
@@ -276,17 +353,41 @@ Pode produzir efeitos em:
 - estoque;
 - custos;
 - financeiro;
-- recebimento do Pedido.
+- recebimento do Pedido, quando houver.
 
-Seus itens ficam somente para consulta.
+Depois da efetivação, os dados operacionais sujeitos a fechamento deixam de ser livremente editáveis.
 
 ## CA — Cancelada
 
-Representa uma NF anteriormente registrada que foi cancelada funcionalmente.
+Representa uma NF que chegou a ser efetivada e posteriormente teve seus efeitos cancelados funcionalmente.
 
-A nota permanece registrada.
+A nota permanece registrada para:
 
-Seus itens ficam somente para consulta.
+- histórico;
+- auditoria;
+- rastreabilidade;
+- preservação da chave de acesso.
+
+## Estado operacional e situação fiscal
+
+Estado operacional e situação/finalidade fiscal não são o mesmo conceito.
+
+~~~text
+status operacional
+!=
+situação fiscal
+~~~
+
+Um XML pode ser importado e permanecer AB, mas possuir finalidade fiscal que impeça sua efetivação no fluxo normal.
+
+Exemplo homologado:
+
+~~~text
+finNFe = 4
+→ devolução
+→ XML pode ser importado
+→ fluxo normal de entrada fica bloqueado
+~~~
 
 ---
 
@@ -311,17 +412,50 @@ Isso preserva:
 
 # 11. Relação com Pedido de Compra
 
-A NF é obrigatoriamente vinculada a um Pedido de Compra no fluxo atual.
+O vínculo com Pedido de Compra é opcional.
 
-O Pedido deve:
+Fluxos permitidos:
 
-- pertencer à empresa autorizada;
-- estar disponível para recebimento;
-- possuir os itens correspondentes.
+~~~text
+NF-e com Pedido
+NF-e sem Pedido
+~~~
 
-A Entrada de NF-e não cria um fluxo paralelo de recebimento.
+Quando houver Pedido:
 
-O recebimento real do Pedido continua sendo determinado pelas NFs de Entrada.
+- deve pertencer à empresa autorizada;
+- fornecedor deve ser compatível;
+- Loja deve ser compatível;
+- itens devem ser conciliados;
+- saldo restante deve ser respeitado;
+- preço aprovado deve ser respeitado;
+- recebimentos anteriores são considerados.
+
+O recebimento parcial continua permitido.
+
+Uma NF com quantidade inferior ao saldo pode ser efetivada normalmente.
+
+Se a quantidade fiscal ultrapassar o saldo disponível:
+
+- a importação pode continuar;
+- a conciliação alerta;
+- a conferência física pode registrar a verdade;
+- a efetivação é bloqueada.
+
+Preço:
+
+~~~text
+Preço NF = Preço Pedido
+→ permitido
+
+Preço NF < Preço Pedido
+→ permitido
+
+Preço NF > Preço Pedido
+→ bloqueado
+~~~
+
+A validação definitiva ocorre novamente no backend na efetivação.
 
 ---
 
@@ -457,20 +591,95 @@ Empresas distintas também permanecem isoladas entre si.
 
 # 16. Chave de acesso
 
-A chave de acesso é opcional no lançamento manual atual.
+A chave de acesso identifica fiscalmente a NF-e importada.
 
-Quando informada:
+Quando informada/importada:
 
-- deve conter exatamente 44 dígitos;
-- deve conter somente números;
-- o dígito verificador é validado;
-- não pode existir duplicada.
+- deve conter 44 dígitos;
+- deve possuir formato válido;
+- não pode existir duplicada dentro das regras de isolamento da aplicação.
 
-A chave permanece vinculada ao documento mesmo quando a NF é cancelada.
+Regras homologadas:
 
-Cancelar uma NF não libera sua chave para cadastrar outro documento.
+~~~text
+NF aberta válida
+→ chave ocupada
 
-No banco, `chave_acesso` aceita `NULL` quando ausente e possui proteção de unicidade quando preenchida.
+NF efetivada
+→ chave ocupada
+
+NF cancelada após efetivação
+→ chave continua ocupada
+
+Importação provisória recusada
+→ registro provisório removido
+→ chave liberada
+→ mesmo XML pode ser importado novamente
+~~~
+
+Cancelar uma NF efetivada não libera sua chave.
+
+Recusar uma entrada XML ainda não efetivada abandona a importação provisória e libera a chave.
+
+## Recusar entrada
+
+`Recusar entrada` não é cancelamento.
+
+É uma operação destinada à importação XML ainda provisória e não efetivada.
+
+Fluxo:
+
+~~~text
+XML importado
+→ NF AB
+→ ainda sem efeitos operacionais
+→ Recusar entrada
+→ importação provisória removida
+→ chave liberada
+~~~
+
+A operação:
+
+- não movimenta estoque;
+- não gera financeiro;
+- não atualiza recebimento de Pedido;
+- não cria NF cancelada;
+- não transforma a recusa em evento de cancelamento;
+- permite importar novamente o mesmo XML;
+- deve respeitar isolamento multiempresa;
+- deve ser atômica.
+
+Endpoint homologado:
+
+~~~text
+POST /api/fiscal/notas-entrada/{id}/recusar/
+~~~
+
+A recusa deve ser bloqueada quando a entrada não for mais elegível, especialmente quando já existirem efeitos operacionais incompatíveis com abandono simples.
+
+## Finalidade fiscal especial
+
+A finalidade fiscal do XML deve ser preservada.
+
+Quando a finalidade exigir fluxo específico, a NF não pode ser efetivada como entrada normal.
+
+Exemplo homologado:
+
+~~~text
+finNFe = 4
+→ devolução
+~~~
+
+Nesse cenário:
+
+- o XML pode ser importado;
+- os dados fiscais permanecem preservados;
+- a interface indica que é necessário fluxo específico;
+- a efetivação normal é bloqueada;
+- a entrada provisória pode ser recusada;
+- a recusa libera a chave para futura utilização no fluxo fiscal apropriado.
+
+Nesta etapa não existe integração real completa com SEFAZ para execução desses eventos especiais.
 
 ---
 
@@ -498,31 +707,149 @@ O frontend não é considerado barreira suficiente de segurança.
 
 # 18. Itens da NF
 
-Model:
+A Entrada de NF-e baseada em XML preserva os dados fiscais do item e realiza a associação com o cadastro interno separadamente.
+
+Cada item pode conter informações fiscais como:
+
+- número do item;
+- código do fornecedor;
+- descrição fiscal;
+- GTIN/EAN;
+- unidade comercial;
+- quantidade fiscal;
+- valor unitário fiscal;
+- valor total.
+
+O produto interno do Sysvar não substitui nem sobrescreve os dados fiscais originais do XML.
+
+## Produto × Fornecedor
+
+O vínculo permanente utiliza conceitualmente:
 
 ~~~text
-NotaFiscalEntradaItem
+Fornecedor
++
+Código externo do fornecedor
+        ↓
+Produto interno do Sysvar
 ~~~
 
-O item está relacionado a:
+O mesmo código externo pode representar produtos diferentes em fornecedores diferentes.
 
-- NotaFiscalEntrada;
-- PedidoCompraItem.
+O vínculo pode armazenar, conforme o cadastro vigente:
 
-Campos principais:
+- código do fornecedor;
+- descrição;
+- GTIN/EAN;
+- produto interno;
+- unidade do fornecedor;
+- fator de conversão;
+- status.
 
-- quantidade recebida;
-- preço unitário da NF;
-- desconto do item;
-- total do item.
+## Conversão de unidade
 
-O `PedidoCompraItem` deve pertencer ao mesmo Pedido vinculado à NF.
+O Produto mantém sua unidade interna oficial.
+
+O vínculo Produto × Fornecedor pode definir a unidade utilizada pelo fornecedor.
+
+Exemplo homologado:
+
+~~~text
+1 PCT = 100 Un
+~~~
+
+Assim:
+
+~~~text
+100 PCT
+×
+100 Un/PCT
+=
+10.000 Un internas
+~~~
+
+## Conciliação
+
+A conciliação identifica o produto interno correspondente ao item fiscal.
+
+Item não conciliado bloqueia a efetivação.
+
+O vínculo pode ser resolvido manualmente quando necessário e reutilizado em futuras importações.
+
+## Conferência física
+
+Quantidade fiscal e quantidade conferida são conceitos diferentes.
+
+~~~text
+Quantidade fiscal
+= verdade documental do XML
+
+Quantidade conferida
+= contagem física realizada no recebimento
+~~~
+
+Exemplo:
+
+~~~text
+Fiscal:      10 UN
+Conferida:    8 UN
+Faltante:     2 UN
+~~~
+
+A quantidade conferida NÃO substitui a quantidade fiscal.
+
+Se a NF for aceita com divergência:
+
+~~~text
+Estoque
+→ entra pela quantidade fiscal
+
+Divergência
+→ permanece registrada separadamente
+~~~
+
+Valor da divergência:
+
+~~~text
+quantidade faltante
+×
+valor unitário fiscal
+~~~
+
+Exemplo:
+
+~~~text
+2 UN × R$ 2,50
+=
+R$ 5,00
+~~~
+
+O financeiro permanece pelo valor fiscal integral da NF.
+
+O valor divergente é alertado para tratamento posterior com o fornecedor.
 
 ---
 
-# 19. Confirmação dos itens
+# 19. Confirmação dos itens no lançamento manual
 
-A interface homologada utiliza um checkbox por linha.
+As seções 19 a 22 registram o mecanismo já homologado de confirmação de itens do lançamento manual existente.
+
+Esse comportamento deve ser preservado enquanto esse modo de entrada continuar disponível.
+
+Ele não deve ser confundido com o novo fluxo de importação XML.
+
+~~~text
+Lançamento manual
+→ confirmação por checkbox
+
+Importação XML
+→ item fiscal
+→ Produto × Fornecedor
+→ conciliação
+→ conferência
+~~~
+
+No lançamento manual, a interface homologada utiliza um checkbox por linha.
 
 A primeira coluna compacta utiliza:
 
@@ -673,13 +1000,36 @@ Não utilizam distribuição por Pack como Revenda.
 
 # 26. Validação de quantidade
 
-A quantidade:
+No fluxo XML:
+
+~~~text
+quantidade fiscal
+= quantidade documental da NF-e
+~~~
+
+A quantidade conferida:
 
 - não pode ser negativa;
-- não pode ultrapassar o saldo disponível;
-- deve respeitar a regra de Pack quando aplicável.
+- não pode superar a quantidade fiscal;
+- serve para registrar a contagem física;
+- não altera a verdade fiscal do documento.
 
-O backend é a autoridade definitiva.
+Quando houver Pedido:
+
+~~~text
+quantidade fiscal <= saldo do Pedido
+→ efetivação permitida
+
+quantidade fiscal > saldo do Pedido
+→ alerta antecipado
+→ efetivação bloqueada
+~~~
+
+A conferência pode registrar a quantidade física real mesmo quando existir incompatibilidade com o saldo do Pedido.
+
+No lançamento manual e nos produtos sujeitos a Pack, permanecem válidas as regras específicas de composição já homologadas.
+
+A validação definitiva pertence ao backend.
 
 ---
 
@@ -790,14 +1140,26 @@ Essa informação existe para reduzir o risco de lançamento no Pedido errado.
 
 # 32. Fechamento da NF
 
-O fechamento transforma a NF aberta em uma entrada efetivada.
+A efetivação transforma a NF aberta em uma entrada operacional efetivada.
 
-O processo integra, conforme o tipo:
+Antes dos efeitos definitivos, o backend revalida:
+
+- conciliação;
+- quantidade;
+- conversão de unidade;
+- saldo do Pedido, quando houver;
+- preço do Pedido, quando houver;
+- cobrança;
+- forma de pagamento fiscal;
+- finalidade fiscal;
+- demais bloqueios vigentes.
+
+Fluxo:
 
 ~~~text
 NF AB
   ↓
-validações
+validações finais
   ↓
 estoque
   ↓
@@ -805,20 +1167,43 @@ custos
   ↓
 financeiro
   ↓
-recebimento do Pedido
+recebimento do Pedido, quando houver
   ↓
 NF FE
 ~~~
 
 A operação é transacional.
 
-Falha em etapa crítica deve impedir permanência de estado parcial.
+Falha em etapa crítica impede permanência de efeitos parciais.
 
 ---
 
 # 33. Estoque
 
-O fechamento gera movimentações de estoque correspondentes aos itens efetivamente recebidos.
+Ao aceitar e efetivar uma NF, o estoque utiliza a quantidade fiscal do XML convertida para a unidade interna.
+
+~~~text
+quantidade interna
+=
+quantidade fiscal
+×
+fator de conversão
+~~~
+
+A quantidade conferida fisicamente é utilizada para detectar divergência, não para reduzir automaticamente a entrada fiscal aceita.
+
+Exemplo:
+
+~~~text
+Fiscal:       10
+Conferida:     8
+
+NF aceita:
+Estoque +10
+
+Divergência:
+2
+~~~
 
 A identificação técnica da entrada utiliza:
 
@@ -826,14 +1211,7 @@ A identificação técnica da entrada utiliza:
 NFE:<id>:ENTRADA
 ~~~
 
-O número comercial da NF não é utilizado isoladamente para garantir idempotência.
-
-Isso evita colisão entre:
-
-- fornecedores;
-- séries;
-- empresas;
-- documentos distintos com mesmo número.
+O número comercial da NF não é usado isoladamente para idempotência.
 
 ---
 
@@ -855,18 +1233,52 @@ O estorno:
 
 # 35. Estoque negativo
 
-No cancelamento, a configuração da Loja é respeitada.
+No cancelamento, o Sysvar deve preservar a verdade histórica das movimentações.
 
-Se a Loja não permite estoque negativo e o estorno tornaria o saldo negativo:
+Movimentações posteriores à entrada original não são apagadas nem reescritas.
+
+Fluxo:
+
+~~~text
+NF efetivada
+↓
+movimentações posteriores
+↓
+cancelamento da NF
+↓
+estorno somente da entrada original
+~~~
+
+Antes do cancelamento, o sistema calcula o impacto do estorno.
+
+A configuração da Loja continua sendo respeitada.
+
+Quando a Loja NÃO permite estoque negativo e o estorno produziria saldo negativo:
 
 - o cancelamento é bloqueado;
 - a NF permanece FE;
-- estoque permanece inalterado;
-- financeiro permanece inalterado;
-- custos permanecem inalterados;
-- Pedido permanece inalterado.
+- o estoque não é alterado;
+- o financeiro não é alterado;
+- os custos não são alterados;
+- o Pedido não é alterado.
 
-Quando a Loja permite estoque negativo, o comportamento segue essa configuração.
+Quando a Loja permite estoque negativo:
+
+- o sistema pode alertar que o estorno produzirá saldo negativo;
+- o usuário pode prosseguir dentro das regras vigentes;
+- o estorno da NF é executado;
+- as movimentações posteriores permanecem intactas;
+- o saldo resultante pode ficar negativo.
+
+Regra central:
+
+~~~text
+cancelar NF anterior
+!=
+apagar movimentos posteriores
+~~~
+
+O cancelamento deve estornar somente o fato originado pela própria NF.
 
 ---
 
@@ -923,15 +1335,72 @@ Cancelar NF 1 não deve apagar o efeito legítimo de NF 2 e NF 3.
 
 A Entrada de NF-e integra com Contas a Pagar.
 
-O Pedido aprovado possui planejamento/previsão financeira.
+A NF pode gerar financeiro:
 
-À medida que NFs são efetivadas, o financeiro correspondente é realizado.
+- vinculada a Pedido;
+- sem Pedido.
 
-O fluxo suporta:
+Quando o XML contém duplicatas, o financeiro utiliza as parcelas fiscais efetivamente informadas.
 
-- NF que atende integralmente o valor previsto;
-- NF parcial;
-- várias NFs para o mesmo Pedido.
+São preservados:
+
+- valor fiscal;
+- número da parcela;
+- vencimento;
+- forma de pagamento mapeada.
+
+Existe mapeamento permanente:
+
+~~~text
+tPag fiscal
+→
+FormaPagamento do Sysvar
+~~~
+
+Esse mapeamento respeita o contexto multiempresa.
+
+Quando houver cobrança que exija forma fiscal ainda não resolvida, a efetivação é bloqueada até o mapeamento necessário.
+
+## Divergência física e financeiro
+
+Quando a NF é aceita com divergência física:
+
+~~~text
+valor financeiro
+=
+valor fiscal integral da NF
+~~~
+
+A divergência física não reduz automaticamente:
+
+- total da NF;
+- título;
+- parcela;
+- obrigação financeira.
+
+Exemplo:
+
+~~~text
+Fiscal: 10 unidades
+Conferido: 8 unidades
+
+NF aceita
+→ estoque fiscal = 10
+→ financeiro fiscal = valor de 10
+→ divergência = 2 unidades
+~~~
+
+O Contas a Pagar recebe indicação do valor divergente para tratamento posterior.
+
+Esse tratamento poderá resultar, fora da efetivação normal da entrada, em:
+
+- desconto negociado;
+- crédito;
+- devolução;
+- compensação;
+- outro tratamento comercial/fiscal adequado.
+
+A Entrada de NF-e não inventa automaticamente qual dessas soluções deverá ser utilizada.
 
 ---
 
@@ -963,35 +1432,39 @@ O saldo/previsão restante do Pedido é recalculado de forma coerente.
 
 # 42. Financeiro já baixado
 
-Se a NF já possuir efeito financeiro efetivamente baixado/pago e a reversão não for segura:
+Uma NF efetivada não pode ser cancelada enquanto existir parcela financeira baixada incompatível com a reversão.
 
-**o cancelamento é bloqueado.**
+Nesse caso:
 
-O sistema não força reversão silenciosa de pagamento.
-
-Nesse cenário:
-
+- cancelamento é bloqueado;
 - NF permanece FE;
 - estoque não é estornado;
-- custos não são alterados;
 - Pedido não é alterado.
+
+O fluxo financeiro permite reabertura controlada da parcela baixada.
+
+Na reabertura:
+
+- a movimentação financeira é revertida/cancelada conforme a estrutura vigente;
+- a parcela volta a situação efetiva/em aberto;
+- histórico é preservado.
+
+Depois da regularização financeira, o cancelamento da NF pode ser novamente analisado.
 
 ---
 
 # 43. Atomicidade
 
-Fechamento e cancelamento são operações que atravessam múltiplos subsistemas.
-
-As operações críticas são tratadas transacionalmente.
+Efetivação, cancelamento e recusa de entrada são operações que exigem consistência transacional.
 
 O princípio é:
 
 ~~~text
-ou tudo é concluído
-ou nada permanece alterado
+ou toda a operação conclui
+ou nenhuma parte permanece alterada
 ~~~
 
-Em falha, deve ocorrer rollback dos efeitos aplicáveis em:
+Na efetivação, falha crítica não pode deixar efeitos parciais em:
 
 - NF;
 - Pedido;
@@ -999,7 +1472,16 @@ Em falha, deve ocorrer rollback dos efeitos aplicáveis em:
 - movimentações;
 - custos;
 - Pagar;
-- PagarItem.
+- PagarItem;
+- divergências;
+- histórico operacional.
+
+A recusa de entrada provisória também deve ser atômica para não deixar:
+
+- itens órfãos;
+- divergências órfãs;
+- chave bloqueada indevidamente;
+- efeitos operacionais parciais.
 
 ---
 
@@ -1097,88 +1579,134 @@ Isso evita ações sobre um registro que não está mais no contexto visual atua
 
 As operações relevantes seguem o padrão de auditoria existente.
 
-No cancelamento, o registro de sucesso deve corresponder a uma transação efetivamente concluída.
+Devem permanecer rastreáveis, conforme aplicável:
 
-Uma operação revertida por rollback não deve ser registrada como cancelamento concluído.
+- importação;
+- conciliação;
+- vínculo Produto × Fornecedor;
+- conferência;
+- divergências;
+- efetivação;
+- cancelamento;
+- recusa da importação;
+- efeitos financeiros;
+- movimentações de estoque;
+- eventos fiscais registrados.
+
+Uma transação revertida por rollback não deve ser registrada como operação concluída.
+
+## XML original
+
+O XML original da NF-e representa o documento fiscal recebido.
+
+Depois de importado e aceito no fluxo, não deve ser adulterado para refletir decisões internas do Sysvar.
+
+Dados internos como:
+
+- produto;
+- vínculo com fornecedor;
+- conferência;
+- divergência;
+- Pedido;
+- estoque;
+- financeiro;
+
+devem permanecer separados da verdade fiscal original.
+
+## XML de eventos
+
+Quando houver estrutura para eventos fiscais, o XML do evento deve permanecer separado do XML original da NF-e.
+
+~~~text
+XML original da NF-e
+!=
+XML de evento fiscal
+~~~
+
+Nesta etapa, a estrutura não representa integração SEFAZ completa.
 
 ---
 
 # 50. Rastreabilidade
 
-A partir da NF deve ser possível relacionar:
+A partir da NF deve ser possível relacionar, conforme o caso:
 
+- XML original;
+- fornecedor;
+- Produto × Fornecedor;
+- itens fiscais;
+- produto interno;
 - Pedido;
-- itens;
+- conciliação;
+- conferência;
+- divergências;
 - entrada de estoque;
 - cancelamento de estoque;
 - efeitos financeiros;
-- recebimento.
+- recebimento do Pedido;
+- eventos fiscais registrados.
 
-A identificação técnica das movimentações é baseada no ID interno da NF.
+A identificação técnica das movimentações utiliza o ID interno da NF.
 
-Isso permite coexistência segura de documentos com mesmo número comercial.
+Isso permite coexistência segura de documentos com mesmo número comercial e preserva os vínculos entre fato fiscal e efeitos internos.
 
 ---
 
 # 51. Testes automatizados
 
-A implementação foi fechada com cobertura específica no módulo `fiscal`.
+Após a evolução do fluxo XML e as correções da homologação manual, a suíte do módulo fiscal foi ampliada.
 
-Na homologação técnica final:
+Validação final registrada em 27/08/2026:
 
 ~~~text
-manage.py test fiscal --keepdb
-45 testes
+python manage.py test fiscal --noinput
+92 testes
 OK
 ~~~
 
-Também foram validados:
+Também foram executados durante o ciclo:
 
 ~~~text
-compras.tests.PedidoCompraUnificadoTests
-15 testes
-OK
-~~~
-
-~~~text
-produto.tests
-16 testes
+python manage.py check
 OK
 ~~~
 
 ~~~text
-accounts.tests.SaaSAccessControlTests
-33 testes
+python manage.py makemigrations --check --dry-run
 OK
+sem migrations pendentes
 ~~~
 
-~~~text
-manage.py check
-OK
-~~~
+A suíte `compras` possui falhas históricas conhecidas fora do escopo da Entrada de NF-e.
+
+Essas falhas não foram mascaradas nem corrigidas como parte desta homologação.
 
 ---
 
 # 52. Testes frontend
 
-A homologação final da Entrada de NF-e e da rota/permissão executou:
+A versão final do frontend foi validada com:
 
 ~~~text
-25 testes Angular
-SUCCESS
+npx tsc -p tsconfig.app.json --noEmit
+OK
 ~~~
 
-Depois da alteração final de confirmação dos itens por checkbox, o componente específico executou:
-
 ~~~text
-22 testes
-SUCCESS
+npx ng test --watch=false --browsers=ChromeHeadless
+230 testes
+OK
 ~~~
 
-Build:
+~~~text
+npx ng build --configuration development
+OK
+~~~
+
+Também foi executado:
 
 ~~~text
-ng build --configuration development
+git diff --check
 OK
 ~~~
 
@@ -1186,21 +1714,29 @@ OK
 
 # 53. Testes integrados adicionais
 
-O fechamento da cobertura incluiu cenários integrados de:
+A homologação manual final cobriu, entre outros:
 
-- múltiplas NFs no mesmo Pedido;
-- recebimento parcial e final;
-- cancelamento parcial;
-- reentrada do saldo;
-- Revenda com Pack multitamanho;
-- estoque por SKU;
-- isolamento multiempresa;
-- Uso/Consumo;
-- Insumo;
-- quantidades decimais;
-- financeiro;
-- custo médio;
-- rollback integral em erro.
+- entrada XML sem Pedido;
+- entrada XML vinculada a Pedido;
+- recebimento parcial;
+- múltiplas NFs;
+- duplicidade de chave;
+- chave preservada após cancelamento;
+- Produto × Fornecedor;
+- conversão `1 PCT = 100 Un`;
+- quantidade acima do saldo do Pedido;
+- preço acima do Pedido;
+- preço abaixo do Pedido;
+- divergência física;
+- alerta financeiro de divergência;
+- efetivação pela quantidade fiscal;
+- cancelamento com movimentações posteriores;
+- financeiro baixado e reabertura;
+- finalidade fiscal especial;
+- recusa de entrada;
+- liberação da chave após recusa;
+- reimportação do mesmo XML recusado;
+- multiempresa.
 
 ---
 
@@ -1279,31 +1815,139 @@ Confirmação dos itens por checkbox
 
 ---
 
+## Evolução XML e homologação de 27/08/2026
+
+### Backend
+
+~~~text
+8f4e984ac53758a723964aaada64c44e66fd997c
+Corrige financeiro da NF-e sem pedido
+~~~
+
+~~~text
+9cc9758db31f578172e8a676513cc5779ffa3862
+Corrige reabertura financeira da NF-e
+~~~
+
+~~~text
+dac4565
+Valida preço da NF-e contra Pedido
+~~~
+
+~~~text
+a8ae105
+Corrige tratamento de divergência física da NF-e
+~~~
+
+~~~text
+82a2c4f
+Corrige recusa de entrada da NF-e
+~~~
+
+### Frontend
+
+~~~text
+33a30fb60411e25ca0fa975ec47941bfcba9a636
+Exibe cobrança da NF-e na entrada
+~~~
+
+~~~text
+72cb070
+Ajusta homologação financeira da NF-e
+~~~
+
+~~~text
+3361abc
+Adiciona manutenção Produto × Fornecedor
+~~~
+
+~~~text
+8cf69ec
+Corrige manutenção Produto × Fornecedor
+~~~
+
+~~~text
+50266cc
+Ajusta divergências da NF-e e Produto × Fornecedor
+~~~
+
+~~~text
+6e33a91
+Ajusta fluxo de divergência no recebimento da NF-e
+~~~
+
+~~~text
+f2ff987
+Ajusta abandono da importação de NF-e
+~~~
+
+---
+
 # 55. Homologação final
 
-A homologação técnica final foi:
+A Entrada de NF-e passou por nova etapa de desenvolvimento e homologação após a versão originalmente aprovada em 18/08/2026.
 
-**APROVADA**
+A evolução adicionou e consolidou:
 
-Nenhum defeito técnico adicional foi encontrado na bateria final.
+- importação XML;
+- NF com ou sem Pedido;
+- Produto × Fornecedor;
+- conversão de unidade;
+- conciliação;
+- conferência física;
+- divergências;
+- cobrança fiscal;
+- mapeamento de forma de pagamento;
+- validação de saldo do Pedido;
+- validação de preço do Pedido;
+- cancelamento com rastreabilidade;
+- reabertura financeira;
+- finalidade fiscal especial;
+- recusa de importação provisória.
 
-Depois da homologação técnica, o usuário realizou homologação manual da funcionalidade.
+Durante a homologação manual foram encontradas regras que precisaram ser corrigidas.
 
-Foi identificada somente uma melhoria visual/operacional na confirmação dos itens:
+A principal correção funcional foi:
 
-- remoção do botão `Inserir`;
-- remoção do botão `Remover`;
-- adoção do checkbox `OK` por item.
+~~~text
+Quantidade conferida
+NÃO substitui
+Quantidade fiscal
+~~~
 
-A melhoria foi implementada, testada e novamente homologada pelo usuário.
+Regra definitiva:
+
+~~~text
+NF aceita
+→ estoque pela quantidade fiscal
+
+Diferença física
+→ divergência separada
+→ alerta ao Financeiro
+~~~
+
+Também foi homologada a distinção:
+
+~~~text
+Recusar entrada
+→ abandonar importação provisória
+→ liberar chave
+→ permitir reimportação
+
+Cancelar NF
+→ NF já efetivada
+→ preservar histórico
+→ preservar chave bloqueada
+→ estornar efeitos
+~~~
 
 Situação final:
 
-**MÓDULO APROVADO**
+**MÓDULO APROVADO E HOMOLOGADO**
 
-Data:
+Data final desta etapa:
 
-**18/08/2026**
+**27/08/2026**
 
 ---
 
@@ -1329,7 +1973,7 @@ Alterações futuras devem preservar as regras aqui documentadas que não forem 
 Entrada de NF-e
 Status: HOMOLOGADA
 
-Módulo de acesso:
+Módulo funcional:
 Compras
 
 Tipos:
@@ -1337,8 +1981,20 @@ Revenda
 Uso/Consumo
 Insumo
 
+Fluxo homologado nesta etapa:
+importação XML de NF-e
+
+Lançamento manual:
+estruturas existentes preservadas quando aplicáveis
+
 Pedido:
-obrigatório no fluxo atual
+opcional
+
+NF com Pedido:
+sim
+
+NF sem Pedido:
+sim
 
 Recebimento parcial:
 sim
@@ -1346,25 +2002,69 @@ sim
 Múltiplas NFs:
 sim
 
-Identidade:
-Empresa + Fornecedor + Modelo + Série + Número
+Produto × Fornecedor:
+sim
 
-Chave:
-opcional quando ausente
-44 dígitos + DV quando informada
-única
+Conversão de unidade:
+sim
 
-Estoque:
-integrado
+Conciliação:
+sim
 
-Custos:
-integrados
+Conferência física:
+sim
+
+Quantidade de estoque na NF XML aceita:
+quantidade fiscal × fator de conversão
+
+Quantidade conferida:
+não substitui quantidade fiscal
+
+Divergência física:
+registrada separadamente
+
+Alerta financeiro de divergência:
+sim
+
+Financeiro em divergência:
+valor fiscal integral
+
+Preço NF > Pedido:
+bloqueia efetivação
+
+Preço NF = Pedido:
+aceita
+
+Preço NF < Pedido:
+aceita
+
+Quantidade NF > saldo Pedido:
+bloqueia efetivação
+
+Chave duplicada:
+bloqueada
+
+NF cancelada:
+chave permanece bloqueada
+
+Recusar entrada provisória:
+remove importação provisória
+libera chave
+permite reimportação
+
+Cancelar NF:
+preserva histórico
+preserva chave
+estorna efeitos da NF
 
 Financeiro:
 integrado
 
-Cancelamento:
-integrado e transacional
+Cobrança/duplicatas:
+integradas
+
+tPag:
+mapeado para FormaPagamento
 
 Movimento de entrada:
 NFE:<id>:ENTRADA
@@ -1372,7 +2072,28 @@ NFE:<id>:ENTRADA
 Movimento de cancelamento:
 NFE:<id>:CANCEL
 
-DELETE físico:
+Movimentos posteriores:
+preservados no cancelamento
+
+Estoque negativo no cancelamento:
+segue configuração da Loja
+bloqueia quando negativo não é permitido
+pode prosseguir com alerta quando permitido
+
+Finalidade fiscal especial:
+identificada
+fluxo normal bloqueado
+
+finNFe = 4:
+requer fluxo específico
+
+XML original:
+preservado separadamente dos efeitos internos
+
+XML de evento:
+separado do XML original
+
+DELETE físico operacional:
 bloqueado
 
 Paginação:
@@ -1381,12 +2102,33 @@ server-side
 Filtros:
 backend
 
-Confirmação de item:
+Confirmação no lançamento manual:
 checkbox OK
+
+SEFAZ real:
+não integrada nesta etapa
+
+Assinatura digital:
+não implementada nesta etapa
+
+Certificado A1/A3:
+não implementado nesta etapa
+
+Manifestação do destinatário:
+não implementada nesta etapa
+
+CC-e:
+não implementada nesta etapa
+
+DANFE:
+não implementado nesta etapa
+
+Download automático de DF-e:
+não implementado nesta etapa
 
 Homologação técnica:
 aprovada
 
 Homologação manual:
-aprovada em 18/08/2026
+aprovada em 27/08/2026
 ~~~
