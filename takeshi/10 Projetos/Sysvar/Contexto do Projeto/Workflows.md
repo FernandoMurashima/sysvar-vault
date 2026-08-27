@@ -3692,7 +3692,7 @@ sem efeitos incompatíveis
         ↓
 Recusar entrada
         ↓
-registro provisório removido
+estado provisório recusado
         ↓
 chave liberada
 ~~~
