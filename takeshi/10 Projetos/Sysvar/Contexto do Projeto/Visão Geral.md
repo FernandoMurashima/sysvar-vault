@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-25
+updated: 2026-08-27
 tags:
   - sysvar
   - contexto
@@ -19,6 +19,7 @@ tags:
   - cadastros-auxiliares
   - compras
   - pedido-de-compra
+  - entrada-nfe
   - cotacao
   - almoxarifado
   - ti
@@ -957,6 +958,168 @@ ENTRADA DE NF-e
 → APROVADA
 → DOCUMENTADA
 ~~~
+## Entrada de NF-e — Visão Consolidada
+
+A Entrada de NF-e representa o recebimento fiscal e operacional de mercadorias.
+
+O fluxo atual admite:
+
+~~~text
+NF-e com Pedido
+ou
+NF-e sem Pedido
+~~~
+
+O Pedido de Compra não é obrigatório para importar e tratar uma NF-e.
+
+Quando houver Pedido, ele participa das validações de:
+
+- Empresa;
+- Loja;
+- Fornecedor;
+- itens;
+- saldo restante;
+- preço aprovado;
+- recebimentos anteriores.
+
+O XML representa a verdade fiscal recebida.
+
+~~~text
+XML
+↓
+Fornecedor
+↓
+Produto × Fornecedor
+↓
+Conciliação
+↓
+Conferência física
+↓
+Divergências
+↓
+Pedido, quando houver
+↓
+Efetivação
+↓
+Estoque
+↓
+Custos
+↓
+Financeiro
+~~~
+
+O cadastro Produto × Fornecedor permite associar:
+
+~~~text
+Fornecedor
++
+Código externo
+→
+Produto interno
+~~~
+
+e pode preservar unidade e fator de conversão.
+
+Item XML sem Produto conciliado não pode ser efetivado.
+
+A conferência física não altera o conteúdo fiscal do XML.
+
+Quando houver diferença:
+
+~~~text
+XML
+!=
+Físico
+→
+Divergência
+~~~
+
+Quando houver Pedido:
+
+~~~text
+Quantidade NF > saldo
+→ importar permitido
+→ conferir permitido
+→ efetivação bloqueada
+~~~
+
+Preço:
+
+~~~text
+NF = Pedido
+→ permitido
+
+NF < Pedido
+→ permitido
+
+NF > Pedido
+→ efetivação bloqueada
+~~~
+
+Produto Uso/Consumo:
+
+~~~text
+tipo_produto = 2
+→ estoque dedicado de Uso/Consumo
+~~~
+
+Essa regra independe da origem:
+
+- Pedido gerado por Cotação;
+- Pedido manual;
+- NF sem Pedido.
+
+Importação não representa entrada física.
+
+~~~text
+Importar XML
+!=
+Efetivar NF
+~~~
+
+A entrada física ocorre somente na efetivação.
+
+Operações distintas:
+
+~~~text
+Recusar entrada
+→ NF AB provisória elegível
+→ sem efeitos operacionais
+→ libera chave
+
+Cancelar NF
+→ NF já efetivada
+→ desfaz efeitos
+→ preserva chave
+~~~
+
+Status operacionais:
+
+~~~text
+AB = Aberta
+FE = Efetivada
+CA = Cancelada
+~~~
+
+Status operacional não deve ser confundido com finalidade fiscal.
+
+Exemplo:
+
+~~~text
+finNFe = 4
+→ devolução
+→ pode importar
+→ efetivação normal bloqueada
+~~~
+
+Documentação específica:
+
+- [[Mapa Técnico - Compras - Entrada de NF-e]]
+- [[Modelo de Domínio - Compras - Entrada de NF-e]]
+- [[Workflows - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
+- [[Homologação - Compras - Entrada de NF-e]]
+
 
 As Requisições Internas atendem três tipos principais:
 
