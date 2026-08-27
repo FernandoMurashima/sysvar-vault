@@ -6,11 +6,12 @@ group: Compras
 module: Pedido de Compra
 phase: Fase 1
 created: 2026-08-16
-updated: 2026-08-16
+updated: 2026-08-27
 tags:
   - sysvar
   - compras
   - pedido-de-compra
+  - entrada-nfe
   - revenda
   - uso-consumo
   - insumo
@@ -42,6 +43,11 @@ tags:
 - [[Workflows - Compras - Pedido de Compra]]
 - [[Modelo de Domínio - Compras - Pedido de Compra]]
 - [[Riscos e Cuidados - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Entrada de NF-e]]
+- [[Modelo de Domínio - Compras - Entrada de NF-e]]
+- [[Workflows - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
+- [[Homologação - Compras - Entrada de NF-e]]
 
 ---
 
@@ -1034,13 +1040,29 @@ Esses estados representam a situação das entregas associadas aos itens.
 
 # 47. Recebimento operacional
 
-A tela de Pedido de Compra não é a responsável pela entrada operacional definitiva da mercadoria.
+A tela de Pedido de Compra não realiza entrada física de mercadoria.
 
-O recebimento real permanece integrado ao fluxo Fiscal de Nota Fiscal de Entrada.
+O evento físico ocorre pela efetivação da Entrada de NF-e.
 
-Pedido de Compra consulta os recebimentos relacionados.
+Quando a NF estiver vinculada ao Pedido:
 
-Não criar entrada de estoque manual paralela diretamente na tela do Pedido.
+~~~text
+Pedido AP
+↓
+Entrada de NF-e
+↓
+Efetivação
+↓
+Estoque
+↓
+Atualização do recebimento do Pedido
+~~~
+
+O Pedido consulta os recebimentos efetivamente relacionados a ele.
+
+Não criar entrada de estoque paralela diretamente na tela do Pedido.
+
+A existência desse vínculo não significa que toda Entrada de NF-e precise possuir Pedido.
 
 ---
 
@@ -1056,7 +1078,7 @@ Deve permitir visualizar o que ocorreu no recebimento sem transformar o Pedido e
 
 # 49. Recebimento parcial
 
-Quando uma Nota Fiscal ou processo de recebimento atende somente parte do Pedido:
+Quando uma Entrada de NF-e válida vinculada ao Pedido atende somente parte das quantidades:
 
 ~~~text
 Pedido permanece AP
@@ -1082,28 +1104,74 @@ deve representar atendimento integral do Pedido.
 
 ---
 
-# 51. Cancelamento de Nota Fiscal
+# 51. Cancelamento de Entrada de NF-e
 
-Quando uma Nota Fiscal de Entrada relacionada for cancelada, o estado de recebimento do Pedido deve ser recalculado pelo fluxo fiscal existente.
+Quando uma Entrada de NF-e vinculada ao Pedido for cancelada, ela deixa de compor o recebimento válido daquele Pedido.
 
-Isso pode fazer um Pedido anteriormente atendido deixar de estar integralmente recebido.
+O atendimento deve ser recalculado.
 
-Não manter `AT` apenas porque já havia sido alcançado anteriormente.
+~~~text
+Pedido AT
+↓
+cancelamento de NF vinculada
+↓
+volta a existir saldo
+↓
+Pedido AP
+~~~
+
+quando deixar de existir atendimento integral.
+
+Não manter `AT` apenas porque esse estado já havia sido alcançado.
 
 ---
 
-# 52. Integração com Fiscal
+# 52. Integração com Entrada de NF-e
 
-Pedido de Compra deve permanecer integrado ao módulo Fiscal.
+Pedido de Compra e Entrada de NF-e são domínios relacionados, mas independentes.
 
-A Nota Fiscal de Entrada é responsável pelo recebimento documental e operacional da compra.
+~~~text
+Pedido de Compra
+→ planejamento e autorização da aquisição
+
+Entrada de NF-e
+→ documento fiscal recebido
+→ efeitos operacionais após efetivação
+~~~
+
+Quando houver vínculo:
+
+~~~text
+Pedido
+1:N
+Entradas de NF-e
+~~~
+
+Uma NF vinculada deve validar, entre outros pontos:
+
+- Empresa;
+- Loja;
+- Fornecedor;
+- itens;
+- saldo restante;
+- preço aprovado;
+- recebimentos anteriores.
+
+Também existe o fluxo:
+
+~~~text
+Entrada de NF-e sem Pedido
+~~~
+
+Portanto, não transformar Pedido em requisito estrutural da Entrada de NF-e.
 
 A arquitetura deve evitar:
 
 - duplicação de entrada;
 - estoque paralelo;
 - recebimento fictício;
-- divergência entre Pedido e Nota Fiscal.
+- vínculo textual em lugar de relacionamento estruturado;
+- divergência entre Pedido e NF vinculada.
 
 ---
 
