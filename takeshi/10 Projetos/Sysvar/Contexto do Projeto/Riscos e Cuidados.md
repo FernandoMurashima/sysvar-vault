@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-25
+updated: 2026-08-27
 tags:
   - sysvar
   - riscos
@@ -19,6 +19,7 @@ tags:
   - cadastros-auxiliares
   - compras
   - pedido-de-compra
+  - entrada-nfe
   - cotacao
   - almoxarifado
   - ti
@@ -2948,23 +2949,60 @@ A aprovação não deve movimentar Estoque.
 
 ---
 
-# 144. Recebimento deve Permanecer no Fiscal
+# 144. Entrada de NF-e é o Evento Físico
 
-Fluxo correto:
+A entrada física ocorre pela NF-e efetivada.
+
+Não considerar mercadoria recebida apenas por:
+
+- aprovação da Cotação;
+- geração do Pedido;
+- aprovação do Pedido;
+- importação provisória do XML.
+
+Fluxos válidos:
 
 ~~~text
-Pedido AP
-        ↓
-Nota Fiscal de Entrada
-        ↓
-Recebimento
-        ↓
+XML
+↓
+Entrada de NF-e
+↓
+Conciliação
+↓
+Conferência
+↓
+Efetivação
+↓
 Estoque
-        ↓
-Atualização do Pedido
 ~~~
 
-Não criar segundo processo independente de entrada dentro do Pedido.
+Quando houver Pedido:
+
+~~~text
+Pedido
+↓
+Entrada de NF-e
+↓
+Efetivação
+↓
+Estoque
+↓
+Atualização do recebimento do Pedido
+~~~
+
+Quando não houver Pedido:
+
+~~~text
+XML
+↓
+Entrada de NF-e
+↓
+Efetivação
+↓
+Estoque
+~~~
+
+Não criar processo paralelo de recebimento físico dentro do Pedido.
 
 ---
 
@@ -3006,7 +3044,7 @@ AT representa atendimento total.
 
 # 148. Múltiplos Recebimentos
 
-Não presumir:
+Quando houver Pedido, não presumir:
 
 ~~~text
 1 Pedido
@@ -3014,24 +3052,26 @@ Não presumir:
 1 Nota Fiscal
 ~~~
 
-Pedido pode ser atendido em várias entradas.
+Um Pedido pode ser atendido em várias NFs.
 
-O cálculo deve considerar recebimentos válidos acumulados.
+O cálculo deve considerar apenas recebimentos válidos acumulados.
+
+NF cancelada não compõe recebimento válido.
 
 ---
 
 # 149. Cancelamento de Nota Fiscal
 
-Recebimento originado por Nota Fiscal cancelada não pode continuar contado como válido.
+Recebimento originado por NF cancelada não pode continuar contado como válido.
 
-Fluxo:
+Quando houver Pedido:
 
 ~~~text
 NF cancelada
-        ↓
-recalcular recebimentos
-        ↓
-recalcular atendimento
+↓
+recalcular recebimentos válidos
+↓
+recalcular atendimento do Pedido
 ~~~
 
 Se um Pedido AT deixar de estar totalmente atendido:
@@ -3040,7 +3080,15 @@ Se um Pedido AT deixar de estar totalmente atendido:
 AT → AP
 ~~~
 
-conforme o fluxo Fiscal vigente.
+Cancelamento não libera a chave fiscal da NF efetivada.
+
+Não confundir:
+
+~~~text
+Cancelar NF
+!=
+Recusar entrada provisória
+~~~
 
 ---
 
@@ -3058,14 +3106,220 @@ Não interpretar teste verde somente de Compras como validação integral desse 
 
 ---
 
-# 151. Recebimento Acima do Pedido
+# 151. Quantidade da NF Acima do Saldo do Pedido
 
-Não aceitar silenciosamente recebimento acumulado acima da quantidade solicitada.
+Quando houver Pedido e a quantidade fiscal ultrapassar o saldo:
 
-Caso compra excedente seja necessária no futuro, a regra deve ser definida explicitamente.
+~~~text
+Quantidade NF > saldo do Pedido
+~~~
+
+não rejeitar silenciosamente a verdade fiscal recebida.
+
+Regra homologada:
+
+~~~text
+Importação do XML
+→ permitida
+
+Conferência
+→ permitida
+
+Divergência / alerta
+→ obrigatório
+
+Efetivação
+→ bloqueada
+~~~
+
+A validação deve ser repetida no backend no momento da efetivação.
+
+Não alterar a quantidade do XML para fazê-la coincidir artificialmente com o Pedido.
 
 ---
 
+## 151.1 Pedido não é Obrigatório na Entrada de NF-e
+
+Não restaurar a regra antiga:
+
+~~~text
+Entrada de NF-e
+→ exige Pedido
+~~~
+
+São fluxos válidos:
+
+~~~text
+NF-e com Pedido
+ou
+NF-e sem Pedido
+~~~
+
+Ausência de Pedido não elimina controles de:
+
+- Empresa;
+- Fornecedor;
+- Produto;
+- conciliação;
+- conferência;
+- divergências;
+- estoque;
+- financeiro;
+- auditoria.
+
+---
+
+## 151.2 XML é Verdade Fiscal
+
+Não modificar silenciosamente dados do XML para adequá-los a:
+
+- Pedido;
+- Produto interno;
+- quantidade física;
+- unidade interna;
+- preço esperado.
+
+Diferenças devem gerar conciliação ou divergência.
+
+---
+
+## 151.3 Produto × Fornecedor
+
+Não identificar Produto interno apenas pelo código externo.
+
+Regra:
+
+~~~text
+Fornecedor
++
+Código externo
+→
+Produto interno
+~~~
+
+O mesmo código externo pode existir em Fornecedores diferentes.
+
+---
+
+## 151.4 Conversão de Unidade
+
+Não perder fator de conversão entre unidade fiscal e unidade operacional.
+
+Exemplo:
+
+~~~text
+1 PCT = 100 UN
+
+XML:
+100 PCT
+
+Operacional:
+10.000 UN
+~~~
+
+A quantidade fiscal original deve permanecer preservada.
+
+---
+
+## 151.5 Item sem Conciliação
+
+Não efetivar item XML sem Produto interno conciliado.
+
+~~~text
+Item sem conciliação
+→ não efetiva
+~~~
+
+---
+
+## 151.6 Conferência não Altera o XML
+
+Se:
+
+~~~text
+XML = 100
+Físico = 98
+~~~
+
+registrar divergência.
+
+Não alterar a quantidade fiscal para 98.
+
+---
+
+## 151.7 Preço Acima do Pedido
+
+Quando houver Pedido:
+
+~~~text
+Preço NF = Pedido
+→ permitido
+
+Preço NF < Pedido
+→ permitido
+
+Preço NF > Pedido
+→ efetivação bloqueada
+~~~
+
+Não substituir o preço fiscal pelo preço aprovado para eliminar a divergência.
+
+---
+
+## 151.8 Produto Uso/Consumo
+
+Produto:
+
+~~~text
+tipo_produto = 2
+~~~
+
+deve utilizar estoque dedicado de Uso/Consumo independentemente da origem:
+
+- Pedido gerado por Cotação;
+- Pedido manual;
+- NF sem Pedido.
+
+Não usar estoque comercial genérico apenas porque o Pedido não veio de Cotação.
+
+---
+
+## 151.9 Recusa não é Cancelamento
+
+São operações diferentes:
+
+~~~text
+Recusar entrada
+!=
+Cancelar NF
+~~~
+
+Recusa aplica-se à importação provisória elegível.
+
+Cancelar aplica-se à NF já efetivada.
+
+Recusa válida libera a chave.
+
+Cancelamento preserva a chave.
+
+---
+
+## 151.10 Finalidade Fiscal
+
+Não assumir que NF em estado AB possui finalidade de compra normal.
+
+Exemplo:
+
+~~~text
+finNFe = 4
+→ devolução
+→ pode importar
+→ não pode efetivar pelo fluxo normal
+~~~
+
+Status operacional e finalidade fiscal devem permanecer separados.
+
+---
 # 152. Loja e Pedido
 
 Loja precisa ser compatível com a Empresa.
@@ -3446,7 +3700,29 @@ PEDIDO
 DOCUMENTO FISCAL
 ~~~
 
-Fiscal deve continuar responsável pelo documento da entrada e seus efeitos fiscais.
+Também não é obrigatório que toda NF-e possua Pedido.
+
+~~~text
+NF-e com Pedido
+ou
+NF-e sem Pedido
+~~~
+
+A Entrada de NF-e pertence funcionalmente ao processo de Compras, embora sua implementação técnica permaneça no domínio fiscal.
+
+O documento fiscal deve preservar:
+
+- XML;
+- chave;
+- emitente;
+- itens;
+- quantidades;
+- valores;
+- finalidade;
+- cobrança;
+- formas de pagamento fiscais.
+
+Não substituir a verdade fiscal pelo planejamento comercial do Pedido.
 
 ---
 
