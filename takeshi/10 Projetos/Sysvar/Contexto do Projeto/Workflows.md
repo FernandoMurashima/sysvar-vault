@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto"
 created: 2026-08-03
-updated: 2026-08-25
+updated: 2026-08-27
 tags:
   - sysvar
   - contexto
@@ -21,6 +21,7 @@ tags:
   - licenciamento
   - compras
   - pedido-de-compra
+  - entrada-nfe
   - cotacao
   - almoxarifado
   - ti
@@ -3136,21 +3137,29 @@ AT quando integral
 # Entrada de NF-e — Fluxo Principal
 
 ~~~text
-Pedido AP
+XML da NF-e
         ↓
-Compras
+Importar
         ↓
-Entrada de NF-e
+Identificar documento fiscal
         ↓
-Nova NF
+Identificar Fornecedor
         ↓
-Selecionar Pedido
+Preservar verdade fiscal
         ↓
-Informar dados da NF
+Produto × Fornecedor
         ↓
-Confirmar itens pelo checkbox OK
+Conciliar itens
         ↓
-Fechar
+Conferência física
+        ↓
+Analisar divergências
+        ↓
+Validar Pedido, quando houver
+        ↓
+Validar cobrança
+        ↓
+Efetivar
         ↓
 Estoque
         ↓
@@ -3158,14 +3167,26 @@ Custos
         ↓
 Financeiro
         ↓
-Atualizar recebimento
+Atualizar Pedido, quando houver
         ↓
-Pedido AP ou AT
+Auditoria
 ~~~
 
-Documentação:
+A Entrada de NF-e admite:
 
-[[Workflows - Compras - Entrada de NF-e]]
+~~~text
+NF-e com Pedido
+ou
+NF-e sem Pedido
+~~~
+
+Documentação específica:
+
+- [[Mapa Técnico - Compras - Entrada de NF-e]]
+- [[Modelo de Domínio - Compras - Entrada de NF-e]]
+- [[Workflows - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
+- [[Homologação - Compras - Entrada de NF-e]]
 
 ---
 
@@ -3195,45 +3216,89 @@ Não existe tela separada de:
 Notas Lançadas
 ~~~
 
-A própria listagem da Entrada de NF-e permite consultar notas já registradas.
+A própria tela de Entrada de NF-e também realiza a consulta das notas registradas.
 
 ---
 
-# Entrada de NF-e — Nova Nota
+# Entrada de NF-e — Pedido Opcional
+
+Regra atual:
 
 ~~~text
-Nova NF
-   ↓
-Selecionar Pedido AP
-   ↓
-Backend valida Empresa
-   ↓
-Carregar contexto:
-- Pedido
-- Loja
-- Fornecedor
-- Tipo
-   ↓
-Informar:
-- Modelo
-- Série
-- Número
-- Emissão
-- Entrada
-- Chave quando houver
-- Frete
-- Observações
-   ↓
-Salvar
-   ↓
-status = AB
+Pedido de Compra
+=
+opcional
 ~~~
+
+Quando houver Pedido, o sistema valida:
+
+- Empresa;
+- Loja;
+- Fornecedor;
+- itens;
+- saldo restante;
+- preço aprovado;
+- recebimentos anteriores.
+
+Quando não houver Pedido, a entrada continua sujeita às demais validações fiscais e operacionais.
 
 ---
 
-# Entrada de NF-e — Identidade Documental
+# Entrada de NF-e — Importação XML
 
-Regra homologada:
+~~~text
+Importar XML
+        ↓
+Validar estrutura
+        ↓
+Validar chave
+        ↓
+Identificar Empresa
+        ↓
+Identificar Fornecedor
+        ↓
+Criar entrada provisória AB
+~~~
+
+O XML é a fonte da verdade fiscal recebida.
+
+Dados internos não devem sobrescrever silenciosamente os dados fiscais originais.
+
+---
+
+# Entrada de NF-e — Identidade Fiscal
+
+No fluxo XML:
+
+~~~text
+Chave de acesso
+=
+identidade fiscal principal
+~~~
+
+Estados relevantes:
+
+~~~text
+NF AB válida
+→ chave ocupada
+
+NF FE
+→ chave ocupada
+
+NF CA
+→ chave continua ocupada
+
+Entrada provisória recusada
+→ chave liberada
+~~~
+
+Cancelar NF efetivada não libera sua chave.
+
+---
+
+# Entrada de NF-e — Identidade Manual
+
+No lançamento manual, permanece a identidade documental:
 
 ~~~text
 Empresa
@@ -3243,311 +3308,157 @@ Empresa
 + Número
 ~~~
 
-O Pedido de Compra não participa da unicidade da NF.
+O Pedido não participa da identidade da NF.
 
-Quando informada:
+---
+
+# Entrada de NF-e — Produto × Fornecedor
+
+Associação:
 
 ~~~text
-Chave de acesso
-→ 44 dígitos
-→ DV válido
-→ única
+Fornecedor
++
+Código externo
+        ↓
+Produto interno
+~~~
+
+O mesmo código externo pode identificar Produtos diferentes em Fornecedores diferentes.
+
+O vínculo pode preservar:
+
+- Produto;
+- código externo;
+- unidade do Fornecedor;
+- fator de conversão;
+- situação.
+
+---
+
+# Entrada de NF-e — Conversão de Unidade
+
+Exemplo:
+
+~~~text
+1 PCT = 100 UN
+
+XML:
+100 PCT
+
+Operacional:
+10.000 UN
+~~~
+
+A quantidade convertida é utilizada operacionalmente.
+
+A quantidade fiscal original permanece preservada.
+
+---
+
+# Entrada de NF-e — Conciliação
+
+~~~text
+Item XML
+        ↓
+Existe Produto × Fornecedor?
+   ├── Sim → Produto identificado
+   └── Não
+          ↓
+      usuário concilia
+          ↓
+      vínculo pode ser salvo
+~~~
+
+Regra:
+
+~~~text
+Item sem Produto conciliado
+→ não efetiva
 ~~~
 
 ---
 
-# Entrada de NF-e — Datas
+# Entrada de NF-e — Conferência Física
 
 ~~~text
-dt_entrada >= dt_emissao
+Quantidade fiscal
+        ↓
+Conferir quantidade física
+        ↓
+Coincide?
+   ├── Sim → continuar
+   └── Não → registrar divergência
 ~~~
 
-Entrada anterior à emissão deve ser rejeitada.
+A conferência não modifica o XML.
 
 ---
 
-# Entrada de NF-e — Carregar Itens
+# Entrada de NF-e — Divergências
 
-~~~text
-Pedido selecionado
-        ↓
-Carregar PedidoCompraItem
-        ↓
-Calcular:
-- Pedida
-- Já recebida
-- Saldo pendente
-- Nesta NF
-~~~
+Podem existir divergências entre:
 
-Somente recebimentos válidos participam do acumulado.
+- XML e Pedido;
+- XML e físico;
+- quantidade;
+- preço;
+- Produto;
+- unidade;
+- saldo restante.
 
-NF cancelada não deve compor `Já recebida`.
+A divergência deve permanecer explícita.
+
+Não alterar a verdade fiscal para fazê-la desaparecer.
 
 ---
 
-# Entrada de NF-e — Confirmar Item
+# Entrada de NF-e — Quantidade Acima do Pedido
 
-A confirmação homologada utiliza o checkbox:
-
-~~~text
-OK
-~~~
-
-Fluxo:
+Quando houver Pedido:
 
 ~~~text
-Checkbox desmarcado
-        ↓
-Informar quantidade / preço / desconto
-        ↓
-Marcar OK
-        ↓
-Backend salva NotaFiscalEntradaItem
-        ↓
-Sucesso?
-   ├── Sim → checkbox permanece marcado
-   └── Não → permanece desmarcado
+Quantidade NF
+>
+Saldo restante
 ~~~
 
-O checkbox representa persistência real.
+Resultado:
+
+~~~text
+Importação
+→ permitida
+
+Conferência
+→ permitida
+
+Alerta
+→ apresentado
+
+Efetivação
+→ bloqueada
+~~~
+
+O backend valida novamente na efetivação.
 
 ---
 
-# Entrada de NF-e — Remover Item
+# Entrada de NF-e — Preço do Pedido
+
+Quando houver Pedido:
 
 ~~~text
-Checkbox marcado
-        ↓
-Usuário desmarca
-        ↓
-Confirmar remoção
-        ↓
-Backend remove NotaFiscalEntradaItem
-        ↓
-Sucesso?
-   ├── Sim → checkbox desmarcado
-   └── Não → permanece marcado
+Preço NF = Pedido
+→ permitido
+
+Preço NF < Pedido
+→ permitido
+
+Preço NF > Pedido
+→ efetivação bloqueada
 ~~~
 
----
-
-# Entrada de NF-e — Seleção Visual
-
-~~~text
-Linha selecionada
-!=
-Item confirmado
-~~~
-
-A linha selecionada representa contexto visual.
-
-O checkbox representa se o item pertence efetivamente à NF.
-
----
-
-# Entrada de NF-e — Estado AB
-
-Enquanto:
-
-~~~text
-status = AB
-~~~
-
-é permitido, conforme regras vigentes:
-
-- editar dados;
-- informar quantidades;
-- informar preços;
-- informar descontos;
-- confirmar itens;
-- remover itens;
-- fechar a NF.
-
----
-
-# Entrada de NF-e — Estado FE
-
-Após fechamento:
-
-~~~text
-AB → FE
-~~~
-
-A NF passa a representar recebimento efetivado.
-
-Itens tornam-se consultivos.
-
-Checkbox permanece exibindo o estado, mas desabilitado.
-
----
-
-# Entrada de NF-e — Estado CA
-
-Após cancelamento:
-
-~~~text
-FE → CA
-~~~
-
-A NF permanece registrada.
-
-Não existe DELETE físico operacional.
-
----
-
-# Entrada de NF-e — Revenda
-
-~~~text
-Pedido tipo 1
-        ↓
-Produto
-        ↓
-Cor
-        ↓
-Pack
-        ↓
-Quantidade recebida
-        ↓
-Validar composição
-        ↓
-Distribuir pelos tamanhos
-        ↓
-SKUs
-        ↓
-Movimento de Estoque
-~~~
-
-O recebimento deve respeitar o Pack utilizado no Pedido.
-
----
-
-# Entrada de NF-e — Uso/Consumo
-
-~~~text
-Pedido tipo 2
-        ↓
-Produto
-        ↓
-Quantidade direta
-        ↓
-Validar Unidade
-        ↓
-Estoque
-        ↓
-Custos
-~~~
-
-Não utiliza Pack.
-
----
-
-# Entrada de NF-e — Insumo
-
-~~~text
-Pedido tipo 4
-        ↓
-Produto
-        ↓
-Quantidade direta
-        ↓
-Validar Unidade
-        ↓
-Estoque
-        ↓
-Custos
-~~~
-
-Não utiliza Pack.
-
----
-
-# Entrada de NF-e — Quantidade
-
-Regra geral:
-
-~~~text
-Nesta NF
-<=
-Saldo pendente
-~~~
-
-Não permitir quantidade negativa.
-
-Para Uso/Consumo e Insumo:
-
-~~~text
-Unidade.permite_decimal
-~~~
-
-define se quantidade fracionária é aceita.
-
----
-
-# Entrada de NF-e — Valores
-
-~~~text
-valor_bruto =
-qtd_recebida × preco_unit_nf
-~~~
-
-~~~text
-0 <= desconto_item <= valor_bruto
-~~~
-
-~~~text
-total_item =
-valor_bruto - desconto_item
-~~~
-
-Invariantes:
-
-~~~text
-total_item >= 0
-valor_total >= 0
-~~~
-
----
-
-# Entrada de NF-e — Fechamento
-
-~~~text
-NF AB
-        ↓
-Fechar
-        ↓
-Validar documento
-        ↓
-Validar itens
-        ↓
-Validar quantidades
-        ↓
-Movimentar Estoque
-        ↓
-Atualizar Custos
-        ↓
-Efetivar Financeiro
-        ↓
-Atualizar Recebimento
-        ↓
-NF FE
-~~~
-
-A operação deve ser transacional.
-
----
-
-# Entrada de NF-e — Estoque
-
-Movimento de entrada:
-
-~~~text
-NFE:<id>:ENTRADA
-~~~
-
-O ID interno da NF identifica tecnicamente a movimentação.
-
-Não utilizar apenas número, série ou fornecedor como chave técnica de movimento.
+O preço fiscal recebido continua preservado mesmo quando houver divergência.
 
 ---
 
@@ -3556,38 +3467,267 @@ Não utilizar apenas número, série ou fornecedor como chave técnica de movime
 ~~~text
 Pedido = 100
         ↓
-NF 1 = 40
+NF 1 = 60
         ↓
 Pedido AP
         ↓
-NF 2 = 30
-        ↓
-Pedido AP
-        ↓
-NF 3 = 30
+NF 2 = 40
         ↓
 Pedido AT
 ~~~
+
+Um Pedido pode possuir várias NFs.
+
+---
+
+# Entrada de NF-e — Status
+
+Estados operacionais:
+
+~~~text
+AB = Aberta
+FE = Fechada / efetivada
+CA = Cancelada
+~~~
+
+AB pode representar:
+
+- importação;
+- conciliação;
+- conferência;
+- tratamento de divergências;
+- preparação para efetivação.
+
+FE representa documento efetivado.
+
+CA representa documento anteriormente efetivado e posteriormente cancelado.
+
+---
+
+# Entrada de NF-e — Finalidade Fiscal
+
+Status operacional e finalidade fiscal são conceitos diferentes.
+
+~~~text
+status operacional
+!=
+finalidade fiscal
+~~~
+
+Exemplo homologado:
+
+~~~text
+finNFe = 4
+→ devolução
+→ XML pode ser importado
+→ efetivação normal bloqueada
+~~~
+
+---
+
+# Entrada de NF-e — Cobrança
+
+O XML pode possuir:
+
+- duplicatas;
+- vencimentos;
+- valores;
+- formas de pagamento;
+- informações de cobrança.
+
+Esses dados representam a verdade fiscal recebida.
+
+Não devem ser substituídos silenciosamente pelo planejamento comercial do Pedido.
+
+---
+
+# Entrada de NF-e — Efetivação
+
+~~~text
+NF AB
+        ↓
+Validar chave
+        ↓
+Validar conciliação
+        ↓
+Validar conferência
+        ↓
+Validar divergências
+        ↓
+Validar finalidade fiscal
+        ↓
+Validar Pedido, quando houver
+        ↓
+Validar quantidade
+        ↓
+Validar preço
+        ↓
+Validar financeiro
+        ↓
+Movimentar Estoque
+        ↓
+Atualizar Custos
+        ↓
+Efetivar Financeiro
+        ↓
+Atualizar Pedido, quando houver
+        ↓
+NF FE
+~~~
+
+A efetivação deve ser transacional.
+
+---
+
+# Entrada de NF-e — Estoque
+
+Importar XML não movimenta estoque.
+
+~~~text
+Importar XML
+!=
+Entrada física
+~~~
+
+Entrada física ocorre na efetivação.
+
+Identificador técnico:
+
+~~~text
+NFE:<id>:ENTRADA
+~~~
+
+---
+
+# Entrada de NF-e — Uso/Consumo
+
+Produto:
+
+~~~text
+tipo_produto = 2
+~~~
+
+utiliza estoque dedicado de Uso/Consumo.
+
+A origem não muda essa regra:
+
+~~~text
+Pedido gerado por Cotação
+ou
+Pedido manual
+ou
+NF sem Pedido
+        ↓
+Produto tipo 2
+        ↓
+ProdutoUsoConsumoEstoque
+~~~
+
+Não utiliza Pack.
+
+---
+
+# Entrada de NF-e — Revenda
+
+Revenda utiliza o domínio comercial de estoque.
+
+Quando aplicáveis:
+
+~~~text
+Produto
+↓
+Cor
+↓
+Pack
+↓
+Tamanhos
+↓
+SKU
+↓
+Estoque
+~~~
+
+A movimentação deve atingir os SKUs corretos.
+
+---
+
+# Entrada de NF-e — Insumo
+
+Insumo utiliza quantidade direta.
+
+Não utiliza a mecânica de Pack da Revenda.
+
+Pode utilizar quantidade decimal conforme a Unidade configurada.
 
 ---
 
 # Entrada de NF-e — Financeiro
 
+Regra conceitual:
+
 ~~~text
-Pedido aprovado
-        ↓
-Planejamento Financeiro
-        ↓
-NF fechada
-        ↓
-Realizar parte correspondente
-        ↓
-Saldo ainda não recebido
-        ↓
-Manter previsão remanescente
+Pedido
+→ planejamento comercial
+
+NF-e
+→ verdade fiscal recebida
 ~~~
 
-Múltiplas NFs não devem duplicar títulos.
+A NF efetivada produz os efeitos financeiros correspondentes ao documento recebido.
+
+Múltiplas NFs não devem duplicar efeitos financeiros.
+
+---
+
+# Entrada de NF-e — Recusar Entrada
+
+Recusa aplica-se à importação XML ainda provisória e elegível.
+
+~~~text
+XML importado
+        ↓
+NF AB
+        ↓
+sem efeitos incompatíveis
+        ↓
+Recusar entrada
+        ↓
+registro provisório removido
+        ↓
+chave liberada
+~~~
+
+Recusar entrada:
+
+- não movimenta estoque;
+- não gera financeiro;
+- não atualiza Pedido;
+- não cria NF cancelada;
+- permite importar novamente o mesmo XML.
+
+---
+
+# Entrada de NF-e — Recusa não é Cancelamento
+
+~~~text
+Recusar entrada
+!=
+Cancelar NF
+~~~
+
+Recusa:
+
+~~~text
+NF AB provisória
+→ abandonar importação
+~~~
+
+Cancelamento:
+
+~~~text
+NF FE
+→ desfazer efeitos operacionais
+~~~
 
 ---
 
@@ -3608,26 +3748,22 @@ Recalcular Custos
         ↓
 Recalcular Financeiro
         ↓
-Recalcular Recebimento
+Recalcular Pedido, quando houver
         ↓
 NF CA
 ~~~
 
-Cancelamento deve afetar somente a própria NF.
-
----
-
-# Entrada de NF-e — Movimento de Cancelamento
+Movimento:
 
 ~~~text
 NFE:<id>:CANCEL
 ~~~
 
-Não gerar segundo movimento de cancelamento para NF já cancelada.
+NF cancelada mantém sua chave fiscal ocupada.
 
 ---
 
-# Entrada de NF-e — Estoque Negativo
+# Entrada de NF-e — Estoque Negativo no Cancelamento
 
 ~~~text
 Cancelar NF
@@ -3635,13 +3771,13 @@ Cancelar NF
 Estorno produzirá saldo negativo?
    ├── Não → continuar
    └── Sim
-         ↓
+          ↓
 Loja permite negativo?
    ├── Sim → continuar
-   └── Não → bloquear cancelamento
+   └── Não → bloquear
 ~~~
 
-Em bloqueio, nenhuma parte da operação deve permanecer alterada.
+Nenhum efeito parcial pode permanecer.
 
 ---
 
@@ -3650,18 +3786,18 @@ Em bloqueio, nenhuma parte da operação deve permanecer alterada.
 ~~~text
 Cancelar NF
         ↓
-Existe baixa incompatível com reversão automática?
+Existe baixa incompatível?
    ├── Não → continuar
    └── Sim → bloquear
 ~~~
 
-O sistema não deve desfazer pagamento silenciosamente.
+O sistema não desfaz pagamento silenciosamente.
 
 ---
 
 # Entrada de NF-e — Recalcular Pedido
 
-Após fechamento ou cancelamento:
+Quando houver Pedido:
 
 ~~~text
 Somar recebimentos válidos
@@ -3681,7 +3817,15 @@ AT → AP
 
 # Entrada de NF-e — Atomicidade
 
-Tanto fechamento quanto cancelamento seguem:
+Devem ser transacionais:
+
+~~~text
+Efetivação
+Cancelamento
+Recusa
+~~~
+
+Regra:
 
 ~~~text
 SUCESSO COMPLETO
@@ -3689,13 +3833,30 @@ OU
 ROLLBACK COMPLETO
 ~~~
 
-Não deixar divergência entre:
+Não deixar inconsistência entre:
 
 - NF;
 - Pedido;
 - Estoque;
 - Custos;
-- Financeiro.
+- Financeiro;
+- vínculos relacionados.
+
+---
+
+# Entrada de NF-e — Lançamento Manual
+
+O lançamento manual anteriormente homologado permanece preservado enquanto aplicável.
+
+Nesse fluxo:
+
+~~~text
+checkbox OK
+=
+persistência do NotaFiscalEntradaItem
+~~~
+
+Esse mecanismo não representa a conciliação do fluxo XML.
 
 ---
 
@@ -3723,79 +3884,46 @@ CA
 
 ---
 
-# Entrada de NF-e — Filtros
-
-Filtros de backend contemplam:
-
-- Pedido;
-- Status;
-- Número;
-- Chave;
-- Fornecedor;
-- Loja;
-- período de emissão;
-- período de entrada;
-- valor;
-- busca geral.
-
-Filtros respeitam Empresa.
-
----
-
-# Entrada de NF-e — Indicadores
-
-~~~text
-Conjunto completo filtrado
-        ↓
-Indicadores
-~~~
-
-Indicadores:
-
-- total;
-- abertas;
-- fechadas;
-- canceladas;
-- valor total.
-
-Não calcular somente sobre a página atual.
-
----
-
 # Entrada de NF-e — Multiempresa
 
-~~~text
-Usuário
-        ↓
-Empresa
-        ↓
-NF
-        ↓
-Pedido
-        ↓
-Itens
-        ↓
-Estoque / Financeiro
-~~~
+Toda relação permanece subordinada à Empresa.
 
-Qualquer relacionamento de outro tenant deve ser rejeitado.
+Validar:
+
+- NF;
+- Fornecedor;
+- Produto;
+- Produto × Fornecedor;
+- Pedido;
+- Loja;
+- conciliação;
+- conferência;
+- divergências;
+- estoque;
+- financeiro.
 
 ---
 
 # Entrada de NF-e — Fluxo Completo
 
 ~~~text
-PEDIDO AP
+XML
    ↓
-ENTRADA DE NF-e
+IMPORTAÇÃO
    ↓
-DADOS DA NF
+FORNECEDOR
    ↓
-ITENS
+PRODUTO × FORNECEDOR
    ↓
-CHECKBOX OK
+CONCILIAÇÃO
    ↓
-FECHAMENTO
+CONFERÊNCIA
+   ↓
+DIVERGÊNCIAS
+   ↓
+PEDIDO, QUANDO HOUVER
+   ↓
+EFETIVAÇÃO
    ↓
 ESTOQUE
    ↓
@@ -3803,9 +3931,7 @@ CUSTOS
    ↓
 FINANCEIRO
    ↓
-RECEBIMENTO
-   ↓
-PEDIDO AP / AT
+PEDIDO AP / AT, QUANDO HOUVER
    ↓
 EVENTUAL CANCELAMENTO
    ↓
