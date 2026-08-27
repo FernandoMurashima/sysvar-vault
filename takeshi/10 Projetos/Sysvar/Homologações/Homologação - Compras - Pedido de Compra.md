@@ -6,11 +6,12 @@ group: Compras
 module: Pedido de Compra
 phase: Fase 1
 created: 2026-08-16
-updated: 2026-08-16
+updated: 2026-08-27
 tags:
   - sysvar
   - compras
   - pedido-de-compra
+  - entrada-nfe
   - revenda
   - uso-consumo
   - insumo
@@ -42,6 +43,11 @@ tags:
 - [[Modelo de Domínio - Compras - Pedido de Compra]]
 - [[Workflows - Compras - Pedido de Compra]]
 - [[Riscos e Cuidados - Compras - Pedido de Compra]]
+- [[Homologação - Compras - Entrada de NF-e]]
+- [[Mapa Técnico - Compras - Entrada de NF-e]]
+- [[Modelo de Domínio - Compras - Entrada de NF-e]]
+- [[Workflows - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
 
 ---
 
@@ -589,101 +595,210 @@ Essas duas responsabilidades não devem ser confundidas.
 
 # 37. Recebimentos
 
-Foi homologado que a tela de Pedido possua acesso aos recebimentos em sobretela.
+Foi homologado originalmente que a tela de Pedido possua acesso aos recebimentos em sobretela.
 
-Essa estrutura é utilizada para acompanhamento.
+Essa estrutura continua prioritariamente destinada a acompanhamento.
 
-O recebimento real permanece ligado ao processo Fiscal.
+Após a evolução da Entrada de NF-e, a regra consolidada é:
+
+~~~text
+Pedido
+→ acompanha recebimentos vinculados
+
+Entrada de NF-e
+→ realiza o recebimento físico na efetivação
+~~~
+
+A tela do Pedido não movimenta estoque.
 
 ---
 
-# 38. Nota Fiscal de Entrada
+# 38. Integração com Entrada de NF-e
 
-Foi aprovado que o recebimento operacional da compra permaneça no fluxo de:
+A integração originalmente homologada com Nota Fiscal de Entrada evoluiu para a funcionalidade consolidada:
 
-**Nota Fiscal de Entrada**
+**Entrada de NF-e**
 
-O Pedido não deve executar uma segunda entrada independente de mercadoria.
+Quando uma NF-e estiver recebendo um Pedido:
+
+~~~text
+Pedido AP
+↓
+Entrada de NF-e vinculada
+↓
+XML
+↓
+Conciliação
+↓
+Conferência
+↓
+Validações do Pedido
+↓
+Efetivação
+↓
+Estoque
+↓
+Atualização do atendimento
+~~~
+
+O Pedido não executa uma segunda entrada independente de mercadoria.
 
 ---
 
-# 39. Aprovação não movimenta estoque
+# 39. Pedido não é Obrigatório para Toda NF-e
 
-Regra homologada:
+A evolução homologada da Entrada de NF-e passou a admitir:
+
+~~~text
+NF-e com Pedido
+ou
+NF-e sem Pedido
+~~~
+
+Essa evolução não altera a regra do Pedido de Compra.
+
+Significa apenas que:
+
+~~~text
+Pedido
+→ pode originar recebimentos
+
+mas
+
+Entrada de NF-e
+→ não depende estruturalmente de Pedido
+~~~
+
+Quando houver vínculo, todas as validações correspondentes ao Pedido continuam obrigatórias.
+
+---
+
+# 40. Aprovação não Movimenta Estoque
+
+Permanece homologada a regra:
 
 ~~~text
 Aprovação do Pedido
-≠
+!=
 Entrada em Estoque
 ~~~
 
-O estoque é afetado no processo de recebimento adequado.
+Também ficou consolidado posteriormente que:
+
+~~~text
+Importação do XML
+!=
+Entrada em Estoque
+~~~
+
+O estoque é afetado na efetivação da Entrada de NF-e.
 
 ---
 
-# 40. Recebimento parcial
+# 41. Recebimento Parcial
 
-Foi homologado:
+Quando uma Entrada de NF-e válida vinculada ao Pedido atende somente parte da quantidade:
 
 ~~~text
 Recebimento parcial
 → Pedido permanece AP
 ~~~
 
-Não marcar Pedido como atendido apenas porque alguma quantidade foi recebida.
+Não marcar Pedido como atendido apenas porque existe alguma NF ou alguma quantidade recebida.
 
 ---
 
-# 41. Recebimento integral
+# 42. Recebimento Integral
 
-Quando todas as quantidades forem atendidas:
+Quando o acumulado das Entradas de NF-e válidas vinculadas ao Pedido atender integralmente todos os seus itens:
 
 ~~~text
 AP → AT
 ~~~
 
-AT representa atendimento integral.
+AT continua representando atendimento integral.
 
 ---
 
-# 42. Múltiplos recebimentos
+# 43. Múltiplas Entradas de NF-e
 
-O fluxo aceita recebimento progressivo.
+Permanece válida a homologação de recebimento progressivo.
 
-Não foi adotada a premissa:
+Não existe a premissa:
 
 ~~~text
-1 Pedido = 1 recebimento
+1 Pedido = 1 NF-e
 ~~~
 
-Um Pedido pode ser atendido em etapas.
+Um Pedido pode possuir várias Entradas de NF-e.
+
+O atendimento considera o acumulado dos recebimentos válidos.
+
+NF cancelada não compõe esse acumulado.
 
 ---
 
-# 43. Cancelamento fiscal
+# 44. Cancelamento de Entrada de NF-e
 
-Foi aprovado conceitualmente que o cancelamento de uma Nota Fiscal relacionada ao recebimento provoque recálculo da situação do Pedido.
+A integração foi posteriormente ampliada e homologada no domínio específico da Entrada de NF-e.
 
-Se um Pedido AT deixar de estar integralmente recebido:
+Quando uma NF-e vinculada ao Pedido for cancelada:
+
+~~~text
+NF cancelada
+↓
+deixa de compor recebimento válido
+↓
+recalcular atendimento
+~~~
+
+Se um Pedido anteriormente AT deixar de estar integralmente atendido:
 
 ~~~text
 AT → AP
 ~~~
 
-de acordo com o fluxo fiscal existente.
+quando voltar a existir saldo pendente.
+
+O cancelamento da NF também trata os efeitos pertencentes à própria entrada, incluindo conforme aplicável:
+
+- Estoque;
+- Custos;
+- Financeiro;
+- recebimento do Pedido.
+
+A homologação específica e atual dessa integração está registrada em:
+
+[[Homologação - Compras - Entrada de NF-e]]
 
 ---
 
-# 44. Limitação conhecida da cobertura automatizada
+## Atualização Documental da Integração — 27/08/2026
 
-A suíte específica de Compras não integrou integralmente o cenário real de cancelamento da Nota Fiscal do módulo Fiscal.
+A homologação principal do Pedido de Compra permanece datada de:
 
-Esse ponto foi aceito como limitação conhecida da cobertura automatizada.
+~~~text
+16/08/2026
+~~~
 
-Alterações futuras nessa integração devem validar Compras e Fiscal conjuntamente.
+Em:
+
+~~~text
+27/08/2026
+~~~
+
+a integração com Entrada de NF-e foi ampliada, testada, homologada e documentada no domínio específico da Entrada de NF-e.
+
+Essa atualização:
+
+- não reabre a homologação estrutural do Pedido;
+- não altera seus tipos;
+- não altera sua aprovação;
+- não altera sua arquitetura financeira;
+- não altera os estados AB, AP, AT e CA;
+- atualiza apenas a interpretação da integração de recebimento.
 
 ---
-
 # 45. Tela principal homologada
 
 A tela principal foi aprovada com organização compacta e limpa.
