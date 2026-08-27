@@ -4,7 +4,7 @@ status: active
 project: ""
 source: ""
 created: 2026-08-16
-updated: 2026-08-16
+updated: 2026-08-27
 tags:
   - sistema
   - ia
@@ -381,39 +381,202 @@ Após aprovação:
 
 A documentação definitiva deve acontecer depois da aprovação.
 
-Atualizar:
+Antes de modificar qualquer documento:
 
-- regra funcional;
+~~~text
+CONSULTAR REPOSITÓRIO
+↓
+LER DOCUMENTAÇÃO VIGENTE
+↓
+COMPARAR COM A FUNCIONALIDADE HOMOLOGADA
+↓
+IDENTIFICAR DIVERGÊNCIAS REAIS
+↓
+SELECIONAR DOCUMENTOS AFETADOS
+↓
+ALTERAR SOMENTE O NECESSÁRIO
+~~~
+
+O ChatGPT é responsável por localizar os documentos que precisam de atualização.
+
+O usuário não precisa:
+
+- mostrar arquivos;
+- copiar conteúdo;
+- identificar todos os documentos relacionados;
+- lembrar quais documentos centrais precisam ser sincronizados.
+
+Podem ser atualizados, conforme o impacto real:
+
 - mapa técnico;
 - workflow;
 - modelo de domínio;
-- riscos;
-- runbooks;
+- riscos e cuidados;
+- arquitetura;
+- visão geral;
+- nota principal do projeto;
 - homologação;
+- runbooks;
+- documentos específicos do módulo.
 
-conforme o projeto exigir.
+Não atualizar todos automaticamente.
 
-Não documentar como concluída uma funcionalidade ainda em correção.
+Regra:
+
+~~~text
+SÓ ALTERAR DOCUMENTO QUE POSSUI DIVERGÊNCIA REAL
+~~~
 
 ---
 
 # 21. Atualização do repositório de documentação
 
-Depois de cada documento criado ou atualizado, o ChatGPT deve fornecer automaticamente o comando PowerShell para atualizar o repositório do cofre.
+Para documentos existentes, o padrão é fornecer um DIF executável em PowerShell.
+
+Antes de gerar o DIF, o ChatGPT deve consultar diretamente o conteúdo vigente no repositório.
+
+Fluxo obrigatório:
+
+~~~text
+git fetch origin
+↓
+restaurar arquivos-alvo de origin/main
+↓
+ler conteúdo atual
+↓
+validar estrutura e marcadores
+↓
+aplicar alteração seletiva
+↓
+gravar UTF-8 sem BOM
+↓
+git diff --check
+↓
+git diff dos arquivos-alvo
+↓
+git add somente dos arquivos-alvo
+↓
+commit
+↓
+push
+↓
+git status
+~~~
+
+Não utilizar por padrão:
+
+~~~powershell
+git add .
+~~~
+
+O commit deve conter somente os arquivos pertencentes à atualização documental atual.
+
+Arquivos locais não relacionados e arquivos não rastreados devem permanecer fora do commit.
+
+## 21.1 Consulta obrigatória antes do DIF
+
+O ChatGPT deve consultar o conteúdo atual do repositório antes de preparar a alteração.
+
+Não preparar DIF com base apenas em:
+
+- memória da conversa;
+- conteúdo histórico;
+- cópia antiga;
+- suposição sobre a estrutura atual.
+
+A alteração deve partir do estado vigente.
+
+## 21.2 Alteração seletiva
+
+Preferir alteração por:
+
+- seção;
+- título;
+- marcador;
+- bloco delimitado;
+- trecho pequeno e verificável.
+
+Evitar substituir o documento inteiro quando a maior parte continuar correta.
+
+Substituição integral é aceitável quando o documento estiver estruturalmente obsoleto em grande parte.
+
+## 21.3 Falha durante o DIF
+
+Se uma validação necessária falhar:
+
+~~~text
+PARAR
+↓
+NÃO CONTINUAR
+↓
+NÃO COMMITAR
+↓
+NÃO FAZER PUSH
+~~~
+
+O ChatGPT deve consultar novamente o arquivo vigente e preparar um DIF corrigido.
+
+O usuário não deve precisar reconstruir ou mostrar manualmente o conteúdo do arquivo quando ele estiver acessível no repositório.
+
+## 21.4 Codificação
+
+Arquivos Markdown devem ser gravados em:
+
+~~~text
+UTF-8 sem BOM
+~~~
 
 Padrão:
 
 ~~~powershell
-cd C:\takeshi\takeshi
-git add .
-git commit -m "Mensagem objetiva"
-git push origin main
+$utf8SemBom = New-Object System.Text.UTF8Encoding($false)
+
+[System.IO.File]::WriteAllText(
+    (Resolve-Path $path),
+    $content,
+    $utf8SemBom
+)
 ~~~
 
-O usuário não deve precisar pedir esse comando.
+## 21.5 Confirmação após execução
+
+Depois que o usuário executar o DIF, o ChatGPT deve consultar novamente o repositório remoto.
+
+Não presumir que:
+
+- o script terminou;
+- o commit ocorreu;
+- o push ocorreu;
+- o conteúdo final ficou correto.
+
+A conclusão depende da confirmação do estado atual do repositório.
+
+## 21.6 Varredura final
+
+Depois que os documentos necessários estiverem atualizados, realizar uma única varredura final da documentação relacionada.
+
+Procurar somente divergências reais:
+
+- regra antiga ainda apresentada como atual;
+- fluxo incompatível;
+- relacionamento obsoleto;
+- nomenclatura antiga;
+- documento central não sincronizado;
+- homologação incompatível;
+- duplicidade;
+- metadado diretamente afetado.
+
+A varredura final não deve gerar uma sequência indefinida de novos ajustes.
+
+Quando não houver divergência relevante:
+
+~~~text
+DOCUMENTAÇÃO ENCERRADA
+~~~
+
+e parar.
 
 ---
-
 # 22. Encerramento de um módulo
 
 Um módulo pode ser considerado encerrado quando, conforme aplicável:
