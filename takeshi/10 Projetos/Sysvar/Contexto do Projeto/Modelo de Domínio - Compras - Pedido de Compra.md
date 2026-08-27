@@ -6,11 +6,12 @@ group: Compras
 module: Pedido de Compra
 phase: Fase 1
 created: 2026-08-16
-updated: 2026-08-16
+updated: 2026-08-27
 tags:
   - sysvar
   - compras
   - pedido-de-compra
+  - entrada-nfe
   - revenda
   - uso-consumo
   - insumo
@@ -42,6 +43,11 @@ tags:
 - [[Workflows - Compras - Pedido de Compra]]
 - [[Riscos e Cuidados - Compras - Pedido de Compra]]
 - [[Homologação - Compras - Pedido de Compra]]
+- [[Mapa Técnico - Compras - Entrada de NF-e]]
+- [[Modelo de Domínio - Compras - Entrada de NF-e]]
+- [[Workflows - Compras - Entrada de NF-e]]
+- [[Riscos e Cuidados - Compras - Entrada de NF-e]]
+- [[Homologação - Compras - Entrada de NF-e]]
 
 ---
 
@@ -61,17 +67,19 @@ Seu objetivo é estruturar:
 - qual o estado do Pedido;
 - como ocorre sua aprovação;
 - como se relaciona com Financeiro;
-- como se relaciona com Fiscal;
+- como se relaciona com Entrada de NF-e;
 - como seu atendimento é acompanhado.
 
 O Pedido de Compra não representa, por si só:
 
 - entrada física de estoque;
-- Nota Fiscal;
+- Entrada de NF-e;
 - pagamento;
 - baixa financeira.
 
-Esses eventos pertencem aos respectivos módulos integrados.
+A aprovação do Pedido representa autorização da aquisição.
+
+O recebimento físico ocorre pela efetivação da Entrada de NF-e.
 
 ---
 
@@ -100,7 +108,7 @@ Estruturas externas integradas:
 - Nat_Lancamento
 - Pagar
 - PagarItem
-- Nota Fiscal de Entrada
+- Entrada de NF-e
 - Auditoria
 
 Representação conceitual:
@@ -116,12 +124,130 @@ PedidoCompra
 └── Integrações
     ├── Produto
     ├── Financeiro
-    ├── Fiscal
+    ├── Entrada de NF-e
     └── Auditoria
 ~~~
 
 ---
 
+## 3.1 Relação com Entrada de NF-e
+
+Pedido de Compra e Entrada de NF-e são agregados independentes.
+
+~~~text
+PedidoCompra
+!=
+NotaFiscalEntrada
+~~~
+
+O Pedido representa:
+
+~~~text
+intenção
++
+aprovação
++
+condições comerciais
+~~~
+
+A Entrada de NF-e representa:
+
+~~~text
+documento fiscal recebido
++
+recebimento operacional após efetivação
+~~~
+
+Quando houver relação:
+
+~~~text
+PedidoCompra
+1:N
+NotaFiscalEntrada
+~~~
+
+Portanto, um Pedido pode ser recebido por várias Entradas de NF-e.
+
+Do ponto de vista da Entrada de NF-e, o relacionamento é opcional:
+
+~~~text
+NotaFiscalEntrada.pedido_compra
+→ opcional
+~~~
+
+São válidos:
+
+~~~text
+NF-e com Pedido
+ou
+NF-e sem Pedido
+~~~
+
+A existência de Entrada de NF-e sem Pedido não altera o domínio do Pedido de Compra.
+
+Apenas significa que o Pedido não é requisito estrutural para todo documento fiscal de entrada.
+
+Quando uma NF estiver vinculada ao Pedido, devem permanecer coerentes, conforme aplicável:
+
+- Empresa;
+- Loja;
+- Fornecedor;
+- itens;
+- quantidades;
+- saldo restante;
+- preços;
+- recebimentos anteriores.
+
+---
+
+## 3.2 Recebimento do Pedido
+
+O Pedido não movimenta Estoque diretamente.
+
+~~~text
+Pedido AP
+↓
+aguarda recebimento
+~~~
+
+Quando houver Entrada de NF-e vinculada:
+
+~~~text
+Entrada de NF-e
+↓
+Efetivação
+↓
+Recebimento válido
+↓
+Atualização de PedidoCompraEntrega
+↓
+Recalcular atendimento do Pedido
+~~~
+
+Recebimento parcial:
+
+~~~text
+saldo restante > 0
+→ Pedido AP
+~~~
+
+Recebimento integral:
+
+~~~text
+saldo restante = 0
+→ Pedido AT
+~~~
+
+Uma NF cancelada deixa de compor o recebimento válido.
+
+Se voltar a existir saldo:
+
+~~~text
+Pedido AT
+→ Pedido AP
+~~~
+
+---
 # 4. Entidade PedidoCompra
 
 Entidade principal:
@@ -189,6 +315,7 @@ Isso inclui, conforme aplicável:
 - Prazo;
 - Produtos;
 - Financeiro;
+- Entradas de NF-e vinculadas;
 - Recebimentos.
 
 ---
