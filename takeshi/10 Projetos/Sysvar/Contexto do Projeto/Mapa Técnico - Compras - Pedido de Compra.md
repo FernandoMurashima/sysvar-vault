@@ -1349,3 +1349,57 @@ Isso reduz poluição visual e separa:
 
 ~~~text
 Cabeçalho operacional
+---
+
+# 64. Importação XLSX de itens de Revenda
+
+A tela de Pedido de Compra possui ação **Importar Planilha** para inserir itens de Revenda em lote sem criar fluxo paralelo.
+
+Escopo inicial:
+
+- somente Pedido de Compra;
+- somente Revenda (`tipo = '1'`);
+- somente pedido em status `AB`;
+- sem alteração de Pedido originado de Cotação aprovada.
+
+O arquivo aceito é XLSX com aba `Itens` e colunas oficiais:
+
+~~~text
+Codigo_Produto_Fornecedor
+Produto
+Grade
+Cor
+Pack
+Nr_Packs
+Preco_Unitario
+Desconto
+Observacoes
+~~~
+
+Também são aceitas colunas auxiliares de planilhas de teste (`Ordem`, `Qtde_Por_Pack`, `Cores_Expandidas`, `Qtde_Total_Prevista`, `Total_Previsto`), mas elas não são fonte oficial de quantidade ou total.
+
+O produto é resolvido preferencialmente por `ProdutoFornecedor` dentro da mesma Empresa, mesmo Fornecedor do Pedido, vínculo ativo, Produto ativo e tipo Revenda. Quando houver também referência/descrição Sysvar preenchida, ela deve apontar para o mesmo Produto.
+
+A coluna `Cor` aceita código, descrição inequívoca ou `TODAS`. O valor `TODAS` expande a linha apenas para cores efetivamente existentes em `ProdutoDetalhe` daquele Produto.
+
+A coluna `Grade` é conferência: se preenchida e divergente da grade real do Produto, a linha é rejeitada. A importação não altera cadastro de Produto, Grade, Cor, Pack ou ProdutoFornecedor.
+
+O `Pack` deve pertencer à mesma Empresa, estar ativo, ser da mesma Grade do Produto e possuir itens. A quantidade oficial continua sendo calculada pelo backend:
+
+~~~text
+quantidade = soma(PackItem.qtd) × Nr_Packs
+~~~
+
+O backend expõe:
+
+~~~text
+POST /api/compras/pedidos/{id}/importar-planilha-preview/
+POST /api/compras/pedidos/{id}/importar-planilha-confirmar/
+GET  /api/compras/pedidos/modelo-importacao-revenda/
+~~~
+
+A prévia é obrigatória. A confirmação revalida os dados, executa em transação atômica e cria os itens reutilizando `PedidoCompraItemSerializer`, preservando a regra homologada de definição automática do tipo do Pedido pelo primeiro item.
+
+Duplicidade `Produto + Cor + Pack` dentro da planilha, inclusive após expansão de `TODAS`, ou contra itens já existentes no Pedido, é erro impeditivo. Havendo qualquer erro, nenhum item é gravado.
+
+A importação não movimenta estoque, não aprova Pedido, não gera NF-e e não cria contas a pagar. O resultado esperado é apenas Pedido de Compra aberto com itens gravados e totais recalculados.
