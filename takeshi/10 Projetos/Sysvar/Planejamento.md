@@ -92,6 +92,10 @@ Revisar e homologar os snapshots necessários ao PDV offline, incluindo:
 - operadores;
 - vendedores;
 - tipos de despesa do PDV;
+- regras/configurações necessárias para devolução;
+- regras/configurações de Cashback;
+- dados necessários para Vale-Troca;
+- promoções/campanhas aplicáveis ao PDV quando fizerem parte da operação offline;
 - demais parâmetros que o PDV necessite para operar sem internet.
 
 ### 1.3 Sincronização Hub → Central
@@ -100,6 +104,9 @@ Concluir e homologar o retorno das operações locais para o Sysvar Central, inc
 
 - clientes criados/localmente alterados quando aplicável;
 - vendas finalizadas;
+- devoluções de venda realizadas offline;
+- movimentos de Cashback gerados/utilizados/estornados localmente;
+- emissão e utilização de Vale-Troca quando aplicável;
 - movimentos de caixa;
 - sessões de caixa;
 - fechamento do dia;
@@ -116,39 +123,108 @@ Concluir e homologar o retorno das operações locais para o Sysvar Central, inc
 - abrir e movimentar caixa;
 - realizar venda;
 - utilizar cliente, vendedor e formas de pagamento locais;
+- realizar devolução de venda offline;
+- validar efeitos locais de estoque e caixa da devolução;
+- utilizar Cashback conforme a política offline definida;
+- emitir/utilizar Vale-Troca quando aplicável;
 - fechar operação;
 - restaurar conexão;
 - confirmar sincronização posterior sem duplicidade.
 
-### 1.5 NFC-e
+### 1.5 Devoluções, Cashback e Vale-Troca no PDV offline
+
+Essas funções fazem parte da operação de Loja e não podem depender exclusivamente de acesso ao Sysvar Central se o objetivo do Hub é manter o PDV funcionando durante indisponibilidade da internet.
+
+#### Devolução de Venda
+
+Planejar e homologar no Hub/PDV:
+
+- localização da venda original disponível localmente;
+- devolução total ou parcial conforme a regra do Sysvar;
+- validação para impedir devolução acima da quantidade vendida;
+- atualização local do estoque devolvido;
+- reflexo local de caixa/forma de restituição quando aplicável;
+- geração de Vale-Troca quando essa for a regra escolhida;
+- persistência da devolução na base local;
+- criação de evento de sincronização Hub → Central;
+- idempotência para impedir devolução duplicada após reconexão;
+- tratamento de conflito caso o estado da venda no Central tenha mudado enquanto a Loja estava offline.
+
+#### Cashback
+
+O PDV offline deve conhecer as regras necessárias para operar Cashback sem depender de consulta online a cada venda.
+
+Planejar:
+
+- snapshot da configuração de Cashback aplicável à Loja/Empresa;
+- geração de Cashback em venda elegível;
+- utilização de Cashback no PDV quando permitida;
+- cancelamento/estorno de Cashback relacionado a devolução ou cancelamento de venda;
+- persistência local dos movimentos;
+- sincronização posterior com o Central;
+- idempotência dos movimentos.
+
+Ponto arquitetural obrigatório antes da implementação: definir a política de uso de saldo de Cashback durante operação offline, pois o saldo disponível no Hub pode ficar desatualizado em relação a operações realizadas em outra Loja. A solução deve impedir ou controlar uso duplicado de saldo sem depender de conexão permanente.
+
+#### Vale-Troca
+
+Como a devolução pode gerar Vale-Troca, o fluxo precisa existir também no cenário offline.
+
+Planejar:
+
+- emissão local vinculada à devolução;
+- identificação única do Vale-Troca;
+- saldo e histórico local;
+- utilização em nova venda;
+- utilização parcial quando a regra permitir;
+- cancelamento/estorno;
+- sincronização com o Central;
+- proteção contra uso duplicado após reconexão.
+
+#### Homologação específica
+
+Executar pelo menos os seguintes cenários com a internet desligada:
+
+1. venda normal;
+2. devolução parcial;
+3. devolução total;
+4. devolução com geração de Vale-Troca;
+5. nova venda usando Vale-Troca;
+6. venda gerando Cashback;
+7. venda utilizando Cashback conforme a política offline aprovada;
+8. cancelamento/estorno dos benefícios gerados;
+9. reconexão com o Central;
+10. confirmação de estoque, caixa, venda, devolução, Cashback e Vale-Troca sem duplicidades.
+
+### 1.6 NFC-e
 
 - revisar arquitetura fiscal da NFC-e no cenário Hub;
 - definir responsabilidade entre terminal, Hub e Central;
 - implementar/homologar emissão no cenário online e contingência quando aplicável;
 - garantir persistência e sincronização correta dos documentos fiscais.
 
-### 1.6 TEF / Pinpad
+### 1.7 TEF / Pinpad
 
 - definir integração com TEF;
 - definir comunicação com Pinpad;
 - tratar autorização, cancelamento e falha de pagamento;
 - impedir finalização inconsistente de venda.
 
-### 1.7 Atualização e versionamento
+### 1.8 Atualização e versionamento
 
 - definir versão do Hub;
 - definir estratégia de atualização do Hub e terminais;
 - preservar configuração e dados locais durante atualização;
 - validar compatibilidade entre versão Central, Hub e frontend local.
 
-### 1.8 Backup e restauração
+### 1.9 Backup e restauração
 
 - definir o que precisa ser preservado localmente;
 - criar procedimento de backup;
 - criar procedimento de restauração;
 - validar recuperação de uma instalação local.
 
-### 1.9 Local Agent
+### 1.10 Local Agent
 
 O Local Agent não faz parte do Sysvar Hub, mas deve ser homologado neste ciclo de infraestrutura local.
 
@@ -162,7 +238,7 @@ O Local Agent não faz parte do Sysvar Hub, mas deve ser homologado neste ciclo 
 
 Referência: [[Implantacao do Local Agent]].
 
-### 1.10 Homologação final da Loja
+### 1.11 Homologação final da Loja
 
 Validar em conjunto:
 
@@ -170,6 +246,8 @@ Validar em conjunto:
 - recebimento de mercadoria;
 - consulta de vendas;
 - devolução de venda;
+- Cashback;
+- Vale-Troca;
 - consulta de estoque;
 - caixa;
 - sincronização;
@@ -270,7 +348,8 @@ O menu atual de Vendas contém mais itens do que apenas Consulta de Vendas. Todo
 - revisar caixa/financeiro;
 - revisar documento fiscal quando aplicável;
 - revisar Vale-Troca quando utilizado;
-- revisar permissões e auditoria.
+- revisar permissões e auditoria;
+- garantir compatibilidade do fluxo central com a operação offline do Sysvar Hub.
 
 ### 3.3 Cashback
 
@@ -278,7 +357,8 @@ O menu atual de Vendas contém mais itens do que apenas Consulta de Vendas. Todo
 - revisar utilização;
 - revisar validade;
 - revisar cancelamento/estorno;
-- revisar reflexo financeiro e histórico.
+- revisar reflexo financeiro e histórico;
+- definir e homologar política segura para uso offline no Sysvar Hub.
 
 ### 3.4 Vale-Troca
 
@@ -286,7 +366,8 @@ O menu atual de Vendas contém mais itens do que apenas Consulta de Vendas. Todo
 - revisar utilização;
 - revisar saldo;
 - revisar cancelamento;
-- revisar vínculo com devolução e nova venda.
+- revisar vínculo com devolução e nova venda;
+- garantir sincronização e proteção contra uso duplicado no cenário Hub offline.
 
 ### 3.5 Promoções
 
@@ -518,6 +599,9 @@ Após concluir os módulos restantes:
 
 As pendências existentes continuam válidas e devem ser absorvidas pela etapa correspondente, sem interromper a sequência atual sem necessidade.
 
+- devolução de venda no PDV offline/Hub, com estoque, caixa e sincronização → Loja / Sysvar Hub;
+- Cashback no PDV offline/Hub, incluindo política segura de saldo offline → Loja / Sysvar Hub;
+- Vale-Troca no PDV offline/Hub, incluindo emissão e utilização offline → Loja / Sysvar Hub;
 - revisão fiscal completa da NF-e de saída → Fiscal / Contábil;
 - faturamento com seleção múltipla/autorização em lote → Fiscal / Contábil;
 - feedback visual em operações demoradas → revisão transversal;
