@@ -32,11 +32,43 @@ Entidade central de detecção:
 XmlFornecedorRecebido
 ~~~
 
+## Ambiente operacional do Local Agent
+
+O fluxo automático depende de um Local Agent instalado em uma máquina Windows que tenha acesso real à pasta onde os XMLs são recebidos.
+
+O padrão operacional é usar a estação da rotina fiscal/entrada de NF-e quando essa estação também recebe ou acessa os XMLs.
+
+Não é necessário dedicar uma máquina exclusivamente ao agente.
+
+Também não se instala o agente no servidor Ubuntu apenas porque o Sysvar central está hospedado nele.
+
+Arquitetura esperada:
+
+~~~text
+Máquina Windows da rotina fiscal
+        ↓
+pasta de XMLs
+        ↓
+Local Agent
+        ↓
+API Sysvar
+        ↓
+servidor central / Ubuntu
+~~~
+
+O procedimento completo de escolha da máquina, instalação, ativação, pasta monitorada e homologação está em [[Implantação do Local Agent]].
+
 ## Configuração de pastas
 
 As pastas monitoradas são administradas pelo Sysvar por Empresa/Loja e disponibilizadas ao Local Agent.
 
 A configuração não deve gerar múltiplas estruturas contraditórias para a mesma finalidade.
+
+A pasta configurada deve ser um caminho que o serviço Windows do agente consiga acessar efetivamente.
+
+Em pasta local, o cenário é direto.
+
+Em pasta de rede, deve-se considerar caminho UNC e permissões do serviço; não assumir que uma unidade mapeada do usuário estará disponível para o serviço.
 
 ## Proteção contra duplicidade
 
@@ -147,6 +179,9 @@ O fluxo cruza:
 
 ## Regras críticas
 
+- manter o Local Agent em uma máquina que realmente acesse a pasta dos XMLs;
+- preferir a estação responsável pela rotina de entrada de NF-e quando ela também recebe os XMLs;
+- não instalar o Local Agent no Ubuntu por padrão;
 - não processar a mesma NF-e como nova silenciosamente;
 - não confundir detecção de XML com entrada física;
 - não exigir movimentação de estoque para todo tratamento fiscal;
@@ -186,6 +221,7 @@ Frontend:
 
 ## Relacionados
 
+- [[Implantação do Local Agent]]
 - [[Mapa Técnico - Compras - Entrada de NF-e]]
 - [[Modelo de Domínio - Compras - Entrada de NF-e]]
 - [[Workflows - Compras - Entrada de NF-e]]
