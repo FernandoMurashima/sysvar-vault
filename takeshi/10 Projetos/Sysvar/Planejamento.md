@@ -36,8 +36,6 @@ O menu principal atual do Sysvar está organizado em:
 10. Financeiro;
 11. Fiscal / Contábil.
 
-Os módulos já trabalhados não devem ser reabertos sem necessidade. Pendências de acabamento permanecem registradas para tratamento no momento adequado.
-
 ### Já trabalhados
 
 - Cadastros;
@@ -68,219 +66,323 @@ Sysvar Hub / Loja
 
 ## Objetivo
 
-Fechar a arquitetura local/offline da loja antes de avançar para os demais módulos centrais.
+Fechar a arquitetura local/offline da Loja e homologar o PDV operacional antes de avançar para os demais módulos centrais.
 
-## Regra de conclusão desta etapa
+## Princípio da etapa
 
-O **Sysvar Hub não será considerado concluído ou homologado** enquanto os quatro domínios comerciais abaixo não estiverem implementados e validados no próprio Hub/PDV offline:
+Devolução, Cashback, Vale-Troca e Promoções são **capacidades operacionais do PDV offline**. Elas devem ser implementadas e validadas no momento em que cada fluxo operacional correspondente for tratado, sem alterar ou privilegiar a sequência principal de desenvolvimento do Sysvar Hub.
 
-1. **Devolução de Venda**;
-2. **Cashback**;
-3. **Vale-Troca**;
-4. **Promoções**.
+Portanto:
 
-Esses quatro itens pertencem à Etapa 1 — Sysvar Hub. Eles também serão revisados posteriormente no módulo central de Vendas, mas **não podem ser adiados para a Etapa 3**. Antes de sair do Sysvar Hub, precisamos confirmar que funcionam localmente, sem internet quando aplicável, e que sincronizam corretamente com o Sysvar Central.
+- não são quatro projetos independentes dentro do Hub;
+- não devem ser esquecidas;
+- devem participar dos snapshots, persistência local, regras do PDV e sincronização sempre que o fluxo exigir;
+- devem estar cobertas na homologação final do PDV offline.
 
-## Escopo
+## Ordem de trabalho do Sysvar Hub
 
-### 1.1 Sysvar Hub
+~~~text
+1. Estrutura e pendências atuais do Hub
+2. Sincronização Central → Hub
+3. Sincronização Hub → Central
+4. Operação do PDV totalmente offline
+5. Pagamentos e finalização da venda
+6. Caixa e movimentações locais
+7. NFC-e
+8. TEF / Pinpad
+9. Atualização e versionamento
+10. Backup e restauração
+11. Homologação completa do Hub
+~~~
 
-- concluir as pendências funcionais do Hub;
+Durante essa sequência, integrar nos pontos correspondentes:
+
+- Devolução de Venda;
+- Cashback;
+- Vale-Troca;
+- Promoções.
+
+## 1.1 Estrutura e pendências atuais do Hub
+
+- concluir as pendências funcionais já abertas do Hub;
 - revisar instalação e execução como serviço;
 - validar ativação e vínculo do Hub com Empresa/Loja;
-- validar acesso dos terminais pela rede local;
-- revisar segurança de acesso dos terminais;
-- revisar bootstrap inicial e carga dos dados necessários à operação local;
-- implementar e homologar Devolução no Hub;
-- implementar e homologar Cashback no Hub;
-- implementar e homologar Vale-Troca no Hub;
-- implementar e homologar Promoções no Hub.
+- validar acesso dos Terminais/PDVs pela rede local;
+- revisar segurança de acesso dos Terminais;
+- revisar bootstrap inicial;
+- revisar autenticação do Hub;
+- revisar autenticação do Terminal;
+- revisar sessão de Operador;
+- revisar CaixaHub e SessaoCaixaHub;
+- revisar catálogo local;
+- revisar carrinho/venda local persistida;
+- preservar a regra 1 Loja → 1 Hub → N Terminais.
 
-### 1.2 Sincronização Central → Hub
+## 1.2 Sincronização Central → Hub
 
-Revisar e homologar os snapshots necessários ao PDV offline, incluindo:
+Revisar e homologar os dados necessários para a operação local, incluindo:
 
 - catálogo;
-- estoque necessário à operação local;
+- estoque da Loja;
 - clientes;
 - formas de pagamento;
 - operadores;
 - vendedores;
 - tipos de despesa do PDV;
-- regras/configurações necessárias para devolução;
-- regras/configurações de Cashback;
+- parâmetros necessários ao Caixa;
+- configurações necessárias à venda;
+- regras e dados necessários para Devolução;
+- configuração e dados necessários para Cashback;
 - dados necessários para Vale-Troca;
-- promoções/campanhas aplicáveis ao PDV;
-- demais parâmetros que o PDV necessite para operar sem internet.
+- Promoções/campanhas aplicáveis ao PDV;
+- demais parâmetros necessários para funcionamento sem internet.
 
-### 1.3 Sincronização Hub → Central
+Regras gerais:
 
-Concluir e homologar o retorno das operações locais para o Sysvar Central, incluindo:
+- Central continua sendo autoridade dos cadastros e configurações corporativas;
+- Hub mantém cópia operacional local;
+- ausência no snapshot deve seguir regra explícita de inativação/atualização, evitando exclusões indevidas;
+- não criar conceitos mestres paralelos no Hub quando já existirem no Central.
 
-- clientes criados/localmente alterados quando aplicável;
+## 1.3 Sincronização Hub → Central
+
+Concluir e homologar o retorno das operações locais, incluindo:
+
+- clientes criados/alterados localmente quando aplicável;
 - vendas finalizadas;
-- devoluções de venda realizadas offline;
-- movimentos de Cashback gerados/utilizados/estornados localmente;
-- emissão e utilização de Vale-Troca quando aplicável;
-- efeitos e identificações de Promoções aplicadas às vendas;
-- movimentos de caixa;
-- sessões de caixa;
+- pagamentos;
+- movimentos de Caixa;
+- sessões de Caixa;
+- sangrias, suprimentos e despesas quando aplicáveis;
 - fechamento do dia;
-- mapeamentos entre registros locais e centrais;
+- Devoluções;
+- movimentos de Cashback;
+- emissão/utilização/estorno de Vale-Troca;
+- identificação e efeitos de Promoções aplicadas às vendas;
+- documentos fiscais quando fizerem parte do fluxo;
+- mapeamentos de IDs local ↔ Central;
 - retry;
 - idempotência;
-- tratamento de conflitos;
+- conflitos;
 - recuperação após falha de comunicação.
 
-### 1.4 Operação totalmente offline
+## 1.4 Operação do PDV totalmente offline
 
-- desligar a internet durante homologação;
-- operar o PDV local;
-- abrir e movimentar caixa;
-- realizar venda;
-- utilizar cliente, vendedor e formas de pagamento locais;
-- realizar devolução de venda offline;
-- validar efeitos locais de estoque e caixa da devolução;
-- utilizar Cashback conforme a política offline definida;
-- emitir/utilizar Vale-Troca quando aplicável;
-- aplicar Promoção válida com base nas regras sincronizadas localmente;
-- confirmar comportamento quando a Promoção estiver vencida, inativa ou incompatível;
-- fechar operação;
-- restaurar conexão;
-- confirmar sincronização posterior sem duplicidade.
+Homologar o PDV com a internet desligada.
 
-### 1.5 Devolução de Venda no Sysvar Hub
+Validar:
 
-A Devolução deve ser uma função operacional real do PDV local e não apenas uma tela existente no Sysvar Central.
+- login do Operador;
+- contexto do Terminal;
+- Caixa já aberto ou abertura local;
+- consulta do catálogo;
+- estoque local;
+- busca/bipagem do produto;
+- carrinho persistido;
+- vendedor;
+- cliente;
+- venda;
+- persistência no MySQL local;
+- continuidade após refresh/reinício do navegador;
+- indisponibilidade do Central sem bloquear a operação local.
 
-Planejar, implementar e homologar no Hub/PDV:
+As funções comerciais devem entrar naturalmente nos testes quando aplicáveis:
 
-- localização da venda original disponível localmente;
+- aplicar Promoção válida com base nos dados sincronizados;
+- gerar Cashback quando a venda for elegível;
+- utilizar Cashback conforme a política offline aprovada;
+- utilizar Vale-Troca quando disponível;
+- iniciar Devolução de venda quando o fluxo estiver implementado.
+
+## 1.5 Pagamentos e finalização da venda
+
+- revisar formas de pagamento locais;
+- múltiplas formas na mesma venda quando permitido;
+- parcelamento;
+- dinheiro e troco;
+- PIX quando aplicável;
+- cartão/TEF quando aplicável;
+- validações de total pago;
+- persistência dos pagamentos;
+- finalização transacional da venda;
+- baixa/reserva de estoque local;
+- geração dos eventos de sincronização.
+
+Integrar aqui, quando fizer parte da regra comercial:
+
+- Cashback como geração ou meio/benefício de pagamento;
+- Vale-Troca como crédito utilizado na venda;
+- Promoção alterando corretamente os valores finais da venda.
+
+Não permitir divergência entre valor comercial, pagamento e total efetivamente finalizado.
+
+## 1.6 Caixa e movimentações locais
+
+- abertura de Caixa;
+- status do Caixa;
+- fundo inicial;
+- sangria;
+- suprimento;
+- despesas;
+- movimentos gerados por venda;
+- movimentos gerados por Devolução quando aplicável;
+- fechamento;
+- bloqueios para venda aberta;
+- persistência local;
+- sincronização com o Central;
+- rastreabilidade por Terminal e Operador.
+
+## 1.7 Devolução dentro da operação do PDV
+
+A Devolução é parte do pós-venda do PDV e deve ser integrada ao fluxo operacional, não tratada como produto separado.
+
+Validar quando chegarmos a esse ponto:
+
+- localização da venda original;
 - devolução total;
 - devolução parcial;
-- validação para impedir devolução acima da quantidade vendida;
-- atualização local do estoque devolvido quando aplicável;
-- reflexo local de caixa/forma de restituição;
-- geração de Vale-Troca quando essa for a regra escolhida;
-- impacto em Cashback gerado/utilizado pela venda original;
-- persistência da devolução na base local;
-- criação de evento de sincronização Hub → Central;
-- idempotência para impedir devolução duplicada após reconexão;
-- tratamento de conflito caso o estado da venda no Central tenha mudado enquanto a Loja estava offline;
-- homologação com a internet desligada e posterior reconexão.
+- limite pela quantidade originalmente vendida;
+- retorno ao estoque quando aplicável;
+- reflexo no Caixa;
+- reflexo nos pagamentos;
+- geração de Vale-Troca quando essa for a regra;
+- reversão/ajuste de Cashback;
+- efeitos fiscais quando aplicáveis;
+- persistência local;
+- sincronização posterior sem duplicidade.
 
-**Critério para considerar validado:** a devolução precisa nascer, persistir e produzir seus efeitos localmente no Hub, continuar válida sem internet e chegar ao Central sem duplicidade após a reconexão.
+## 1.8 Cashback dentro da operação do PDV
 
-### 1.6 Cashback no Sysvar Hub
+Cashback deve ser considerado em Venda e Devolução.
 
-O PDV offline deve conhecer as regras necessárias para operar Cashback sem depender de consulta online a cada venda.
+Validar:
 
-Planejar, implementar e homologar:
+- configuração sincronizada;
+- geração em venda elegível;
+- consulta/uso quando permitido;
+- estorno/cancelamento;
+- impacto de Devolução;
+- persistência local;
+- sincronização posterior;
+- idempotência.
 
-- snapshot da configuração de Cashback aplicável à Loja/Empresa;
-- geração de Cashback em venda elegível;
-- utilização de Cashback no PDV quando permitida;
-- consulta do saldo disponível segundo a política offline aprovada;
-- cancelamento/estorno de Cashback relacionado a devolução ou cancelamento de venda;
-- persistência local dos movimentos;
-- sincronização posterior com o Central;
-- idempotência dos movimentos;
-- tratamento de conflito após reconexão.
+Antes de permitir consumo totalmente offline, definir a política segura para saldo que possa estar desatualizado em relação a outras Lojas.
 
-Ponto arquitetural obrigatório antes da implementação: definir a política de uso de saldo de Cashback durante operação offline, pois o saldo disponível no Hub pode ficar desatualizado em relação a operações realizadas em outra Loja. A solução deve impedir ou controlar uso duplicado de saldo sem depender de conexão permanente.
+## 1.9 Vale-Troca dentro da operação do PDV
 
-**Critério para considerar validado:** geração, uso e estorno precisam funcionar conforme a política aprovada no Hub offline e reconciliar corretamente com o Central após reconexão.
+Vale-Troca deve integrar Devolução e nova Venda.
 
-### 1.7 Vale-Troca no Sysvar Hub
+Validar:
 
-Como a devolução pode gerar Vale-Troca, o fluxo precisa existir também no cenário offline.
-
-Planejar, implementar e homologar:
-
-- emissão local vinculada à devolução;
-- identificação única do Vale-Troca;
-- saldo e histórico local;
-- utilização em nova venda;
-- utilização parcial quando a regra permitir;
+- emissão;
+- identificação única;
+- saldo;
+- utilização total ou parcial conforme regra;
 - cancelamento/estorno;
-- sincronização com o Central;
-- proteção contra uso duplicado após reconexão;
-- tratamento de conflito quando o mesmo vale tiver sido alterado em outro ponto da operação.
+- persistência local;
+- sincronização;
+- proteção contra duplicidade/uso duplo.
 
-**Critério para considerar validado:** o Vale-Troca precisa poder ser emitido e consumido no Hub conforme a regra definida, persistir offline e chegar ao Central sem duplicidade ou uso duplo.
+## 1.10 Promoções dentro da operação do PDV
 
-### 1.8 Promoções no Sysvar Hub
+Promoções devem ser aplicadas no momento normal da venda, usando configuração recebida do Central.
 
-Promoções utilizadas pelo PDV não podem depender de consulta ao Central no momento da venda quando a Loja estiver offline.
+Validar:
 
-Planejar, implementar e homologar:
+- snapshot das Promoções aplicáveis;
+- vigência;
+- elegibilidade dos produtos/itens;
+- condições mínimas;
+- desconto ou benefício;
+- prioridade e conflitos;
+- persistência na venda da promoção aplicada;
+- sincronização dos valores e identificação promocional;
+- comportamento offline quando a vigência termina antes da próxima sincronização.
 
-- snapshot Central → Hub das promoções aplicáveis à Empresa/Loja;
-- identificação das promoções ativas e inativas;
-- vigência por data/hora quando aplicável;
-- produtos, referências, grupos ou demais elegibilidades suportadas pela regra central;
-- condições mínimas da promoção;
-- desconto/benefício calculado pela mesma regra funcional definida no Sysvar Central;
-- prioridade entre promoções quando houver mais de uma elegível;
-- tratamento de incompatibilidade/conflito entre promoções;
-- preservação na venda local da identificação da promoção e do benefício aplicado;
-- sincronização desses dados Hub → Central junto com a venda;
-- atualização/inativação local quando uma promoção deixar de existir ou ficar inativa no snapshot posterior;
-- comportamento previsível quando a Loja estiver offline e a vigência de uma promoção terminar antes da próxima sincronização.
+O Hub não cria regra promocional própria: ele executa localmente a regra corporativa sincronizada.
 
-O Hub não deve inventar uma regra promocional diferente da regra corporativa. O Central continua sendo a autoridade da configuração, e o Hub mantém a cópia operacional necessária para aplicar a regra offline.
-
-**Critério para considerar validado:** uma venda offline deve aplicar somente Promoções que o Hub possa comprovar como elegíveis pela configuração sincronizada, preservar o benefício aplicado e sincronizar a venda ao Central com os mesmos valores e identificação promocional.
-
-### 1.9 Homologação comercial obrigatória do Hub
-
-Antes de considerar o Sysvar Hub concluído, executar com a internet desligada, no mínimo:
-
-1. venda normal sem benefício;
-2. venda com Promoção válida;
-3. tentativa de Promoção inválida/vencida/inaplicável;
-4. venda gerando Cashback;
-5. venda utilizando Cashback conforme a política offline aprovada;
-6. devolução parcial;
-7. devolução total;
-8. devolução com geração de Vale-Troca;
-9. nova venda usando Vale-Troca;
-10. estorno/cancelamento dos benefícios relacionados quando aplicável;
-11. operação com duas funções combinadas quando a regra permitir, por exemplo Promoção + geração de Cashback;
-12. reconexão com o Central;
-13. confirmação de venda, estoque, caixa, devolução, Cashback, Vale-Troca e Promoções sem duplicidades nem divergência de valores.
-
-### 1.10 NFC-e
+## 1.11 NFC-e
 
 - revisar arquitetura fiscal da NFC-e no cenário Hub;
-- definir responsabilidade entre terminal, Hub e Central;
-- implementar/homologar emissão no cenário online e contingência quando aplicável;
-- garantir persistência e sincronização correta dos documentos fiscais.
+- definir responsabilidade entre Terminal, Hub e Central;
+- emissão no cenário online;
+- estratégia de contingência/offline quando aplicável;
+- persistência local do documento;
+- numeração e identidade fiscal;
+- cancelamento/eventos quando aplicáveis;
+- sincronização posterior;
+- consistência entre venda e documento fiscal.
 
-### 1.11 TEF / Pinpad
+## 1.12 TEF / Pinpad
 
 - definir integração com TEF;
 - definir comunicação com Pinpad;
-- tratar autorização, cancelamento e falha de pagamento;
-- impedir finalização inconsistente de venda.
+- autorização;
+- confirmação;
+- cancelamento;
+- falha de pagamento;
+- reversão;
+- reconciliação com a venda;
+- impedir finalização inconsistente.
 
-### 1.12 Atualização e versionamento
+## 1.13 Atualização e versionamento
 
 - definir versão do Hub;
-- definir estratégia de atualização do Hub e terminais;
-- preservar configuração e dados locais durante atualização;
-- validar compatibilidade entre versão Central, Hub e frontend local.
+- definir versão compatível do frontend local;
+- definir estratégia de atualização;
+- preservar configuração e dados locais;
+- preservar filas pendentes;
+- validar compatibilidade Central ↔ Hub;
+- impedir atualização que deixe operação local inconsistente.
 
-### 1.13 Backup e restauração
+## 1.14 Backup e restauração
 
-- definir o que precisa ser preservado localmente;
+- definir dados locais que precisam ser preservados;
+- banco local;
+- configuração;
+- credenciais protegidas;
+- filas/eventos ainda não sincronizados;
 - criar procedimento de backup;
 - criar procedimento de restauração;
-- validar recuperação de uma instalação local.
+- validar recuperação de uma instalação.
 
-### 1.14 Local Agent
+## 1.15 Homologação completa do Sysvar Hub
 
-O Local Agent não faz parte do Sysvar Hub, mas deve ser homologado neste ciclo de infraestrutura local.
+Executar homologação integrada com internet ligada e desligada.
+
+Validar no mínimo:
+
+- ativação do Hub;
+- Terminal pareado;
+- Operador;
+- Caixa;
+- catálogo;
+- estoque;
+- cliente;
+- vendedor;
+- carrinho;
+- venda;
+- pagamentos;
+- movimentações de Caixa;
+- Devolução;
+- Cashback;
+- Vale-Troca;
+- Promoções;
+- NFC-e;
+- TEF/Pinpad quando disponível;
+- sincronização Central → Hub;
+- sincronização Hub → Central;
+- retry;
+- idempotência;
+- reconexão;
+- ausência de duplicidades;
+- consistência de estoque, Caixa, venda e benefícios comerciais.
+
+Somente depois da homologação completa do Hub seguimos para Produção.
+
+## Atividade paralela — Local Agent
+
+O Local Agent não faz parte do Sysvar Hub, mas precisa ser homologado no mesmo ciclo de infraestrutura local.
 
 - instalar/ativar na máquina Windows que recebe ou acessa os XMLs;
 - vincular à Empresa correta;
@@ -288,44 +390,21 @@ O Local Agent não faz parte do Sysvar Hub, mas deve ser homologado neste ciclo 
 - validar heartbeat;
 - detectar XML real de teste;
 - confirmar chegada dos metadados ao Sysvar Central;
-- validar comportamento com indisponibilidade temporária da internet.
+- validar indisponibilidade temporária da internet.
 
 Referência: [[Implantacao do Local Agent]].
-
-### 1.15 Homologação final da Loja / Sysvar Hub
-
-Validar em conjunto:
-
-- PDV;
-- recebimento de mercadoria;
-- consulta de vendas;
-- devolução de venda;
-- Cashback;
-- Vale-Troca;
-- Promoções;
-- consulta de estoque;
-- caixa;
-- sincronização;
-- operação offline;
-- retorno online.
-
-A Etapa 1 somente pode ser encerrada depois que **Devolução, Cashback, Vale-Troca e Promoções** estiverem explicitamente marcados como homologados no Sysvar Hub.
-
-Ao concluir, atualizar a documentação do [[Sysvar Hub]] e as homologações relacionadas.
 
 ---
 
 # Etapa 2 — Produção
 
-O menu atual de Produção possui três áreas principais:
+O menu atual de Produção possui:
 
 - Ficha Técnica;
 - Ordem de Produção;
 - Painel de Produção.
 
-## Trabalho previsto
-
-### 2.1 Ficha Técnica
+## 2.1 Ficha Técnica
 
 - analisar a implementação atual;
 - revisar estrutura de materiais/insumos;
@@ -334,25 +413,25 @@ O menu atual de Produção possui três áreas principais:
 - revisar vínculos com Produto;
 - revisar edição, duplicidade e consistência.
 
-### 2.2 Ordem de Produção
+## 2.2 Ordem de Produção
 
-- revisar criação da ordem;
+- revisar criação;
 - revisar estados e transições;
-- revisar planejamento de quantidade;
-- revisar reserva/consumo de insumos;
-- revisar entrada do produto acabado;
-- revisar cancelamento e estorno;
-- revisar rastreabilidade das movimentações.
+- planejamento de quantidade;
+- reserva/consumo de insumos;
+- entrada do produto acabado;
+- cancelamento e estorno;
+- rastreabilidade das movimentações.
 
-### 2.3 Painel de Produção
+## 2.3 Painel de Produção
 
 - revisar visão operacional;
-- revisar filtros;
-- revisar indicadores;
-- revisar acompanhamento das ordens;
-- revisar usabilidade para operação diária.
+- filtros;
+- indicadores;
+- acompanhamento das ordens;
+- usabilidade diária.
 
-### 2.4 Integrações
+## 2.4 Integrações
 
 Validar Produção com:
 
@@ -362,11 +441,11 @@ Validar Produção com:
 - Financeiro/custos quando aplicável;
 - Auditoria.
 
-### 2.5 Fechamento da etapa
+## 2.5 Fechamento
 
-- corrigir erros encontrados;
+- corrigir erros;
 - implementar melhorias aprovadas;
-- executar testes;
+- testar;
 - homologar fluxo completo;
 - documentar.
 
@@ -374,11 +453,7 @@ Validar Produção com:
 
 # Etapa 3 — Vendas
 
-O menu atual de Vendas contém mais itens do que apenas Consulta de Vendas. Todos devem entrar na revisão.
-
-**Importante:** Devolução, Cashback, Vale-Troca e Promoções já precisam estar funcionais e homologados no Sysvar Hub antes desta etapa. Aqui será feita a revisão do domínio central de Vendas e sua coerência com aquilo que já foi validado no Hub; não é nesta etapa que o suporte offline desses quatro recursos será deixado para depois.
-
-## Escopo atual do menu
+O menu atual de Vendas contém:
 
 - Consulta de Vendas;
 - Devoluções de Vendas;
@@ -386,57 +461,61 @@ O menu atual de Vendas contém mais itens do que apenas Consulta de Vendas. Todo
 - Vales-Troca;
 - Promoções.
 
-## Trabalho previsto
+Nesta etapa será revisado o **domínio central de Vendas**. Devolução, Cashback, Vale-Troca e Promoções também terão sua implementação central revisada, incluindo a coerência com o que foi implementado no PDV/Hub offline.
 
-### 3.1 Consulta de Vendas
+## 3.1 Consulta de Vendas
 
-- revisar filtros;
-- revisar período;
-- revisar Loja;
-- revisar vendedor;
-- revisar cliente;
-- revisar produto/referência;
-- revisar totais e agrupamentos;
-- revisar paginação e desempenho;
-- revisar exportação quando existente.
+- filtros;
+- período;
+- Loja;
+- vendedor;
+- cliente;
+- produto/referência;
+- totais e agrupamentos;
+- paginação e desempenho;
+- exportação quando existente.
 
-### 3.2 Devoluções
+## 3.2 Devoluções
 
-- revisar fluxo de devolução;
-- revisar estoque;
-- revisar caixa/financeiro;
-- revisar documento fiscal quando aplicável;
-- revisar Vale-Troca quando utilizado;
-- revisar permissões e auditoria;
-- garantir compatibilidade do fluxo central com a operação offline do Sysvar Hub.
+- fluxo central;
+- estoque;
+- Caixa/Financeiro;
+- documento fiscal quando aplicável;
+- Vale-Troca;
+- Cashback;
+- permissões;
+- Auditoria;
+- integração com operações sincronizadas do Hub.
 
-### 3.3 Cashback
+## 3.3 Cashback
 
-- revisar geração;
-- revisar utilização;
-- revisar validade;
-- revisar cancelamento/estorno;
-- revisar reflexo financeiro e histórico;
-- confirmar coerência da política central com a política offline já homologada no Sysvar Hub.
+- geração;
+- utilização;
+- validade;
+- cancelamento/estorno;
+- reflexo financeiro;
+- histórico;
+- coerência com operações sincronizadas do Hub.
 
-### 3.4 Vale-Troca
+## 3.4 Vale-Troca
 
-- revisar emissão;
-- revisar utilização;
-- revisar saldo;
-- revisar cancelamento;
-- revisar vínculo com devolução e nova venda;
-- garantir sincronização e proteção contra uso duplicado no cenário Hub offline.
+- emissão;
+- utilização;
+- saldo;
+- cancelamento;
+- vínculo com Devolução e nova Venda;
+- integração com Hub.
 
-### 3.5 Promoções
+## 3.5 Promoções
 
-- revisar regras atuais;
-- revisar vigência;
-- revisar produtos elegíveis;
-- revisar prioridade/conflito entre promoções;
-- confirmar que a regra central permanece coerente com a aplicação já homologada no PDV/Hub offline.
+- regras atuais;
+- vigência;
+- produtos elegíveis;
+- prioridade/conflito;
+- aplicação no PDV/Hub;
+- consistência dos valores sincronizados.
 
-### 3.6 Fechamento da etapa
+## 3.6 Fechamento
 
 - testes;
 - homologação;
@@ -446,7 +525,7 @@ O menu atual de Vendas contém mais itens do que apenas Consulta de Vendas. Todo
 
 # Etapa 4 — Financeiro
 
-## Escopo atual do menu
+## Escopo atual
 
 - Contas a Receber;
 - Contas a Pagar;
@@ -461,28 +540,26 @@ O menu atual de Vendas contém mais itens do que apenas Consulta de Vendas. Todo
 - Configuração Financeira;
 - Consulta por Natureza.
 
-## Trabalho previsto
-
-### 4.1 Contas a Receber
+## 4.1 Contas a Receber
 
 - origem dos títulos;
 - parcelas;
 - baixas;
 - recebimentos parciais;
 - juros/descontos quando aplicáveis;
-- cancelamentos e estornos;
-- integração com vendas.
+- cancelamentos/estornos;
+- integração com Vendas.
 
-### 4.2 Contas a Pagar
+## 4.2 Contas a Pagar
 
 - origem dos títulos;
-- vínculo com compras e fiscal;
+- Compras/Fiscal;
 - parcelas;
 - baixas;
 - pagamentos parciais;
-- cancelamentos e estornos.
+- cancelamentos/estornos.
 
-### 4.3 Caixa
+## 4.3 Caixa
 
 - abertura;
 - movimentos;
@@ -492,20 +569,20 @@ O menu atual de Vendas contém mais itens do que apenas Consulta de Vendas. Todo
 - fechamento;
 - integração com PDV e Sysvar Hub.
 
-### 4.4 Bancos
+## 4.4 Bancos
 
 - contas bancárias;
 - movimentações;
 - transferências quando aplicáveis;
-- conciliação futura/atual conforme implementação existente.
+- conciliação conforme implementação existente ou futura aprovada.
 
-### 4.5 Antecipações
+## 4.5 Antecipações
 
-- revisar fluxo atual;
-- revisar impacto nos recebíveis;
-- revisar taxas e liquidação quando existentes.
+- fluxo atual;
+- impacto nos recebíveis;
+- taxas e liquidação quando existentes.
 
-### 4.6 Configurações financeiras
+## 4.6 Configurações financeiras
 
 - Formas de Pagamento;
 - Prazos de Pagamento;
@@ -513,13 +590,16 @@ O menu atual de Vendas contém mais itens do que apenas Consulta de Vendas. Todo
 - Configuração Financeira;
 - relação com Centro de Custo quando aplicável.
 
-### 4.7 Consultas
+## 4.7 Consultas
 
-- revisar Consulta por Natureza;
-- revisar filtros, totais, períodos e desempenho;
+- Consulta por Natureza;
+- filtros;
+- totais;
+- períodos;
+- desempenho;
 - identificar consultas adicionais realmente necessárias.
 
-### 4.8 Fechamento da etapa
+## 4.8 Fechamento
 
 - testes integrados;
 - homologação;
@@ -529,9 +609,7 @@ O menu atual de Vendas contém mais itens do que apenas Consulta de Vendas. Todo
 
 # Etapa 5 — Fiscal / Contábil
 
-O menu não é apenas Fiscal. Ele também contém Contábil e Demonstrativos e deve ser tratado como uma etapa única integrada.
-
-## Escopo atual do menu
+## Escopo atual
 
 ### Fiscal
 
@@ -549,9 +627,7 @@ O menu não é apenas Fiscal. Ele também contém Contábil e Demonstrativos e d
 
 - DRE.
 
-## Fluxos fiscais transversais que também entram nesta etapa
-
-Mesmo aparecendo em outros menus, devem ser revisados aqui:
+### Fluxos fiscais transversais
 
 - NF-e de entrada;
 - XML de fornecedor;
@@ -561,59 +637,56 @@ Mesmo aparecendo em outros menus, devem ser revisados aqui:
 - cancelamentos/eventos fiscais;
 - NFC-e do PDV/Hub.
 
-## Trabalho previsto
+## 5.1 Estrutura fiscal
 
-### 5.1 Estrutura fiscal
+- cadastros fiscais;
+- regras tributárias;
+- coerência entre NCM, CFOP, tributos e operação.
 
-- revisar cadastros fiscais;
-- revisar regras tributárias;
-- revisar coerência entre NCM, CFOP, tributos e operação.
+## 5.2 NF-e de entrada
 
-### 5.2 NF-e de entrada
+- materialização do XML;
+- tratamento fiscal;
+- integração com Compras, Estoque e Financeiro;
+- cancelamentos e histórico.
 
-- revisar materialização do XML;
-- revisar tratamento fiscal;
-- revisar integrações com Compras, Estoque e Financeiro;
-- revisar cancelamentos e histórico.
+## 5.3 NF-e de saída
 
-### 5.3 NF-e de saída
+Executar o pente fino fiscal completo registrado em [[Pendências e Melhorias]], utilizando regras oficiais vigentes.
 
-Executar o pente fino fiscal completo já registrado em [[Pendências e Melhorias]], incluindo regras oficiais vigentes, XML e consistência dos dados persistidos.
+## 5.4 Faturamento
 
-### 5.4 Faturamento
+- fila de documentos;
+- seleção múltipla/autorização em lote conforme pendência existente;
+- feedback de processamento;
+- falhas individuais;
+- reprocessamento.
 
-- revisar fila de documentos;
-- implementar/revisar seleção múltipla e autorização em lote conforme pendência existente;
-- revisar feedback de processamento;
-- revisar falhas individuais e reprocessamento.
+## 5.5 Contábil
 
-### 5.5 Contábil
+- Plano Contábil;
+- geração dos lançamentos;
+- origem por módulo;
+- consistência débito/crédito;
+- rastreabilidade até a operação de origem.
 
-- revisar Plano Contábil;
-- revisar geração dos lançamentos;
-- revisar origem dos lançamentos por módulo;
-- revisar consistência de débito/crédito;
-- revisar rastreabilidade até a operação de origem.
+## 5.6 DRE
 
-### 5.6 DRE
+- estrutura;
+- período;
+- agrupamento de naturezas/contas;
+- valores e origem;
+- validação contra Financeiro/Contábil.
 
-- revisar estrutura;
-- revisar período;
-- revisar agrupamento das naturezas/contas;
-- revisar valores e origem;
-- validar contra os lançamentos financeiros/contábeis.
+## 5.7 Fechamento
 
-### 5.7 Fechamento da etapa
-
-- testes fiscais e contábeis;
+- testes fiscais/contábeis;
 - homologação;
 - documentação.
 
 ---
 
 # Etapa 6 — Dashboard e fechamento integrado
-
-O Dashboard é um menu principal e deve ser revisado depois dos módulos operacionais, porque depende dos dados produzidos por eles.
 
 ## Escopo atual
 
@@ -630,10 +703,10 @@ O Dashboard é um menu principal e deve ser revisado depois dos módulos operaci
 - conferir origem de cada indicador;
 - validar filtros e períodos;
 - validar isolamento por Empresa/Loja;
-- validar totais contra as consultas operacionais;
+- validar totais contra consultas operacionais;
 - revisar desempenho;
-- revisar Margem / CMV com dados reais dos fluxos homologados;
-- eliminar indicador que não tenha origem confiável.
+- revisar Margem / CMV com dados dos fluxos homologados;
+- eliminar indicador sem origem confiável.
 
 ---
 
@@ -644,9 +717,9 @@ Após concluir os módulos restantes:
 1. revisar permissões e perfis de acesso;
 2. revisar menu e rotas órfãs/duplicadas;
 3. executar fluxo integrado entre módulos;
-4. revisar auditoria;
+4. revisar Auditoria;
 5. revisar mensagens de erro e feedback de operações demoradas;
-6. revisar desempenho das consultas mais pesadas;
+6. revisar desempenho das consultas pesadas;
 7. executar homologação final com base de teste controlada;
 8. atualizar [[Pendências e Melhorias]];
 9. atualizar documentação técnica e operacional;
@@ -656,12 +729,10 @@ Após concluir os módulos restantes:
 
 # Pendências já registradas que não podem ser esquecidas
 
-As pendências existentes continuam válidas e devem ser absorvidas pela etapa correspondente, sem interromper a sequência atual sem necessidade.
-
-- devolução de venda no PDV offline/Hub, com estoque, caixa e sincronização → Loja / Sysvar Hub;
-- Cashback no PDV offline/Hub, incluindo política segura de saldo offline → Loja / Sysvar Hub;
-- Vale-Troca no PDV offline/Hub, incluindo emissão e utilização offline → Loja / Sysvar Hub;
-- Promoções no PDV offline/Hub, incluindo snapshot, vigência, elegibilidade, prioridade e sincronização → Loja / Sysvar Hub;
+- Devolução no PDV offline/Hub → integrar ao fluxo operacional do PDV e sincronização;
+- Cashback no PDV offline/Hub → integrar a Venda/Devolução e definir política segura de saldo offline;
+- Vale-Troca no PDV offline/Hub → integrar Devolução e nova Venda;
+- Promoções no PDV offline/Hub → integrar ao cálculo normal da Venda e sincronização;
 - revisão fiscal completa da NF-e de saída → Fiscal / Contábil;
 - faturamento com seleção múltipla/autorização em lote → Fiscal / Contábil;
 - feedback visual em operações demoradas → revisão transversal;
@@ -676,8 +747,6 @@ A fonte detalhada desses itens é [[Pendências e Melhorias]].
 ---
 
 # Regra de execução para cada etapa
-
-Cada módulo deve seguir a metodologia oficial:
 
 ~~~text
 Analisar repositório atual
