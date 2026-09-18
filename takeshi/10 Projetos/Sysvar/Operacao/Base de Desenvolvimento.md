@@ -1,25 +1,17 @@
 ---
-type: runbook  
-status: active  
-project: Sysvar  
-source: "C:/SysvarProjeto/Backend/sysvar_devtools/dev_base.py"  
-created: 2026-09-09  
-updated: 2026-09-10  
+type: runbook
+status: active
+project: Sysvar
+source: "C:/SysvarProjeto/Backend/sysvar_devtools/dev_base.py"
+created: 2026-09-09
+updated: 2026-09-18
 tags:
-
-- sysvar
-    
-- operacao
-    
-- devtools
-    
-- base-desenvolvimento
-    
-- auditoria
-    
-- agente-local
-    
-
+  - sysvar
+  - operacao
+  - devtools
+  - base-desenvolvimento
+  - auditoria
+  - agente-local
 ---
 
 # Base de Desenvolvimento
@@ -51,105 +43,60 @@ Base limpa, no contexto do Sysvar DevTools, é um banco reconstruído com a estr
 O rebuild recria a estrutura oficial a partir dos seeds de `sysvar_devtools/seeds`, incluindo:
 
 - Empresa;
-    
 - Estabelecimentos;
-    
 - contrato e módulos contratados;
-    
 - usuários, perfis e permissões;
-    
 - cargos, funcionários, clientes e fornecedores;
-    
 - plano contábil, naturezas e centros de custo;
-    
 - setores e matriz de responsabilidade;
-    
 - categorias e finalidades de aquisição;
-    
 - formas e prazos de pagamento;
-    
 - contas bancárias, caixas e tipos de despesa de PDV;
-    
 - ConfigFinanceira;
-    
 - CashbackConfig;
-    
 - unidades, NCM, grupos, subgrupos, coleções, materiais, grades, tamanhos e cores;
-    
 - tabelas de preço;
-    
 - produtos de venda, uso/consumo e insumos;
-    
 - SKUs e EANs;
-    
 - Produto x Fornecedor;
-    
 - packs;
-    
 - fichas técnicas;
-    
 - estrutura fiscal;
-    
 - perfis de distribuição;
-    
 - estrutura de estoque SKU x Loja;
-    
 - estrutura de estoque Uso/Consumo x Loja.
-    
 
 ## Operações eliminadas
 
 O rebuild remove operações anteriores da base de desenvolvimento, incluindo:
 
 - sessões e tokens;
-    
 - requisições, cotações, ordens de serviço e pedidos de compra;
-    
 - entradas e saídas fiscais;
-    
 - NF-e e XMLs operacionais de fornecedores;
-    
 - recebimentos de mercadoria e suas conferências;
-    
 - vendas PDV, devoluções e NFC-e;
-    
 - distribuições executadas, pedidos de distribuição e mercadoria em trânsito;
-    
 - ordens de produção;
-    
 - inventários executados;
-    
 - movimentações de estoque;
-    
 - movimentações de Uso/Consumo;
-    
 - contas a pagar e a receber operacionais;
-    
 - movimentações financeiras;
-    
 - antecipações;
-    
 - movimentos de Cashback;
-    
 - Vale-Troca e movimentos de Vale-Troca;
-    
 - AuditLog anterior;
-    
 - Agente Local Sysvar cadastrado;
-    
 - ativações do Agente Local;
-    
 - configurações locais de pastas XML do Agente Local.
-    
 
 ## Estoque estrutural zerado
 
 A rotina mantém as estruturas de estoque necessárias para desenvolvimento:
 
 - `Estoque` por SKU x Loja;
-    
 - `ProdutoUsoConsumoEstoque` por Produto x Loja.
-    
 
 Essas estruturas devem terminar com:
 
@@ -192,11 +139,8 @@ Durante a operação normal do Sysvar, `AuditLog` é imutável.
 Essa política não deve ser enfraquecida:
 
 - criação normal direta é bloqueada;
-    
 - update normal é bloqueado;
-    
 - delete normal é bloqueado.
-    
 
 No fluxo destrutivo da reconstrução da Base de Desenvolvimento, a auditoria antiga deve ser removida pelo mecanismo oficial de exclusão controlada:
 
@@ -219,17 +163,25 @@ O Agente Local é uma configuração operacional do ambiente e não faz parte da
 Ao reconstruir a Base de Desenvolvimento, são eliminados:
 
 - cadastro do Agente Local;
-    
 - ativações anteriores;
-    
 - token vinculado ao cadastro anterior;
-    
 - configurações de pastas XML monitoradas.
-    
 
 O executável e o serviço instalados no Windows permanecem instalados.
 
 Por isso, o serviço deve ser parado antes do rebuild e o agente deve ser reativado depois que a nova base estiver pronta.
+
+### Local correto da instalação
+
+O Local Agent não deve ser instalado no servidor Ubuntu apenas porque o Sysvar central está hospedado nele.
+
+Na homologação e na operação real, o agente deve rodar em uma máquina Windows que receba ou tenha acesso à pasta dos XMLs de fornecedor.
+
+Preferencialmente, essa é a mesma estação utilizada na rotina de entrada de NF-e quando nela também chegam ou ficam armazenados os XMLs.
+
+A máquina não precisa ser exclusiva para o agente.
+
+A definição completa de implantação está em [[Implantação do Local Agent]] e no [[Mapa Técnico - Integrações - Local Agent]].
 
 ## Proteção contra produção
 
@@ -255,7 +207,7 @@ O comando `--reset` permanece como alias de rebuild quando usado pela rotina vig
 
 ### 1. Parar o Agente Local
 
-Abrir o PowerShell como Administrador.
+Abrir o PowerShell como Administrador na máquina Windows em que o agente está instalado.
 
 ```
 & "C:\Program Files\Sysvar\LocalAgent\SysvarLocalAgent.exe" stop
@@ -295,11 +247,8 @@ BASE DE DESENVOLVIMENTO: VÁLIDA
 ### 7. Iniciar o Sysvar
 
 - iniciar o backend;
-    
 - iniciar o frontend;
-    
 - entrar no Sysvar.
-    
 
 ### 8. Gerar nova ativação do Agente Local
 
@@ -313,7 +262,7 @@ Gerar um novo código de ativação.
 
 ### 9. Definir o arquivo de configuração do Agente Local
 
-Abrir o PowerShell como Administrador.
+Na máquina Windows do agente, abrir o PowerShell como Administrador.
 
 ```
 $env:SYSVAR_AGENT_CONFIG="C:\ProgramData\Sysvar\LocalAgent\config.json"
@@ -370,13 +319,9 @@ Criar novamente a configuração da pasta monitorada.
 Selecionar:
 
 - Agente Local correspondente;
-    
 - estabelecimento correspondente ou `Empresa inteira`;
-    
 - pasta local dos XMLs;
-    
 - configuração ativa.
-    
 
 Exemplo de pasta:
 
@@ -386,9 +331,13 @@ C:\Sysvar\XML\Fornecedores
 
 Salvar.
 
+A pasta informada deve ser acessível pela própria máquina Windows em que o serviço está instalado.
+
 ### 15. Validar a pasta monitorada
 
 Confirmar que a configuração aparece cadastrada na tela do Agente Local.
+
+Quando possível, homologar também com um XML real de teste na pasta.
 
 ### 16. Conferir o log do Agente Local
 
@@ -399,11 +348,8 @@ Get-Content "C:\ProgramData\Sysvar\LocalAgent\logs\sysvar-agent.log" -Tail 30
 Confirmar:
 
 - ausência de erros de autenticação;
-    
 - heartbeat funcionando normalmente;
-    
 - agente operacional.
-    
 
 ## Validação
 
@@ -417,25 +363,15 @@ python manage.py test cadastros.tests_dev_base
 A rotina também possui validação interna por `SysvarDevBaseService().validate()`, que deve confirmar:
 
 - estruturas oficiais recriadas;
-    
 - ConfigFinanceira existente;
-    
 - CashbackConfig existente;
-    
 - ausência de operações anteriores;
-    
 - estoque estrutural zerado;
-    
 - ausência de `AuditLog`;
-    
 - ausência de Agente Local antigo;
-    
 - ausência de ativações antigas;
-    
 - ausência de configurações XML locais antigas;
-    
 - idempotência do rebuild.
-    
 
 A validação operacional após o rebuild deve confirmar:
 
@@ -457,25 +393,16 @@ BASE DE DESENVOLVIMENTO: VÁLIDA
 Sempre que a Base de Desenvolvimento for reconstruída:
 
 1. parar o serviço do Agente Local;
-    
 2. executar o rebuild;
-    
 3. executar o validate;
-    
 4. iniciar backend e frontend;
-    
 5. gerar novo código de ativação;
-    
-6. reativar o Agente Local;
-    
+6. reativar o Agente Local na máquina Windows correta;
 7. iniciar o serviço;
-    
 8. confirmar `Running`;
-    
 9. recriar a configuração da pasta monitorada;
-    
-10. validar o log e o heartbeat.
-    
+10. validar o log e o heartbeat;
+11. quando aplicável, homologar a detecção com XML de teste.
 
 ## Cuidado operacional
 
@@ -488,3 +415,9 @@ python manage.py sysvar_dev_base --rebuild
 contra produção ou contra banco persistente que contenha dados reais que devam ser preservados.
 
 O rebuild real da base de desenvolvimento deve ser feito manualmente pelo responsável depois da revisão da alteração.
+
+## Relacionados
+
+- [[Implantação do Local Agent]]
+- [[Mapa Técnico - Integrações - Local Agent]]
+- [[Mapa Técnico - Fiscal - XML de Fornecedor e NF-e de Entrada]]
