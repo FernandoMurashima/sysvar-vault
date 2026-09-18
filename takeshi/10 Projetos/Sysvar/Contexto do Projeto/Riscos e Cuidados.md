@@ -4392,3 +4392,19 @@ PEDIDO DE COMPRA
 ~~~
 
 Este documento representa os riscos e cuidados centrais consolidados do SYSVAR após o fechamento, testes, homologação, aprovação e documentação do Pedido de Compra unificado.
+
+---
+
+# Sysvar Hub
+
+O [[Sysvar Hub]] é o servidor local da Loja para operação offline e integração com o Sysvar central.
+
+Arquitetura resumida:
+
+~~~text
+Sysvar Central ↔ Internet/API ↔ Sysvar Hub ↔ LAN ↔ Terminais/PDVs
+~~~
+
+Referência específica:
+
+- [[Sysvar Hub]]

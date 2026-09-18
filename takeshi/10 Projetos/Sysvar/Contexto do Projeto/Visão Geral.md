@@ -2417,3 +2417,18 @@ Este documento representa a visão geral consolidada do SYSVAR após:
 - homologação;
 - aprovação;
 - documentação do Pedido de Compra unificado.
+---
+
+# Sysvar Hub
+
+O [[Sysvar Hub]] é o servidor local da Loja para operação offline e integração com o Sysvar central.
+
+Arquitetura resumida:
+
+~~~text
+Sysvar Central ↔ Internet/API ↔ Sysvar Hub ↔ LAN ↔ Terminais/PDVs
+~~~
+
+Referência específica:
+
+- [[Sysvar Hub]]

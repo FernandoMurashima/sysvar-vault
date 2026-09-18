@@ -3345,3 +3345,19 @@ O desenvolvimento deve continuar preservando:
 - documentação;
 - integração ao grafo do Obsidian;
 - fechamento formal somente após aprovação.
+
+---
+
+# Sysvar Hub
+
+O [[Sysvar Hub]] é o servidor local da Loja para operação offline e integração com o Sysvar central.
+
+Arquitetura resumida:
+
+~~~text
+Sysvar Central ↔ Internet/API ↔ Sysvar Hub ↔ LAN ↔ Terminais/PDVs
+~~~
+
+Referência específica:
+
+- [[Sysvar Hub]]
