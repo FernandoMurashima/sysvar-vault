@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "FernandoMurashima/sysvarbackend + FernandoMurashima/sysvarfrontend + FernandoMurashima/sysvarhub-backend + FernandoMurashima/sysvarhub-frontend"
 created: 2026-09-18
-updated: 2026-09-18
+updated: 2026-09-19
 tags:
   - sysvar
   - planejamento
@@ -72,11 +72,14 @@ Fechar a arquitetura local/offline da Loja e homologar o PDV operacional antes d
 
 Devolução, Cashback, Vale-Troca e Promoções são **capacidades operacionais do PDV offline**. Elas devem ser implementadas e validadas no momento em que cada fluxo operacional correspondente for tratado, sem alterar ou privilegiar a sequência principal de desenvolvimento do Sysvar Hub.
 
+Fotos de Produto também são uma **pendência operacional do PDV**. Devem ser integradas ao catálogo e à apresentação do produto no momento adequado, sem virar uma etapa independente nem alterar a ordem principal do desenvolvimento.
+
 Portanto:
 
-- não são quatro projetos independentes dentro do Hub;
+- não são projetos independentes dentro do Hub;
 - não devem ser esquecidas;
 - devem participar dos snapshots, persistência local, regras do PDV e sincronização sempre que o fluxo exigir;
+- Fotos de Produto devem participar do catálogo e da apresentação operacional do item no PDV;
 - devem estar cobertas na homologação final do PDV offline.
 
 ## Ordem de trabalho do Sysvar Hub
@@ -100,7 +103,8 @@ Durante essa sequência, integrar nos pontos correspondentes:
 - Devolução de Venda;
 - Cashback;
 - Vale-Troca;
-- Promoções.
+- Promoções;
+- Fotos de Produto no PDV.
 
 ## 1.1 Estrutura e pendências atuais do Hub
 
@@ -115,6 +119,7 @@ Durante essa sequência, integrar nos pontos correspondentes:
 - revisar sessão de Operador;
 - revisar CaixaHub e SessaoCaixaHub;
 - revisar catálogo local;
+- revisar apresentação da foto do produto no PDV, removendo o placeholder quando a integração de imagens estiver disponível;
 - revisar carrinho/venda local persistida;
 - preservar a regra 1 Loja → 1 Hub → N Terminais.
 
@@ -135,6 +140,7 @@ Revisar e homologar os dados necessários para a operação local, incluindo:
 - configuração e dados necessários para Cashback;
 - dados necessários para Vale-Troca;
 - Promoções/campanhas aplicáveis ao PDV;
+- metadados/referências necessários para Fotos de Produto no PDV;
 - demais parâmetros necessários para funcionamento sem internet.
 
 Regras gerais:
@@ -142,7 +148,8 @@ Regras gerais:
 - Central continua sendo autoridade dos cadastros e configurações corporativas;
 - Hub mantém cópia operacional local;
 - ausência no snapshot deve seguir regra explícita de inativação/atualização, evitando exclusões indevidas;
-- não criar conceitos mestres paralelos no Hub quando já existirem no Central.
+- não criar conceitos mestres paralelos no Hub quando já existirem no Central;
+- a estratégia de Fotos de Produto deve preservar o funcionamento local do PDV e evitar dependência indevida do Central durante a operação offline.
 
 ## 1.3 Sincronização Hub → Central
 
@@ -178,6 +185,8 @@ Validar:
 - consulta do catálogo;
 - estoque local;
 - busca/bipagem do produto;
+- exibição da Foto de Produto quando disponível localmente;
+- fallback visual adequado quando não houver foto;
 - carrinho persistido;
 - vendedor;
 - cliente;
@@ -301,6 +310,8 @@ Validar:
 
 O Hub não cria regra promocional própria: ele executa localmente a regra corporativa sincronizada.
 
+Referência de Fotos de Produto: [[Mapa Técnico - Sysvar Hub - Fotos de Produto no PDV]].
+
 ## 1.11 NFC-e
 
 - revisar arquitetura fiscal da NFC-e no cenário Hub;
@@ -358,6 +369,7 @@ Validar no mínimo:
 - Caixa;
 - catálogo;
 - estoque;
+- Fotos de Produto no PDV;
 - cliente;
 - vendedor;
 - carrinho;
@@ -733,6 +745,7 @@ Após concluir os módulos restantes:
 - Cashback no PDV offline/Hub → integrar a Venda/Devolução e definir política segura de saldo offline;
 - Vale-Troca no PDV offline/Hub → integrar Devolução e nova Venda;
 - Promoções no PDV offline/Hub → integrar ao cálculo normal da Venda e sincronização;
+- Fotos de Produto no PDV offline/Hub → integrar ao catálogo, disponibilizar imagem ao Terminal e substituir o placeholder da tela do produto, preservando operação local/offline;
 - revisão fiscal completa da NF-e de saída → Fiscal / Contábil;
 - faturamento com seleção múltipla/autorização em lote → Fiscal / Contábil;
 - feedback visual em operações demoradas → revisão transversal;
@@ -743,6 +756,8 @@ Após concluir os módulos restantes:
 - formatação inteira na Conferência Física → Recebimento / acabamento.
 
 A fonte detalhada desses itens é [[Pendências e Melhorias]].
+
+Referência específica: [[Mapa Técnico - Sysvar Hub - Fotos de Produto no PDV]].
 
 ---
 
@@ -781,4 +796,5 @@ Referência: [[Metodologia de Trabalho]].
 - [[Sysvar]]
 - [[Sysvar Hub]]
 - [[Pendências e Melhorias]]
+- [[Mapa Técnico - Sysvar Hub - Fotos de Produto no PDV]]
 - [[Metodologia de Trabalho]]
