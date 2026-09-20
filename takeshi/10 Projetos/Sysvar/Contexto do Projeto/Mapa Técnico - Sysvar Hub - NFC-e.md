@@ -34,13 +34,13 @@ Sysvar Hub
 → persiste NFCeHub
 → opera contingência
 → disponibiliza DANFE ao Terminal
+→ sincroniza documento/status com o Central
 → futuramente transmite à SEFAZ real
-→ futuramente sincroniza documento/eventos com o Central
 
 Sysvar Central
 → autoridade dos cadastros e parâmetros fiscais
 → envia configuração fiscal e mapas tPag
-→ futuramente recebe NFC-e/XML/status/eventos do Hub
+→ recebe NFC-e/XML/status/eventos do Hub
 ~~~
 
 Regra estrutural: **1 Loja → 1 Hub → N Terminais**. O Terminal não controla número fiscal, certificado ou comunicação com a SEFAZ.
@@ -129,24 +129,56 @@ Concluído:
 - contrato TypeScript alinhado ao JSON real do backend;
 - testes focados e build Angular aprovados.
 
+## Fase 3A — Recepção da NFC-e no Central — APROVADA
+
+Commit principal do Central:
+
+- `d4f63091c2aae4c488f8c862e4fdc165c8a142e6` — recepção e persistência da NFC-e enviada pelo Hub.
+
+Concluído:
+
+- novo evento `NFCE_ATUALIZADA` reaproveitando `POST /api/hub/sync/push/`;
+- não foi criado protocolo paralelo de sincronização;
+- `HubNFCeMapeamento` vincula `hub + nfce_uuid` ao registro `fiscal.NFCe` do Central;
+- NFC-e somente é aceita depois que a venda correspondente já foi sincronizada;
+- atualização usa `versao_evento` monotônica e não depende do relógio das máquinas;
+- evento obsoleto é ignorado sem regressão do documento;
+- retry e idempotência continuam baseados em `HubEventoRecebido`, `evento_uuid`, `chave_idempotencia` e `payload_hash`;
+- Central passa a armazenar estados `GERADA`, `PENDENTE_TRANSMISSAO`, `ERRO_GERACAO` e demais estados do Hub sem promover documento para `AUTORIZADA` artificialmente;
+- XML assinado, QR payload, chave, protocolo real quando existir, retorno e dados de contingência podem ser persistidos;
+- `fiscal.NFCe` passa a possuir vínculo explícito com Loja;
+- unicidade fiscal corrigida para `loja + ambiente + modelo + série + número`, permitindo a mesma série/número em Lojas diferentes;
+- fluxo legado continua preenchendo a Loja pela Venda quando a NFC-e for criada internamente;
+- testes do app `hub` aprovados após a alteração.
+
+Observação não bloqueante: o `NFCeSerializer` expõe a nova FK `loja` como campo gravável no endpoint CRUD legado. O fluxo interno antigo continua funcionando pelo `save()` do modelo, e a arquitetura oficial da NFC-e do Hub não depende desse POST genérico. Se o CRUD legado voltar a ser utilizado para criação direta, revisar esse contrato antes de tratá-lo como fluxo suportado.
+
 ## Regra de segurança operacional
 
 Uma venda comercial já confirmada não deve ser reaberta por falha fiscal posterior.
 
 Estados como `REJEITADA`, `ERRO_GERACAO` e `PENDENTE_TRANSMISSAO` representam problema fiscal pós-venda e devem permanecer rastreáveis, sem duplicar a operação comercial.
 
-## Fase 3 — PRÓXIMA
+## Fase 3B — PRÓXIMA
 
 Próximo escopo:
 
-- sincronização NFC-e Hub → Central;
-- XML, chave, série, número, status, protocolo e eventos fiscais;
-- idempotência e retry no Central;
-- proteção contra duplicidade;
+- Hub gerar/enfileirar eventos `NFCE_ATUALIZADA`;
+- enviar pela infraestrutura existente de `/api/hub/sync/push/`;
+- garantir ordem Venda → NFC-e;
+- versionar alterações do documento fiscal no Hub;
+- retry durável e recuperação após reinício;
+- marcar sincronização somente após confirmação do Central;
+- não duplicar eventos/documentos em reconexão.
+
+## Fase 3C — Preparação para SEFAZ real
+
+Após a 3B:
+
 - adapter SEFAZ real por UF/ambiente;
 - armazenamento/leitura protegida do certificado A1;
-- política de retransmissão dos documentos pendentes/contingência;
-- autorização real, rejeições reais e protocolo real;
+- política real de transmissão e retransmissão;
+- autorização, rejeições e protocolo reais;
 - cancelamento/inutilização quando aplicáveis;
 - homologação externa com empresa real e credenciais válidas.
 
