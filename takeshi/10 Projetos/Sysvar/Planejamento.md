@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "FernandoMurashima/sysvarbackend + FernandoMurashima/sysvarfrontend + FernandoMurashima/sysvarhub-backend + FernandoMurashima/sysvarhub-frontend"
 created: 2026-09-18
-updated: 2026-09-19
+updated: 2026-09-20
 tags:
   - sysvar
   - planejamento
@@ -72,15 +72,26 @@ Fechar a arquitetura local/offline da Loja e homologar o PDV operacional antes d
 
 Devolução, Cashback, Vale-Troca e Promoções são **capacidades operacionais do PDV offline**. Elas devem ser implementadas e validadas no momento em que cada fluxo operacional correspondente for tratado, sem alterar ou privilegiar a sequência principal de desenvolvimento do Sysvar Hub.
 
-Fotos de Produto também são uma **pendência operacional do PDV**. Devem ser integradas ao catálogo e à apresentação do produto no momento adequado, sem virar uma etapa independente nem alterar a ordem principal do desenvolvimento.
+Fotos de Produto também são uma **capacidade operacional do PDV**. A integração principal foi implementada e validada na etapa corrente, sem virar uma etapa independente nem alterar a ordem principal do desenvolvimento.
+
+Estado das Fotos de Produto em 20/09/2026:
+
+- foto principal do Central é sincronizada e mantida localmente pelo Hub;
+- PDV apresenta a foto local sem depender do Central durante a operação;
+- produto sem foto utiliza fallback visual sem bloquear a venda;
+- alteração da foto no Central é refletida após nova sincronização;
+- não foi observada troca indevida de imagem entre produtos;
+- clique simples da sugestão do produto inclui o SKU na venda e possui proteção contra inclusão duplicada por clique rápido;
+- refinamentos de proporção/altura da área da foto e texto inferior ficam como acabamento visual não bloqueante;
+- todo o fluxo será revalidado no pente-fino da homologação final do Hub.
 
 Portanto:
 
-- não são projetos independentes dentro do Hub;
+- Devolução, Cashback, Vale-Troca e Promoções não são projetos independentes dentro do Hub;
 - não devem ser esquecidas;
 - devem participar dos snapshots, persistência local, regras do PDV e sincronização sempre que o fluxo exigir;
-- Fotos de Produto devem participar do catálogo e da apresentação operacional do item no PDV;
-- devem estar cobertas na homologação final do PDV offline.
+- Fotos de Produto já participam do catálogo e da apresentação operacional do item no PDV;
+- Fotos de Produto permanecem cobertas na homologação final do PDV offline.
 
 ## Ordem de trabalho do Sysvar Hub
 
@@ -97,6 +108,10 @@ Portanto:
 10. Backup e restauração
 11. Homologação completa do Hub
 ~~~
+
+### Posição atual
+
+A etapa corrente chegou ao **item 7 — NFC-e**.
 
 Durante essa sequência, integrar nos pontos correspondentes:
 
@@ -119,7 +134,7 @@ Durante essa sequência, integrar nos pontos correspondentes:
 - revisar sessão de Operador;
 - revisar CaixaHub e SessaoCaixaHub;
 - revisar catálogo local;
-- revisar apresentação da foto do produto no PDV, removendo o placeholder quando a integração de imagens estiver disponível;
+- manter a integração local já implementada de Fotos de Produto no PDV e deixar apenas refinamentos visuais para acabamento;
 - revisar carrinho/venda local persistida;
 - preservar a regra 1 Loja → 1 Hub → N Terminais.
 
@@ -141,6 +156,7 @@ Revisar e homologar os dados necessários para a operação local, incluindo:
 - dados necessários para Vale-Troca;
 - Promoções/campanhas aplicáveis ao PDV;
 - metadados/referências necessários para Fotos de Produto no PDV;
+- configuração fiscal necessária à NFC-e local;
 - demais parâmetros necessários para funcionamento sem internet.
 
 Regras gerais:
@@ -149,7 +165,8 @@ Regras gerais:
 - Hub mantém cópia operacional local;
 - ausência no snapshot deve seguir regra explícita de inativação/atualização, evitando exclusões indevidas;
 - não criar conceitos mestres paralelos no Hub quando já existirem no Central;
-- a estratégia de Fotos de Produto deve preservar o funcionamento local do PDV e evitar dependência indevida do Central durante a operação offline.
+- a estratégia de Fotos de Produto deve preservar o funcionamento local do PDV e evitar dependência indevida do Central durante a operação offline;
+- a configuração fiscal da NFC-e deve ser sincronizada ao Hub para permitir operação local sem dependência do Central.
 
 ## 1.3 Sincronização Hub → Central
 
@@ -167,6 +184,7 @@ Concluir e homologar o retorno das operações locais, incluindo:
 - emissão/utilização/estorno de Vale-Troca;
 - identificação e efeitos de Promoções aplicadas às vendas;
 - documentos fiscais quando fizerem parte do fluxo;
+- NFC-e, XML, chave, protocolo, status e eventos fiscais gerados no Hub;
 - mapeamentos de IDs local ↔ Central;
 - retry;
 - idempotência;
@@ -314,15 +332,172 @@ Referência de Fotos de Produto: [[Mapa Técnico - Sysvar Hub - Fotos de Produto
 
 ## 1.11 NFC-e
 
-- revisar arquitetura fiscal da NFC-e no cenário Hub;
-- definir responsabilidade entre Terminal, Hub e Central;
-- emissão no cenário online;
-- estratégia de contingência/offline quando aplicável;
-- persistência local do documento;
-- numeração e identidade fiscal;
+### Decisão arquitetural aprovada em 20/09/2026
+
+A NFC-e do PDV será emitida operacionalmente pelo **Sysvar Hub local**.
+
+Responsabilidades:
+
+~~~text
+Terminal PDV
+→ solicita/finaliza a operação comercial
+
+Sysvar Hub
+→ controla a numeração fiscal
+→ gera a NFC-e modelo 65
+→ gera a chave de acesso
+→ monta o XML fiscal
+→ assina o XML
+→ gera QR Code
+→ persiste documento/XML/status/eventos
+→ transmite à SEFAZ quando a integração real estiver habilitada
+→ opera contingência quando aplicável
+→ disponibiliza DANFE NFC-e ao Terminal
+→ sincroniza o resultado posteriormente com o Central
+
+Sysvar Central
+→ continua autoridade dos cadastros e parâmetros corporativos/fiscais
+→ fornece configuração fiscal ao Hub
+→ recebe posteriormente os documentos e eventos gerados localmente
+~~~
+
+O Terminal não controla numeração, certificado, CSC nem comunicação fiscal com a SEFAZ.
+
+A regra estrutural permanece **1 Loja → 1 Hub → N Terminais**, portanto a numeração da NFC-e deve ser serializada no Hub e protegida contra concorrência entre caixas/terminais.
+
+### Estado atual identificado
+
+No Central já existe uma estrutura anterior de NFC-e ligada ao PDV, com dados de venda, itens fiscais, série, número, chave, protocolo, QR Code, XML e estados do documento.
+
+Entretanto, essa implementação atual é tratada como **protótipo legado** para esta nova arquitetura do Hub: o fluxo existente simula autorização em homologação e utiliza XML/QR Code simplificados, não devendo ser reaproveitado como motor fiscal definitivo.
+
+O cadastro de Loja já possui parte importante da configuração fiscal, incluindo:
+
+- ambiente fiscal;
+- inscrição estadual;
+- série da NFC-e;
+- próximo número;
+- indicação de emissão de NFC-e.
+
+No Hub ainda não existe o domínio completo de NFC-e e ele deverá ser criado respeitando a venda local já implementada.
+
+### Desenvolvimento sem certificado A1 real
+
+A ausência atual de certificado A1 **não bloqueia o desenvolvimento da NFC-e**.
+
+Durante o desenvolvimento serão implementados e testados todos os componentes que independem de autorização real da SEFAZ:
+
+- geração da chave de acesso;
+- controle de série e número;
+- geração do XML NFC-e modelo 65 conforme leiaute oficial vigente;
+- emitente;
+- destinatário quando aplicável;
+- itens;
+- tributação;
+- totais;
+- pagamentos;
+- assinatura XML com certificado de desenvolvimento/local;
+- QR Code estruturalmente correto com configuração de desenvolvimento;
+- DANFE NFC-e;
+- armazenamento do XML;
+- estados do documento fiscal;
+- tratamento de autorização, rejeição, timeout e falhas por adapter/mock;
+- contingência;
+- fila de transmissão e retransmissão;
 - cancelamento/eventos quando aplicáveis;
-- sincronização posterior;
-- consistência entre venda e documento fiscal.
+- integração da NFC-e com a VendaHub;
+- sincronização Hub → Central;
+- testes automatizados do fluxo fiscal local.
+
+Não será simulada como definitiva uma autorização SEFAZ inexistente. O desenvolvimento deverá separar claramente:
+
+~~~text
+MOTOR FISCAL LOCAL
+→ executável e testável sem SEFAZ real
+
+ADAPTER SEFAZ
+→ preparado para homologação real posterior
+~~~
+
+### Certificado e CSC
+
+No desenvolvimento:
+
+- utilizar certificado local/de desenvolvimento apenas para exercitar tecnicamente a assinatura XML;
+- utilizar CSC/ID CSC de desenvolvimento para geração estrutural do QR Code;
+- nunca tratar esses valores como credenciais fiscais reais;
+- não registrar senha, chave privada, certificado ou CSC em logs;
+- preparar armazenamento protegido para o A1 real no ambiente instalado do Hub.
+
+Na homologação externa real:
+
+- utilizar empresa real parceira ou primeira implantação controlada;
+- utilizar certificado A1 ICP-Brasil válido da empresa;
+- utilizar CNPJ/IE reais;
+- utilizar CSC/ID CSC reais do ambiente de homologação;
+- executar transmissão real contra a SEFAZ;
+- validar autorização, rejeições, QR Code, DANFE, contingência, cancelamento e demais eventos aplicáveis.
+
+Caso não haja empresa parceira disponível antes da comercialização, essa homologação externa poderá ocorrer na **primeira implantação controlada**, permanecendo registrada como pendência obrigatória antes de considerar o fluxo fiscal plenamente homologado.
+
+### Diretriz técnica
+
+O motor fiscal deve ser **versionável** e preparado para evolução das regras oficiais da NF-e/NFC-e, evitando regras fiscais rígidas espalhadas pelo código.
+
+A implementação deve considerar as notas técnicas e leiautes oficiais vigentes no momento da homologação, inclusive mudanças decorrentes da Reforma Tributária.
+
+### Fase 1 — Núcleo fiscal local
+
+Implementar primeiro:
+
+- snapshot/configuração fiscal Central → Hub;
+- configuração fiscal necessária da Loja no Hub;
+- modelos locais da NFC-e;
+- vínculo 1:1 entre VendaHub finalizada e NFC-e quando aplicável;
+- controle transacional de série/número;
+- geração de chave de acesso;
+- montagem do XML modelo 65;
+- camada de assinatura XML;
+- certificado de desenvolvimento;
+- geração do QR Code;
+- estados locais do documento;
+- testes unitários e de integração do núcleo fiscal.
+
+A Fase 1 deve terminar com uma NFC-e estruturalmente gerada e persistida pelo Hub, sem depender do Central e sem transmitir para a SEFAZ real.
+
+### Fase 2 — PDV, DANFE e contingência
+
+Após aprovar a Fase 1:
+
+- integrar a NFC-e ao fluxo de finalização do PDV;
+- disponibilizar resultado fiscal ao Terminal;
+- gerar DANFE NFC-e para impressão;
+- estruturar impressão térmica;
+- tratar autorização/rejeição simuladas;
+- tratar indisponibilidade de comunicação fiscal;
+- implementar contingência aplicável;
+- fila de transmissão/retransmissão;
+- recuperação após reinício do Hub;
+- impedir inconsistência entre venda comercial e documento fiscal.
+
+### Fase 3 — Sincronização e preparação para SEFAZ real
+
+Após aprovar a Fase 2:
+
+- sincronizar NFC-e Hub → Central;
+- sincronizar XML, chave, protocolo, status e eventos;
+- garantir idempotência e retry;
+- impedir duplicidade de documento no Central;
+- estruturar adapter da SEFAZ;
+- parametrizar endpoints por UF/ambiente;
+- preparar leitura segura do A1/CSC reais;
+- deixar homologação externa pronta para execução com empresa parceira.
+
+### Critério desta etapa
+
+Não bloquear o avanço do Sysvar Hub por ausência atual do certificado A1.
+
+O bloqueio fica restrito à **homologação externa real SEFAZ**, que será executada posteriormente com credenciais fiscais válidas.
 
 ## 1.12 TEF / Pinpad
 
@@ -353,6 +528,7 @@ Referência de Fotos de Produto: [[Mapa Técnico - Sysvar Hub - Fotos de Produto
 - configuração;
 - credenciais protegidas;
 - filas/eventos ainda não sincronizados;
+- documentos/XMLs fiscais locais ainda não sincronizados;
 - criar procedimento de backup;
 - criar procedimento de restauração;
 - validar recuperação de uma instalação.
@@ -380,7 +556,8 @@ Validar no mínimo:
 - Cashback;
 - Vale-Troca;
 - Promoções;
-- NFC-e;
+- NFC-e local completa;
+- homologação externa real da NFC-e com A1/CSC válidos quando a empresa parceira estiver disponível;
 - TEF/Pinpad quando disponível;
 - sincronização Central → Hub;
 - sincronização Hub → Central;
@@ -388,7 +565,7 @@ Validar no mínimo:
 - idempotência;
 - reconexão;
 - ausência de duplicidades;
-- consistência de estoque, Caixa, venda e benefícios comerciais.
+- consistência de estoque, Caixa, venda, documento fiscal e benefícios comerciais.
 
 Somente depois da homologação completa do Hub seguimos para Produção.
 
@@ -745,7 +922,8 @@ Após concluir os módulos restantes:
 - Cashback no PDV offline/Hub → integrar a Venda/Devolução e definir política segura de saldo offline;
 - Vale-Troca no PDV offline/Hub → integrar Devolução e nova Venda;
 - Promoções no PDV offline/Hub → integrar ao cálculo normal da Venda e sincronização;
-- Fotos de Produto no PDV offline/Hub → integrar ao catálogo, disponibilizar imagem ao Terminal e substituir o placeholder da tela do produto, preservando operação local/offline;
+- Fotos de Produto no PDV offline/Hub → integração principal concluída; manter refinamentos visuais não bloqueantes e revalidar no pente-fino final;
+- NFC-e → implementar motor fiscal local em três fases; homologação externa real com A1/CSC válidos permanece obrigatória antes do fechamento fiscal definitivo;
 - revisão fiscal completa da NF-e de saída → Fiscal / Contábil;
 - faturamento com seleção múltipla/autorização em lote → Fiscal / Contábil;
 - feedback visual em operações demoradas → revisão transversal;
