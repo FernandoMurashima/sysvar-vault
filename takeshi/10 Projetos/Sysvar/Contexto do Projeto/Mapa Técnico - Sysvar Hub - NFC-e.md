@@ -34,8 +34,9 @@ Sysvar Hub
 → persiste NFCeHub
 → opera contingência
 → disponibiliza DANFE ao Terminal
-→ sincroniza documento/status com o Central
-→ futuramente transmite à SEFAZ real
+→ mantém fila durável de sincronização
+→ sincroniza venda/documento/status com o Central
+→ possui provider A1 e camada de transporte SEFAZ real configurável
 
 Sysvar Central
 → autoridade dos cadastros e parâmetros fiscais
@@ -153,40 +154,77 @@ Concluído:
 
 Observação não bloqueante: o `NFCeSerializer` expõe a nova FK `loja` como campo gravável no endpoint CRUD legado. O fluxo interno antigo continua funcionando pelo `save()` do modelo, e a arquitetura oficial da NFC-e do Hub não depende desse POST genérico. Se o CRUD legado voltar a ser utilizado para criação direta, revisar esse contrato antes de tratá-lo como fluxo suportado.
 
+## Fase 3B — Hub → Central / fila durável — APROVADA
+
+Commits principais do Hub backend:
+
+- `78be9337fb3614b72bcab8dfb93aac2d98c7c604` — fila durável, envio Hub → Central e infraestrutura fiscal ampliada;
+- `b7bcf8630a36a759705659c83c3ba73024816a5d` — correções finais de idempotência, fronteira transacional e modo de desenvolvimento.
+
+Concluído:
+
+- `EventoSyncHub` como outbox local persistente;
+- eventos `VENDA_FINALIZADA` e `NFCE_ATUALIZADA` persistidos antes da dependência de rede;
+- ordem lógica Venda → NFC-e preservada;
+- versionamento monotônico da NFC-e via `sync_versao`;
+- chave idempotente por versão no formato `NFCE:<uuid>:V:<versao>`;
+- mesma chave não pode ter payload sobrescrito;
+- evento já sincronizado não volta para `PENDENTE` por reenfileiramento equivalente;
+- lote de sincronização reutiliza `POST /api/hub/sync/push/`;
+- `PROCESSADO` e `DUPLICADO` confirmam sincronização;
+- `CONFLITO` é terminal para aquele evento;
+- erro de rede/retaguarda permanece recuperável com retry/backoff;
+- seleção/marcação `PROCESSANDO` ocorre dentro de `transaction.atomic()`, com HTTP fora da transação;
+- flush integrado ao heartbeat e comando manual `sincronizar_eventos_hub`;
+- venda comercial e operação offline não dependem da disponibilidade do Central.
+
+## Fase 3C — Infraestrutura para SEFAZ real / A1 — APROVADA PARA O DESENVOLVIMENTO ATUAL
+
+Commits principais do Hub backend:
+
+- `78be9337fb3614b72bcab8dfb93aac2d98c7c604` — provider A1, adapter configurável, retransmissão e persistência ampliada;
+- `b7bcf8630a36a759705659c83c3ba73024816a5d` — transporte real injetável/mockável e correção para impedir autorização fiscal falsa em desenvolvimento.
+
+Concluído:
+
+- `NFCeMaterialProviderA1` lê `.pfx/.p12` por configuração externa;
+- senha do A1 não é persistida nem enviada ao Central;
+- validação de arquivo, senha, chave privada, certificado e validade temporal;
+- seleção separada entre material `DESENVOLVIMENTO` e `A1`;
+- modo de desenvolvimento nunca transforma simulação em `AUTORIZADA`, não cria protocolo fictício e não usa código fiscal `100` falso;
+- `SefazNFCeClientReal` separado do adapter de desenvolvimento;
+- endpoint de autorização configurável externamente, sem URL oficial hardcoded;
+- transporte HTTPS/mTLS preparado com certificado cliente A1 e arquivos PEM temporários removidos em `finally`;
+- transporte injetável/mockável, permitindo testar autorização, rejeição, timeout e indisponibilidade sem chamada real;
+- persistência preparada para protocolo, código/mensagem, data de autorização e XML autorizado;
+- rejeição não desfaz venda comercial nem reutiliza numeração;
+- timeout/indisponibilidade preservam contingência `tpEmis=9`;
+- `retransmitir_nfces_pendentes()` trabalha sobre o mesmo documento/número;
+- comando `processar_nfces_pendentes` disponível;
+- interfaces de cancelamento/inutilização existem sem sucesso fictício;
+- testes focados, `django check` e `makemigrations --check` aprovados.
+
 ## Regra de segurança operacional
 
 Uma venda comercial já confirmada não deve ser reaberta por falha fiscal posterior.
 
 Estados como `REJEITADA`, `ERRO_GERACAO` e `PENDENTE_TRANSMISSAO` representam problema fiscal pós-venda e devem permanecer rastreáveis, sem duplicar a operação comercial.
 
-## Fase 3B — PRÓXIMA
+## Estado da NFC-e no desenvolvimento atual
 
-Próximo escopo:
+A implementação prevista sem certificado real está **encerrada**.
 
-- Hub gerar/enfileirar eventos `NFCE_ATUALIZADA`;
-- enviar pela infraestrutura existente de `/api/hub/sync/push/`;
-- garantir ordem Venda → NFC-e;
-- versionar alterações do documento fiscal no Hub;
-- retry durável e recuperação após reinício;
-- marcar sincronização somente após confirmação do Central;
-- não duplicar eventos/documentos em reconexão.
+Não existe nova fase interna obrigatória de desenvolvimento da NFC-e antes de avançar o roadmap do Hub. A próxima atividade fiscal desta frente somente ocorre quando houver condições reais de homologação externa.
 
-## Fase 3C — Preparação para SEFAZ real
+## Pendências externas para homologação fiscal definitiva
 
-Após a 3B:
-
-- adapter SEFAZ real por UF/ambiente;
-- armazenamento/leitura protegida do certificado A1;
-- política real de transmissão e retransmissão;
-- autorização, rejeições e protocolo reais;
-- cancelamento/inutilização quando aplicáveis;
-- homologação externa com empresa real e credenciais válidas.
-
-## Pendências obrigatórias antes do fechamento fiscal definitivo
+Estas pendências **não bloqueiam o avanço atual do Sysvar Hub**:
 
 - homologação real na SEFAZ com certificado A1 ICP-Brasil válido;
-- validar URLs e comportamento por UF/ambiente;
-- validar autorização, rejeição, contingência, DANFE e eventos com resposta oficial;
+- configurar e validar endpoints oficiais aplicáveis por UF/ambiente;
+- validar protocolo/transporte efetivamente exigido pelo serviço da SEFAZ da UF no momento da homologação;
+- validar autorização, rejeição, contingência, DANFE e eventos com respostas oficiais;
+- validar cancelamento/inutilização somente quando aplicáveis e com serviço oficial;
 - revisar exigências vigentes da Reforma Tributária/IBS/CBS antes da homologação externa;
 - nunca considerar o adapter de desenvolvimento como autorização fiscal real.
 
