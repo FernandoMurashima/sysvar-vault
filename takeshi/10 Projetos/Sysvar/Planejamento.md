@@ -365,21 +365,25 @@ O Terminal não controla numeração, certificado, CSC nem comunicação fiscal 
 
 A regra estrutural permanece **1 Loja → 1 Hub → N Terminais**, portanto a numeração da NFC-e deve ser serializada no Hub e protegida contra concorrência entre caixas/terminais.
 
-### Estado atual identificado
+### Estado atual em 20/09/2026
 
-No Central já existe uma estrutura anterior de NFC-e ligada ao PDV, com dados de venda, itens fiscais, série, número, chave, protocolo, QR Code, XML e estados do documento.
+O Central já possuía uma estrutura anterior de NFC-e ligada ao PDV, tratada como **protótipo legado** para a arquitetura do Hub. Esse fluxo antigo simula autorização e não deve ser reutilizado como motor fiscal definitivo.
 
-Entretanto, essa implementação atual é tratada como **protótipo legado** para esta nova arquitetura do Hub: o fluxo existente simula autorização em homologação e utiliza XML/QR Code simplificados, não devendo ser reaproveitado como motor fiscal definitivo.
+Para a nova arquitetura, o Central já passou a fornecer ao Hub:
 
-O cadastro de Loja já possui parte importante da configuração fiscal, incluindo:
+- bloco fiscal da Loja no bootstrap, com ambiente, regime, IE, série, próximo número, identidade do emitente, endereço e código IBGE do município;
+- mapeamentos fiscais das formas de pagamento (`tPag`), preservando múltiplos códigos quando configurados;
+- snapshot fiscal de produto no catálogo local.
 
-- ambiente fiscal;
-- inscrição estadual;
-- série da NFC-e;
-- próximo número;
-- indicação de emissão de NFC-e.
+Implementações aprovadas no Central:
 
-No Hub ainda não existe o domínio completo de NFC-e e ele deverá ser criado respeitando a venda local já implementada.
+- `873b097fe6a42dc5717bb4940291cd5cdfb6a5cd` — configuração fiscal no bootstrap do Hub;
+- `4687d2b8a68796aa3609d663d1abb7efe449ae22` — mapeamentos fiscais de pagamento para o Hub.
+
+No Hub, a Fase 1 criou o domínio fiscal local e foi corrigida/revisada antes de aprovação:
+
+- `3773101ebc660d29b1018811ceb377b81b5144a0` — núcleo local inicial da NFC-e;
+- `bc49f649996cf2820f803629882bd8d748560738` — correções de XMLDSIG, QR Code 3.00 e tributação suportada.
 
 ### Desenvolvimento sem certificado A1 real
 
@@ -419,13 +423,14 @@ ADAPTER SEFAZ
 → preparado para homologação real posterior
 ~~~
 
-### Certificado e CSC
+### Certificado, QR Code e CSC
 
 No desenvolvimento:
 
 - utilizar certificado local/de desenvolvimento apenas para exercitar tecnicamente a assinatura XML;
-- utilizar CSC/ID CSC de desenvolvimento para geração estrutural do QR Code;
-- nunca tratar esses valores como credenciais fiscais reais;
+- o QR Code principal do fluxo online utiliza **versão 3.00** e não depende de CSC/ID CSC;
+- CSC/ID CSC ficam apenas como possibilidade de compatibilidade com versão anterior quando realmente aplicável, não como requisito do fluxo principal atual;
+- nunca tratar valores de desenvolvimento como credenciais fiscais reais;
 - não registrar senha, chave privada, certificado ou CSC em logs;
 - preparar armazenamento protegido para o A1 real no ambiente instalado do Hub.
 
@@ -434,7 +439,8 @@ Na homologação externa real:
 - utilizar empresa real parceira ou primeira implantação controlada;
 - utilizar certificado A1 ICP-Brasil válido da empresa;
 - utilizar CNPJ/IE reais;
-- utilizar CSC/ID CSC reais do ambiente de homologação;
+- utilizar endpoints/configuração fiscal reais do ambiente de homologação da UF;
+- utilizar CSC/ID CSC somente se a versão/procedimento fiscal efetivamente aplicável exigir;
 - executar transmissão real contra a SEFAZ;
 - validar autorização, rejeições, QR Code, DANFE, contingência, cancelamento e demais eventos aplicáveis.
 
@@ -446,39 +452,58 @@ O motor fiscal deve ser **versionável** e preparado para evolução das regras 
 
 A implementação deve considerar as notas técnicas e leiautes oficiais vigentes no momento da homologação, inclusive mudanças decorrentes da Reforma Tributária.
 
-### Fase 1 — Núcleo fiscal local
+Não inventar IBS/CBS ou qualquer outro dado fiscal ainda não fornecido pelo Central. Cenários não representáveis pelos dados atuais devem falhar com erro de domínio controlado em vez de gerar XML aparentemente válido.
 
-Implementar primeiro:
+### Fase 1 — Núcleo fiscal local — APROVADA em 20/09/2026
+
+A Fase 1 foi implementada e aprovada tecnicamente no Hub.
+
+Concluído:
 
 - snapshot/configuração fiscal Central → Hub;
-- configuração fiscal necessária da Loja no Hub;
-- modelos locais da NFC-e;
-- vínculo 1:1 entre VendaHub finalizada e NFC-e quando aplicável;
-- controle transacional de série/número;
-- geração de chave de acesso;
-- montagem do XML modelo 65;
-- camada de assinatura XML;
-- certificado de desenvolvimento;
-- geração do QR Code;
-- estados locais do documento;
-- testes unitários e de integração do núcleo fiscal.
+- `ConfiguracaoFiscalHub` como snapshot operacional local;
+- `FormaPagamentoFiscalMapHub` para os mapas `tPag`;
+- `NFCeHub` ligado 1:1 à `VendaHub`;
+- snapshot fiscal imutável do item vendido em `VendaItemHub.fiscal`;
+- controle transacional e monotônico de série/número no Hub;
+- proteção contra concorrência e reutilização de número após erro;
+- idempotência por venda;
+- chave de acesso de 44 dígitos e DV módulo 11;
+- XML NFC-e 4.00 para os cenários fiscais atualmente suportados;
+- assinatura XMLDSIG enveloped com C14N, SHA-1/RSA-SHA1 conforme o padrão adotado;
+- validação da assinatura e detecção de adulteração do `infNFe`;
+- QR Code **3.00 online** no formato atual, sem dependência de CSC;
+- `infNFeSupl` com `qrCode` e `urlChave`;
+- persistência de XML sem assinatura, XML assinado e payload do QR Code;
+- ICMS suportado inicialmente para Simples Nacional CSOSN 102/103/300/400 e regime normal CST 00;
+- PIS/COFINS suportados inicialmente para CST 01/02 e 49 quando representáveis pelos dados atuais;
+- totais fiscais calculados com `Decimal`;
+- desconto de item refletido em `vDesc`;
+- desconto geral ainda não rateado bloqueado explicitamente por erro de domínio;
+- troco refletido em `vTroco`;
+- certificado temporário gerado somente em runtime de teste;
+- dependências `cryptography` e `lxml` preparadas para o runtime/PyInstaller;
+- testes focados do núcleo fiscal aprovados;
+- nenhuma autorização SEFAZ falsa criada.
 
-A Fase 1 deve terminar com uma NFC-e estruturalmente gerada e persistida pelo Hub, sem depender do Central e sem transmitir para a SEFAZ real.
+A Fase 1 termina com uma NFC-e estruturalmente gerada, assinada e persistida pelo Hub, sem depender do Central e sem transmitir para a SEFAZ real.
 
-### Fase 2 — PDV, DANFE e contingência
+### Fase 2 — PDV, DANFE e contingência — PRÓXIMA ETAPA
 
-Após aprovar a Fase 1:
+Com a Fase 1 aprovada, seguir agora para:
 
-- integrar a NFC-e ao fluxo de finalização do PDV;
-- disponibilizar resultado fiscal ao Terminal;
+- integrar a geração fiscal ao fluxo de finalização do PDV sem comprometer a consistência comercial;
+- definir comportamento quando `emite_nfce=false` e quando ocorrer erro fiscal;
+- disponibilizar estado/resultado fiscal ao Terminal;
 - gerar DANFE NFC-e para impressão;
 - estruturar impressão térmica;
-- tratar autorização/rejeição simuladas;
+- implementar adapter/simulador de transmissão para autorização, rejeição, timeout e indisponibilidade sem fingir autorização real;
 - tratar indisponibilidade de comunicação fiscal;
-- implementar contingência aplicável;
+- implementar contingência aplicável de forma versionável;
 - fila de transmissão/retransmissão;
 - recuperação após reinício do Hub;
-- impedir inconsistência entre venda comercial e documento fiscal.
+- impedir inconsistência entre venda comercial, pagamento, numeração e documento fiscal;
+- preservar números fiscais consumidos e rastreabilidade de erros.
 
 ### Fase 3 — Sincronização e preparação para SEFAZ real
 
@@ -488,9 +513,10 @@ Após aprovar a Fase 2:
 - sincronizar XML, chave, protocolo, status e eventos;
 - garantir idempotência e retry;
 - impedir duplicidade de documento no Central;
-- estruturar adapter da SEFAZ;
+- estruturar adapter da SEFAZ real;
 - parametrizar endpoints por UF/ambiente;
-- preparar leitura segura do A1/CSC reais;
+- preparar leitura segura do A1 real;
+- suportar CSC/ID CSC somente quando a versão/procedimento aplicável exigir;
 - deixar homologação externa pronta para execução com empresa parceira.
 
 ### Critério desta etapa
@@ -557,7 +583,7 @@ Validar no mínimo:
 - Vale-Troca;
 - Promoções;
 - NFC-e local completa;
-- homologação externa real da NFC-e com A1/CSC válidos quando a empresa parceira estiver disponível;
+- homologação externa real da NFC-e com A1 válido e demais credenciais/configurações exigidas pelo procedimento aplicável quando a empresa parceira estiver disponível;
 - TEF/Pinpad quando disponível;
 - sincronização Central → Hub;
 - sincronização Hub → Central;
@@ -923,7 +949,7 @@ Após concluir os módulos restantes:
 - Vale-Troca no PDV offline/Hub → integrar Devolução e nova Venda;
 - Promoções no PDV offline/Hub → integrar ao cálculo normal da Venda e sincronização;
 - Fotos de Produto no PDV offline/Hub → integração principal concluída; manter refinamentos visuais não bloqueantes e revalidar no pente-fino final;
-- NFC-e → implementar motor fiscal local em três fases; homologação externa real com A1/CSC válidos permanece obrigatória antes do fechamento fiscal definitivo;
+- NFC-e → Fase 1 do motor fiscal local aprovada; seguir Fase 2 (PDV/DANFE/contingência) e Fase 3 (sincronização/SEFAZ real); homologação externa real com A1 válido e demais credenciais/configurações exigidas permanece obrigatória antes do fechamento fiscal definitivo;
 - revisão fiscal completa da NF-e de saída → Fiscal / Contábil;
 - faturamento com seleção múltipla/autorização em lote → Fiscal / Contábil;
 - feedback visual em operações demoradas → revisão transversal;
