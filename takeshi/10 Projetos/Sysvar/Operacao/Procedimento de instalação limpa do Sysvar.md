@@ -368,7 +368,7 @@ URL da Central:
 http://localhost:8001
 
 Código de ativação:
-usar o código gerado no item 20
+usar o código gerado no item 19
 ```
 
 Clicar em:
