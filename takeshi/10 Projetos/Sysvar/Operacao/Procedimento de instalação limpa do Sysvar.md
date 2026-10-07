@@ -3,9 +3,9 @@ type: runbook
 status: active
 project: Sysvar
 category: operacao
-source: "Homologação manual em 2026-10-06; FernandoMurashima/sysvarbackend; FernandoMurashima/sysvarhub-backend"
+source: "Homologação manual em 2026-10-06 e reexecução validada em 2026-10-07; FernandoMurashima/sysvarbackend; FernandoMurashima/sysvarhub-backend"
 created: 2026-10-06
-updated: 2026-10-06
+updated: 2026-10-07
 tags:
   - sysvar
   - operacao
@@ -31,7 +31,46 @@ A correção dos seeds oficiais, incluindo dados estruturais como o código IBGE
 
 ---
 
-# Parte 1 — Limpeza completa da máquina e recriação do banco local do Hub
+# Parte 1 — Limpeza do ambiente DEV e recriação do banco local do Hub
+
+## Separação obrigatória dos ambientes
+
+Este procedimento trata do ambiente de desenvolvimento e homologação.
+
+O Sysvar Hub DEV fica em:
+
+```text
+C:\SysvarHub
+```
+
+e usa:
+
+```text
+Backend DEV:
+http://127.0.0.1:8100
+
+Frontend DEV:
+http://localhost:4300
+
+Runtime DEV:
+C:\SysvarHub\Backend\.runtime-dev
+
+Banco local DEV:
+sysvarhub_db em 127.0.0.1:3306
+```
+
+A instalação distribuída do Sysvar Hub é outro ambiente:
+
+```text
+C:\Program Files\Sysvar Hub
+C:\ProgramData\SysvarHub
+Serviços Windows:
+SysvarHub
+SysvarHubMySQL
+```
+
+**Não desinstalar o Sysvar Hub instalado e não apagar `C:\SysvarHub` como parte desta rotina DEV.**
+O Hub DEV deve apenas ser parado, ter seu runtime DEV limpo e seu banco DEV recriado.
 
 ## 1. Parar o serviço do Sysvar Local Agent
 
@@ -76,42 +115,7 @@ False
 
 O serviço `SysvarLocalAgent` não deve mais existir.
 
-## 5. Desinstalar o Sysvar Hub pelo desinstalador oficial
-
-```powershell
-$uninstaller = "C:\Program Files\Sysvar Hub\unins000.exe"
-
-if (Test-Path $uninstaller) {
-    Start-Process $uninstaller -Wait
-}
-```
-
-## 6. Apagar os resíduos da instalação do Sysvar Hub
-
-```powershell
-Remove-Item "C:\ProgramData\SysvarHub" -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item "C:\Program Files\Sysvar Hub" -Recurse -Force -ErrorAction SilentlyContinue
-```
-
-## 7. Validar a remoção completa do Sysvar Hub instalado
-
-```powershell
-Get-Service SysvarHub,SysvarHubMySQL -ErrorAction SilentlyContinue
-
-Write-Host "Program Files:" (Test-Path "C:\Program Files\Sysvar Hub")
-Write-Host "ProgramData:" (Test-Path "C:\ProgramData\SysvarHub")
-```
-
-Resultado esperado:
-
-```text
-Program Files: False
-ProgramData: False
-```
-
-Os serviços `SysvarHub` e `SysvarHubMySQL` não devem mais existir.
-
-## 8. Parar completamente o ambiente Hub DEV
+## 5. Parar completamente o ambiente Hub DEV
 
 Encerrar com `Ctrl+C`:
 
@@ -126,19 +130,31 @@ SyncWorker
 manage.py run_sync_worker
 ```
 
-## 9. Entrar no diretório do Backend do Hub DEV
+Não remover a pasta `C:\SysvarHub`.
+
+## 6. Entrar no diretório do Backend do Hub DEV
 
 ```powershell
 cd C:\SysvarHub\Backend
 ```
 
-## 10. Definir o runtime DEV do Hub
+## 7. Limpar e definir o runtime DEV do Hub
 
 ```powershell
+Remove-Item ".runtime-dev" -Recurse -Force -ErrorAction SilentlyContinue
+
 $env:SYSVARHUB_PROGRAMDATA = (Join-Path (Get-Location) ".runtime-dev")
+
+Test-Path ".runtime-dev"
 ```
 
-## 11. Apagar o banco local `sysvarhub_db` e recriá-lo vazio
+Antes de o Hub ser iniciado novamente, o resultado esperado do `Test-Path` é:
+
+```text
+False
+```
+
+## 8. Apagar o banco local `sysvarhub_db` e recriá-lo vazio
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py shell -c "import MySQLdb; from django.conf import settings; db=settings.DATABASES['default']; c=MySQLdb.connect(host=db['HOST'], user=db['USER'], passwd=db['PASSWORD'], port=int(db['PORT'])); cur=c.cursor(); cur.execute('DROP DATABASE IF EXISTS sysvarhub_db'); cur.execute('CREATE DATABASE sysvarhub_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'); c.close(); print('sysvarhub_db recriado do zero')"
@@ -152,15 +168,45 @@ sysvarhub_db recriado do zero
 
 ---
 
-# Parte 2 — Reconstrução, instalação, ativação e pareamento
+# Parte 2 — Reconstrução da Base DEV, instalação, ativação e pareamento
 
-## 12. Reconstruir do zero a Base DEV oficial da Central
+## 9. Recriar fisicamente o banco `varejo_db` da Central
+
+No MySQL Workbench conectado ao MySQL usado pela Central DEV, executar:
+
+```sql
+DROP DATABASE IF EXISTS varejo_db;
+
+CREATE DATABASE varejo_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+```
+
+Esta etapa deve ocorrer **antes** das migrations e do `sysvar_dev_base --rebuild`.
+
+Não executar o `--rebuild` diretamente sobre uma Base DEV antiga e populada. A limpeza interna é feita tabela a tabela e pode ser bloqueada por relacionamentos com `on_delete=PROTECT`, como a dependência entre recebíveis e pagamentos de venda.
+
+## 10. Aplicar as migrations da Central no banco vazio
+
+```powershell
+cd C:\SysvarProjeto\Backend
+
+.\venv\Scripts\python.exe manage.py migrate
+```
+
+## 11. Reconstruir a Base DEV oficial da Central
+
+Depois das migrations:
 
 ```powershell
 cd C:\SysvarProjeto\Backend
 
 .\venv\Scripts\python.exe manage.py sysvar_dev_base --rebuild
 ```
+
+Usar `--rebuild`, e não `--create`.
+
+As migrations históricas podem criar dados legados, incluindo a empresa `CISVAR Base Atual`. O `--rebuild` remove esses dados e então carrega os seeds oficiais. Com `--create`, esses registros permanecem e a validação da Base DEV pode terminar como inválida por divergência dos JSONs.
 
 Confirmar ao final:
 
@@ -170,7 +216,7 @@ BASE DE DESENVOLVIMENTO: VÁLIDA
 
 Validar também que os cadastros estruturais necessários, incluindo os dados fiscais das lojas, foram recriados corretamente pelos seeds oficiais.
 
-## 13. Aplicar as migrations no banco novo do Sysvar Hub DEV
+## 12. Aplicar as migrations no banco novo do Sysvar Hub DEV
 
 ```powershell
 cd C:\SysvarHub\Backend
@@ -180,7 +226,7 @@ $env:SYSVARHUB_PROGRAMDATA = (Join-Path (Get-Location) ".runtime-dev")
 .\.venv\Scripts\python.exe manage.py migrate
 ```
 
-## 14. Iniciar os ambientes de desenvolvimento
+## 13. Iniciar os ambientes de desenvolvimento
 
 Usar os batches já configurados.
 
@@ -203,7 +249,7 @@ http://localhost:4300
 
 O batch do Hub deve iniciar os componentes necessários do ambiente DEV, incluindo backend, frontend e SyncWorker.
 
-## 15. Gerar um código de ativação para o Sysvar Local Agent
+## 14. Gerar um código de ativação para o Sysvar Local Agent
 
 Na Central:
 
@@ -217,7 +263,7 @@ O código é temporário e de uso único.
 
 Usar sempre o código recém-gerado durante a instalação.
 
-## 16. Criar a configuração DEV do Sysvar Local Agent
+## 15. Criar a configuração DEV do Sysvar Local Agent
 
 Abrir PowerShell como Administrador.
 
@@ -239,7 +285,7 @@ New-Item -ItemType Directory -Force "C:\ProgramData\Sysvar\LocalAgent" | Out-Nul
 '@ | Set-Content "C:\ProgramData\Sysvar\LocalAgent\config.json" -Encoding UTF8
 ```
 
-## 17. Instalar e ativar o Sysvar Local Agent
+## 16. Instalar e ativar o Sysvar Local Agent
 
 Instalador esperado no ambiente de desenvolvimento:
 
@@ -257,7 +303,9 @@ A configuração DEV deve apontar para:
 http://localhost:8001
 ```
 
-## 18. Adicionar a pasta monitorada pelo Local Agent
+**Não executar o instalador antes de criar o `config.json` do item anterior.** O arquivo de exemplo distribuído com o instalador usa `127.0.0.1:8000`; no ambiente DEV a Central está em `localhost:8001`. Se o instalador for executado sem a configuração DEV prévia, a ativação falhará por tentar acessar a porta incorreta.
+
+## 17. Adicionar a pasta monitorada pelo Local Agent
 
 Na Central:
 
@@ -277,7 +325,7 @@ Status:
 Ativo
 ```
 
-## 19. Validar o funcionamento do Sysvar Local Agent
+## 18. Validar o funcionamento do Sysvar Local Agent
 
 ```powershell
 Get-Service SysvarLocalAgent
@@ -293,7 +341,7 @@ Configurações carregadas: 1
 Heartbeat enviado.
 ```
 
-## 20. Gerar o código de ativação do Sysvar Hub para a Loja Barra
+## 19. Gerar o código de ativação do Sysvar Hub para a Loja Barra
 
 Na Central:
 
@@ -305,7 +353,7 @@ Administração do Sysvar Hub
 
 Usar o código temporário recém-gerado.
 
-## 21. Ativar o Sysvar Hub DEV da Loja Barra
+## 20. Ativar o Sysvar Hub DEV da Loja Barra
 
 Abrir:
 
@@ -329,7 +377,7 @@ Clicar em:
 Ativar Sysvar Hub
 ```
 
-## 22. Confirmar a primeira sincronização automática
+## 21. Confirmar a primeira sincronização automática
 
 Na Central, abrir a Administração do Sysvar Hub e atualizar a página.
 
@@ -346,7 +394,7 @@ Ativação:
 Ativado
 ```
 
-## 23. Configurar o terminal do Hub
+## 22. Configurar o terminal do Hub
 
 Na linha `Loja Barra`, clicar em `Configurar`.
 
@@ -377,7 +425,7 @@ Configuração:
 Configurado
 ```
 
-## 24. Gerar o código de pareamento do terminal
+## 23. Gerar o código de pareamento do terminal
 
 Na Central:
 
@@ -391,7 +439,7 @@ O código é temporário.
 
 Usar o código recém-gerado.
 
-## 25. Parear o terminal no Hub DEV
+## 24. Parear o terminal no Hub DEV
 
 Abrir:
 
@@ -401,7 +449,7 @@ http://localhost:4300/pareamento
 
 Informar o código gerado no item anterior e concluir o pareamento do terminal `PDV-01`.
 
-## 26. Confirmar o pareamento na Central
+## 25. Confirmar o pareamento na Central
 
 Na Central, atualizar a Administração do Sysvar Hub.
 
@@ -415,7 +463,7 @@ Pareamento:
 Pareado
 ```
 
-## 27. Cadastrar o usuário que utilizará o PDV na Central
+## 26. Cadastrar o usuário que utilizará o PDV na Central
 
 Na Central:
 
@@ -471,7 +519,7 @@ repetir a senha
 
 Salvar o usuário.
 
-## 28. Criar a Credencial PDV do usuário
+## 27. Criar a Credencial PDV do usuário
 
 Na lista de usuários:
 
@@ -489,7 +537,7 @@ Confirmar que a coluna `PDV` do usuário passa a indicar:
 Configurada
 ```
 
-## 29. Sincronizar novamente a Loja Barra para enviar o operador ao Hub
+## 28. Sincronizar novamente a Loja Barra para enviar o operador ao Hub
 
 Na Central:
 
@@ -516,11 +564,14 @@ Após a sincronização, o usuário ativo vinculado à Loja Barra e com Credenci
 
 Ao concluir todo o procedimento:
 
-- instalação anterior do Sysvar Local Agent removida;
-- instalação anterior do Sysvar Hub removida;
-- dados persistentes locais anteriores eliminados;
+- instalação anterior do Sysvar Local Agent removida e reinstalada;
+- Sysvar Hub DEV preservado em `C:\SysvarHub`;
+- instalação distribuída do Sysvar Hub mantida fora do escopo desta rotina DEV;
+- runtime `.runtime-dev` do Hub DEV limpo;
 - `sysvarhub_db` recriado do zero;
-- Base DEV oficial da Central reconstruída;
+- `varejo_db` recriado fisicamente;
+- migrations da Central aplicadas sobre banco vazio;
+- Base DEV oficial reconstruída com `sysvar_dev_base --rebuild`;
 - migrations do Hub aplicadas sobre banco limpo;
 - Central DEV em execução;
 - Hub DEV em execução;
