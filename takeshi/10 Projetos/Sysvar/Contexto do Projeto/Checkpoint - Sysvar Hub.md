@@ -3,7 +3,7 @@ type: checkpoint
 status: active
 project: Sysvar
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-10-07
 tags:
   - sysvar
   - hub
@@ -14,7 +14,118 @@ tags:
 
 # Checkpoint — Sysvar Hub
 
-## Onde paramos
+## Checkpoint atual — 07/10/2026
+
+A retomada deve começar pelo desenvolvimento das **Formas de Pagamento e Prazos de Pagamento no Sysvar Hub**, exatamente no ponto em que a regra funcional ainda não foi fechada.
+
+### Ambiente DEV reconstruído e validado
+
+A reconstrução limpa do ambiente DEV foi concluída.
+
+Estado confirmado:
+
+- Base DEV da Central recriada fisicamente e reconstruída com migrations + `sysvar_dev_base --rebuild`;
+- Base DEV terminou como **VÁLIDA**;
+- `sysvarhub_db` recriado do zero e migrations aplicadas;
+- Central DEV em execução;
+- Hub DEV em execução a partir de `C:\SysvarHub`;
+- Sysvar Local Agent reinstalado e ativado apontando para `http://localhost:8001`;
+- pasta `C:\SysvarXML` cadastrada e ativa;
+- serviço `SysvarLocalAgent` validado com heartbeat;
+- Hub da Loja Barra ativado e sincronizado;
+- terminal `PDV-01` configurado;
+- terminal pareado.
+
+O procedimento corrigido está em [[Procedimento de instalação limpa do Sysvar]].
+
+### Correções importantes consolidadas no runbook
+
+- Hub DEV e Hub instalado são ambientes distintos e não devem ser misturados;
+- não desinstalar o Hub instalado nem remover `C:\SysvarHub` durante a rotina DEV;
+- o banco `varejo_db` deve ser recriado fisicamente antes das migrations;
+- depois das migrations, usar `sysvar_dev_base --rebuild`, não `--create`;
+- o `config.json` do Local Agent DEV deve existir antes do instalador e apontar para `http://localhost:8001`.
+
+### Estado atual de Formas de Pagamento e Prazos
+
+A separação estrutural entre **Forma de Pagamento** e **Prazo de Pagamento** já foi implementada.
+
+Na Base DEV atual, a forma comercial de crédito é única:
+
+- `CRE` — Cartão de crédito;
+- tipo técnico `CREDITO`;
+- sem prazo fixo vinculado à Forma de Pagamento.
+
+Os prazos são sincronizados separadamente para o Hub.
+
+No Hub, uma venda em crédito exige um prazo selecionado e o backend já consegue transportar o prazo e suas parcelas.
+
+### Teste realizado em 07/10/2026
+
+Foi concluída com sucesso uma venda de **R$ 279,90** no Hub usando **Cartão de Crédito**.
+
+Resultado:
+
+- venda finalizada;
+- NFC-e de homologação gerada;
+- pagamento identificado como Cartão de Crédito;
+- integração fiscal do tipo `CREDITO` funcionando.
+
+Este teste **não homologa ainda a regra financeira de prazo/parcelamento**.
+
+### Pendência funcional que deve ser resolvida antes de continuar a homologação
+
+Ainda não está definida a regra de negócio que determina **quais Prazos de Pagamento podem ser usados por uma determinada Forma de Pagamento**, especialmente para Cartão de Crédito.
+
+O frontend do Hub atualmente lista prazos ativos de forma ampla. Isso não representa uma regra funcional aprovada de compatibilidade entre forma e prazo.
+
+Portanto, ao retomar:
+
+1. analisar o modelo atual de Forma de Pagamento e Prazo na Central;
+2. definir com o usuário como será configurada a compatibilidade entre forma e prazo;
+3. somente depois ajustar Central/Hub conforme a decisão;
+4. homologar crédito à vista e parcelado;
+5. então validar geração de Receber, parcelas, vencimentos e valores.
+
+Não usar a tela de Contas a Receber como prova de homologação dessa regra antes de a relação Forma × Prazo estar definida.
+
+### Commits diretamente relacionados ao ponto de retomada
+
+Central Backend:
+
+`d88aaf61fa7565f6af05dfb024231f04d81794d6`
+
+- Base DEV corrigida;
+- forma única `CRE`;
+- prazos separados no bootstrap.
+
+Hub Backend:
+
+`79f5f0959b2c0e3e1a8ce85f75d50d083e600aba`
+
+- Prazo de Pagamento separado da Forma no Hub;
+- prazo obrigatório para crédito;
+- snapshots e sincronização de parcelas.
+
+Hub Backend:
+
+`6751acd76121f5a25deb539a93e8b8340fcfab7d`
+
+- ajuste dos testes NFC-e para crédito com prazo.
+
+Hub Frontend:
+
+`831d73c7e854e3196983c7fb9196aff510b13a32`
+
+- Cartão separado entre débito e crédito;
+- seletor de prazo para crédito;
+- envio do prazo ao backend.
+
+---
+
+## Checkpoint anterior — 20/09/2026
+
+### Onde paramos
 
 Sessão encerrada em **20/09/2026**.
 
