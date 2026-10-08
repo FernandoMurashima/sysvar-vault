@@ -331,6 +331,11 @@ Documentação específica:
 - Plano Financeiro;
 - Natureza de Lançamento.
 
+Estado vigente:
+
+- [[Estado Atual - Financeiro]];
+- [[Homologação - Financeiro - Formas de Pagamento e Recebíveis do Hub]].
+
 ## Relatórios e Dashboards
 
 - vendas;
@@ -3358,6 +3363,8 @@ Arquitetura resumida:
 Sysvar Central ↔ Internet/API ↔ Sysvar Hub ↔ LAN ↔ Terminais/PDVs
 ~~~
 
-Referência específica:
+Referências específicas:
 
-- [[Sysvar Hub]]
+- [[Sysvar Hub]];
+- [[Checkpoint - Sysvar Hub]];
+- [[Homologação - Financeiro - Formas de Pagamento e Recebíveis do Hub]].
