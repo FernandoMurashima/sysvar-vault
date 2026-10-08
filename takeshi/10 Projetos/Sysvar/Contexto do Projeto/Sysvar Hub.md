@@ -981,7 +981,7 @@ O Receber originado de venda utiliza o documento comercial `VE...` da própria v
 
 Referência detalhada:
 
-[[Estado Atual - Financeiro]]  
+[[Estado Atual - Financeiro]]
 [[Homologação - Financeiro - Formas de Pagamento e Recebíveis do Hub]]
 
 ---
