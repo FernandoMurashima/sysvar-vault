@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarProjeto/Backend/sysvar_devtools/dev_base.py"
 created: 2026-09-09
-updated: 2026-09-18
+updated: 2026-10-08
 tags:
   - sysvar
   - operacao
@@ -65,6 +65,34 @@ O rebuild recria a estrutura oficial a partir dos seeds de `sysvar_devtools/seed
 - perfis de distribuição;
 - estrutura de estoque SKU x Loja;
 - estrutura de estoque Uso/Consumo x Loja.
+
+## Formas e condições de pagamento oficiais
+
+Estado homologado em 08/10/2026.
+
+A Base DEV oficial recria quatro Formas de Pagamento operacionais:
+
+- `DIN` — Dinheiro — `permite_parcelamento=false`;
+- `PIX` — PIX — `permite_parcelamento=false`;
+- `DEB` — Cartão de débito — `permite_parcelamento=true`;
+- `CRE` — Cartão de crédito — `permite_parcelamento=true`.
+
+As condições oficiais de `FormaPagamentoCondicao` são:
+
+- DEB + AV → 1x, taxa 0,0000%, taxa fixa 0,00;
+- CRE + 30D → 1x, taxa 2,0000%, taxa fixa 0,00;
+- CRE + 30-60 → 2x, taxa 2,5000%, taxa fixa 0,00;
+- CRE + 30-60-90 → 3x, taxa 2,5000%, taxa fixa 0,00.
+
+DIN e PIX não possuem condição ativa na massa oficial.
+
+O prazo `30-60-90-120` continua no cadastro geral de prazos, mas não é condição permitida de CRE na Base DEV oficial.
+
+Os seeds usam códigos de Forma e Prazo, sem PK fixo, e o carregamento é idempotente por `update_or_create`.
+
+A Base DEV oficial não cria `Adquirente` nem `CondicaoAdquirente`.
+
+No rebuild, vínculos de adquirente existentes são eliminados na ordem necessária antes de FormaPagamento, PrazoPagamento e Empresa, evitando bloqueio por `PROTECT`.
 
 ## Operações eliminadas
 
@@ -365,6 +393,11 @@ A rotina também possui validação interna por `SysvarDevBaseService().validate
 - estruturas oficiais recriadas;
 - ConfigFinanceira existente;
 - CashbackConfig existente;
+- exatamente DIN, PIX, DEB e CRE como formas ativas oficiais;
+- flags `permite_parcelamento` oficiais;
+- exatamente 4 `FormaPagamentoCondicao` ativas oficiais;
+- taxas oficiais das condições;
+- ausência de Adquirente e CondicaoAdquirente na base reconstruída;
 - ausência de operações anteriores;
 - estoque estrutural zerado;
 - ausência de `AuditLog`;
