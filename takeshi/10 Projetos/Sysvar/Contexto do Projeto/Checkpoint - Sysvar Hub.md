@@ -3,7 +3,7 @@ type: checkpoint
 status: active
 project: Sysvar
 created: 2026-09-20
-updated: 2026-10-07
+updated: 2026-10-08
 tags:
   - sysvar
   - hub
@@ -14,112 +14,171 @@ tags:
 
 # Checkpoint — Sysvar Hub
 
-## Checkpoint atual — 07/10/2026
+## Checkpoint atual — 08/10/2026
 
-A retomada deve começar pelo desenvolvimento das **Formas de Pagamento e Prazos de Pagamento no Sysvar Hub**, exatamente no ponto em que a regra funcional ainda não foi fechada.
+A reestruturação de **Formas de Pagamento, condições, taxas e geração de Receber das vendas do Sysvar Hub foi concluída, testada, homologada e aprovada**.
 
-### Ambiente DEV reconstruído e validado
+Não retomar esse bloco como pendência aberta. Só reabrir mediante novo requisito ou defeito comprovado.
 
-A reconstrução limpa do ambiente DEV foi concluída.
+### Regra funcional fechada
 
-Estado confirmado:
+A estrutura aprovada é:
 
-- Base DEV da Central recriada fisicamente e reconstruída com migrations + `sysvar_dev_base --rebuild`;
-- Base DEV terminou como **VÁLIDA**;
-- `sysvarhub_db` recriado do zero e migrations aplicadas;
-- Central DEV em execução;
-- Hub DEV em execução a partir de `C:\SysvarHub`;
-- Sysvar Local Agent reinstalado e ativado apontando para `http://localhost:8001`;
-- pasta `C:\SysvarXML` cadastrada e ativa;
-- serviço `SysvarLocalAgent` validado com heartbeat;
-- Hub da Loja Barra ativado e sincronizado;
-- terminal `PDV-01` configurado;
-- terminal pareado.
+~~~text
+FormaPagamento
++
+FormaPagamentoCondicao
++
+PrazoPagamento / PrazoPagamentoParcela
+~~~
 
-O procedimento corrigido está em [[Procedimento de instalação limpa do Sysvar]].
+Regras principais:
 
-### Correções importantes consolidadas no runbook
+- Forma de Pagamento representa o meio comercial;
+- Prazo representa o cronograma;
+- FormaPagamentoCondicao define os prazos permitidos para a forma;
+- a condição também é a autoridade de taxa percentual e taxa fixa;
+- a exigência de condição depende de `permite_parcelamento`, não de `tipo == CREDITO`;
+- CondicaoAdquirente continua como vínculo/referência, mas não é autoridade de taxa;
+- conta bancária não é obrigatória para gerar recebível previsto e pertence ao fluxo de baixa/liquidação.
 
-- Hub DEV e Hub instalado são ambientes distintos e não devem ser misturados;
-- não desinstalar o Hub instalado nem remover `C:\SysvarHub` durante a rotina DEV;
-- o banco `varejo_db` deve ser recriado fisicamente antes das migrations;
-- depois das migrations, usar `sysvar_dev_base --rebuild`, não `--create`;
-- o `config.json` do Local Agent DEV deve existir antes do instalador e apontar para `http://localhost:8001`.
+### Base DEV oficial
 
-### Estado atual de Formas de Pagamento e Prazos
+Formas:
 
-A separação estrutural entre **Forma de Pagamento** e **Prazo de Pagamento** já foi implementada.
+- `DIN` — sem condição;
+- `PIX` — sem condição;
+- `DEB` — permite condição;
+- `CRE` — permite condição.
 
-Na Base DEV atual, a forma comercial de crédito é única:
+Condições:
 
-- `CRE` — Cartão de crédito;
-- tipo técnico `CREDITO`;
-- sem prazo fixo vinculado à Forma de Pagamento.
+- DEB + AV → 1x, taxa 0%;
+- CRE + 30D → 1x, taxa 2,00%;
+- CRE + 30-60 → 2x, taxa 2,50%;
+- CRE + 30-60-90 → 3x, taxa 2,50%.
 
-Os prazos são sincronizados separadamente para o Hub.
+O prazo 30-60-90-120 continua no cadastro geral, mas não é condição ativa de CRE na Base DEV oficial.
 
-No Hub, uma venda em crédito exige um prazo selecionado e o backend já consegue transportar o prazo e suas parcelas.
+Adquirente e CondicaoAdquirente não são seedados na Base DEV oficial e são removidos pelo rebuild antes das entidades protegidas relacionadas.
 
-### Teste realizado em 07/10/2026
+### Sysvar Hub / F9
 
-Foi concluída com sucesso uma venda de **R$ 279,90** no Hub usando **Cartão de Crédito**.
+O F9 é o fluxo principal de pagamentos.
 
-Resultado:
+Estado aprovado:
 
-- venda finalizada;
-- NFC-e de homologação gerada;
-- pagamento identificado como Cartão de Crédito;
-- integração fiscal do tipo `CREDITO` funcionando.
+- formas vêm da sincronização do Hub;
+- formas sem condição seguem diretamente;
+- formas condicionadas exibem somente as condições permitidas;
+- CRE mostra 1x, 2x e 3x;
+- o operador escolhe apenas o número de parcelas;
+- o pagamento salva snapshot da condição utilizada;
+- o snapshot segue no `VENDA_FINALIZADA`.
 
-Este teste **não homologa ainda a regra financeira de prazo/parcelamento**.
+O fluxo visual duplicado de pagamento foi removido.
 
-### Pendência funcional que deve ser resolvida antes de continuar a homologação
+### Contas a Receber
 
-Ainda não está definida a regra de negócio que determina **quais Prazos de Pagamento podem ser usados por uma determinada Forma de Pagamento**, especialmente para Cartão de Crédito.
+Venda sem condição:
 
-O frontend do Hub atualmente lista prazos ativos de forma ampla. Isso não representa uma regra funcional aprovada de compatibilidade entre forma e prazo.
+- gera 1 ReceberItem;
+- status BAIXADO;
+- baixa e data preenchidas.
 
-Portanto, ao retomar:
+Venda com condição:
 
-1. analisar o modelo atual de Forma de Pagamento e Prazo na Central;
-2. definir com o usuário como será configurada a compatibilidade entre forma e prazo;
-3. somente depois ajustar Central/Hub conforme a decisão;
-4. homologar crédito à vista e parcelado;
-5. então validar geração de Receber, parcelas, vencimentos e valores.
+- gera N ReceberItem;
+- status PREVISTO;
+- vencimentos conforme snapshot;
+- taxas conforme snapshot;
+- valor líquido previsto;
+- sem baixa/movimentação bancária automática;
+- adquirente opcional.
 
-Não usar a tela de Contas a Receber como prova de homologação dessa regra antes de a relação Forma × Prazo estar definida.
+Documento do Receber de venda:
 
-### Commits diretamente relacionados ao ponto de retomada
+~~~text
+Receber.Titulo = VendaPdv.documento
+Receber.Documento = VendaPdv.documento
+~~~
+
+Padrão comercial:
+
+`VE...`
+
+Não criar `RE...` para o título originado de venda.
+
+### Benefícios
+
+Cashback e Vale-Troca não geram recebível financeiro próprio.
+
+Venda mista gera Receber somente para a parcela efetivamente financeira.
+
+### NFC-e / tPag
+
+Permanece por tipo da forma:
+
+- DINHEIRO → 01;
+- CREDITO → 03;
+- DEBITO → 04;
+- PIX → 17.
+
+Parcelamento não altera tPag.
+
+TEF/Pinpad continua fora deste fechamento.
+
+### Regressões finais
+
+Hub Backend:
+
+`fc12ffb6b5f9410a941f0374eef03f4aa2940e6c`
 
 Central Backend:
 
-`d88aaf61fa7565f6af05dfb024231f04d81794d6`
+`15219aa2564e170c39274c97f8549653cba02093`
 
-- Base DEV corrigida;
-- forma única `CRE`;
-- prazos separados no bootstrap.
+As regressões confirmaram:
 
-Hub Backend:
+- DIN;
+- PIX;
+- DEB AV 1x;
+- CRE 1x/2x/3x;
+- snapshot histórico;
+- fallback sem snapshot;
+- arredondamento;
+- benefícios;
+- tPag;
+- idempotência.
 
-`79f5f0959b2c0e3e1a8ce85f75d50d083e600aba`
+### Homologação manual final — 08/10/2026
 
-- Prazo de Pagamento separado da Forma no Hub;
-- prazo obrigatório para crédito;
-- snapshots e sincronização de parcelas.
+Foi executada sincronização do Hub da Loja Barra pelo sistema.
 
-Hub Backend:
+No PDV:
 
-`6751acd76121f5a25deb539a93e8b8340fcfab7d`
+- F9 exibiu as formas sincronizadas;
+- CRE exibiu exatamente 1x, 2x e 3x;
+- vendas parceladas foram realizadas;
+- as parcelas correspondentes foram conferidas em Contas a Receber.
 
-- ajuste dos testes NFC-e para crédito com prazo.
+O usuário declarou o fluxo aprovado.
 
-Hub Frontend:
+Referência completa:
 
-`831d73c7e854e3196983c7fb9196aff510b13a32`
+[[Homologação - Financeiro - Formas de Pagamento e Recebíveis do Hub]]
 
-- Cartão separado entre débito e crédito;
-- seletor de prazo para crédito;
-- envio do prazo ao backend.
+### Próxima retomada após a pausa
+
+Ao retomar o projeto:
+
+1. **não reabrir Formas de Pagamento/parcelamento/taxas** sem erro concreto;
+2. voltar às pendências de padronização documental e consulta de vendas;
+3. revisar a exibição/pesquisa do documento comercial `VE...` na Consulta de Vendas do Central;
+4. revisar a Consulta de Vendas/F12 no Hub;
+5. depois executar a auditoria final da padronização de numeração de documentos.
+
+A homologação externa real da NFC-e com SEFAZ/certificado permanece uma etapa fiscal futura específica.
 
 ---
 
