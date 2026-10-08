@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "C:/SysvarHub"
 created: 2026-09-11
-updated: 2026-09-14
+updated: 2026-10-08
 tags:
   - sysvar
   - sysvar-hub
@@ -469,31 +469,53 @@ Próxima etapa após homologação real:
 - integrar o frontend/PDV existente ao endpoint local `GET /api/terminal/catalogo/`.
 ---
 
-## Formas de Pagamento - Snapshot Central V1
+## Formas de Pagamento e Condições - contrato Central → Hub
 
-Atualização registrada em 2026-09-14 no Sysvar Central:
+Estado homologado em 08/10/2026.
+
+Contrato:
 
 ~~~text
 GET /api/hub/formas-pagamento/
 Authorization: Hub <TOKEN>
 ~~~
 
-- o Sysvar Central continua sendo a autoridade das Formas de Pagamento;
-- o endpoint retorna snapshot completo por Empresa, com escopo derivado exclusivamente de `request.sysvar_hub.loja.empresa`;
-- a Loja do snapshot é derivada exclusivamente de `request.sysvar_hub.loja`;
-- query params ou body como `empresa_id` e `loja_id` não alteram o escopo;
-- entram formas ativas e inativas da Empresa, para permitir que o Hub marque localmente formas desativadas no Central;
-- formas com `empresa = null` não entram no contrato operacional do Hub;
-- o payload inclui FormaPagamento, prazo_pagamento opcional, parcelas, campos TEF configuracionais e apenas o ID Central da conta de liquidação;
-- valores financeiros e percentuais são serializados como string decimal, sem float;
-- o Hub futuramente manterá cópia operacional offline das formas de pagamento;
-- pagamentos, finalização, TEF e sincronização de vendas ainda não foram implementados nesta etapa.
+O Sysvar Central continua sendo a autoridade dos cadastros financeiros corporativos.
 
-Próxima etapa em repositório separado:
+O contrato envia ao Hub:
 
-- consumir o snapshot no `FernandoMurashima/sysvarhub-backend` e persistir/sincronizar `FormaPagamentoHub` local.
+- Formas de Pagamento da Empresa;
+- `permite_parcelamento`;
+- prazo legado de compatibilidade quando existente;
+- prazos gerais;
+- `condicoes_parcelamento` ativas por Forma;
+- número de parcelas;
+- cronograma de dias;
+- taxa percentual;
+- taxa fixa;
+- campos de compatibilidade já existentes no contrato.
+
+A autoridade da compatibilidade Forma × Prazo e das taxas é `FormaPagamentoCondicao`.
+
+`CondicaoAdquirente` pode continuar identificando adquirente/forma/prazo, mas suas taxas legadas não são usadas como autoridade operacional.
+
+Formas sem `permite_parcelamento` não precisam selecionar condição.
+
+Formas com `permite_parcelamento=true` usam somente as condições vinculadas e ativas.
+
+A Base DEV oficial homologada usa:
+
+- DIN sem condição;
+- PIX sem condição;
+- DEB + AV 1x;
+- CRE + 30D 1x;
+- CRE + 30-60 2x;
+- CRE + 30-60-90 3x.
+
+O prazo geral 30-60-90-120 existe, mas não é condição ativa de CRE nessa massa oficial.
 
 ---
+
 ## Operadores PDV - Snapshot Central V1
 
 Atualização registrada em 2026-09-13 no Sysvar Central:
@@ -868,75 +890,126 @@ Decisão para migração do PDV:
 
 ## Formas de Pagamento no Hub Backend
 
-Atualização registrada em 2026-09-14 no Sysvar Hub Backend:
+Estado homologado em 08/10/2026.
 
-~~~text
-GET /api/hub/formas-pagamento/
-Authorization: Hub <TOKEN>
-~~~
+O Hub mantém cópia operacional local de:
 
-- o Sysvar Central continua sendo a autoridade das Formas de Pagamento;
-- o Hub agora mantém `FormaPagamentoHub` como cópia operacional local;
-- o Hub agora mantém `FormaPagamentoParcelaHub` como parametrização local atual das parcelas;
-- o endpoint Central `/api/hub/formas-pagamento/` é consumido pelo `RetaguardaClient` do Hub;
-- o contrato é snapshot completo da Empresa/Loja do Hub autenticado;
-- antes de persistir, o Hub valida identidade de Hub, `hub_uuid`, Empresa e Loja contra `HubConfig` local;
-- formas ausentes no snapshot novo são inativadas localmente, não apagadas;
-- formas inativas recebidas continuam persistidas localmente com `ativo = false`;
-- parcelas refletem a parametrização atual do snapshot e parcelas ausentes são removidas;
-- valores decimais financeiros são aceitos somente como string decimal com escala contratada;
-- pagamentos, finalização de venda, TEF real, PIX real, NFC-e e sincronização de vendas Hub -> Central ainda não foram implementados nesta etapa.
+- `FormaPagamentoHub`;
+- `PrazoPagamentoHub`;
+- parcelas dos prazos;
+- `FormaPagamentoCondicaoHub`.
+
+A sincronização:
+
+- valida Hub, Empresa e Loja;
+- atualiza registros existentes sem duplicar;
+- mantém condições vinculadas à Forma;
+- inativa condições ausentes em snapshot posterior;
+- preserva taxas como decimal;
+- não depende de tipo `CREDITO` para decidir se a Forma exige condição.
+
+O critério funcional é exclusivamente `permite_parcelamento`.
+
 ---
-
 
 ## Pagamento e Finalização Local da Venda
 
-Atualização registrada em 2026-09-14 no Sysvar Hub Backend:
+`VendaPagamentoHub` registra o pagamento local e preserva snapshot da condição efetivamente escolhida.
 
-- `VendaPagamentoHub` registra pagamentos locais da `VendaHub` com snapshot da Forma de Pagamento usada;
-- `VendaPagamentoParcelaHub` copia as parcelas de `FormaPagamentoParcelaHub` no momento da inclusão do pagamento;
-- uma venda pode ter múltiplos pagamentos ativos;
-- pagamento em dinheiro pode exceder o total e gerar troco;
-- formas TEF ficam bloqueadas para captura manual nesta fase, pois TEF real ainda não foi integrado;
-- `EstoqueMovimentoHub` registra a baixa local definitiva da venda finalizada;
-- `CatalogoItemHub.estoque_fisico` e `CatalogoItemHub.estoque_disponivel` continuam fotografia do último snapshot Central e não são decrementados diretamente;
-- saldo local operacional passa a ser: snapshot disponível menos movimentos locais não reconciliados menos reservas de vendas abertas;
-- a finalização da venda é atômica, cria movimentos de estoque e registra auditoria sem depender do Sysvar Central;
-- venda finalizada ainda não é enviada ao Central nesta etapa;
-- NFC-e, TEF real, PIX automático, recebíveis e sincronização Hub -> Central continuam fases futuras.
+Para pagamento condicionado, ficam preservados:
+
+- ID da Forma de Pagamento da retaguarda;
+- ID da FormaPagamentoCondicao;
+- ID e código do Prazo;
+- número de parcelas;
+- taxa percentual;
+- taxa fixa;
+- parcelas e dias.
+
+Uma mudança posterior na configuração sincronizada não altera o snapshot da venda já realizada.
+
+Pagamentos sem condição continuam válidos com `forma_pagamento_condicao_id = null`.
+
+A finalização local permanece atômica e integra venda, pagamentos, movimentos locais e evento de sincronização.
+
+O evento `VENDA_FINALIZADA` envia o snapshot financeiro para o Central.
+
 ---
-
 
 ## Pagamentos no Frontend Hub
 
-Atualização registrada em 2026-09-14 no Frontend do Sysvar Hub:
+F9 é o fluxo principal de pagamentos no PDV.
 
-- F9 passou a abrir o fluxo operacional de pagamentos da VendaHub;
-- formas de pagamento são carregadas do Hub local por `/api/terminal/formas-pagamento/` com sessão de operador;
-- o PDV suporta múltiplos pagamentos ativos, remoção lógica de pagamento, total pago, pendente e troco vindos do Backend;
-- botões DINHEIRO, CARTÃO, PIX e OUTRAS usam categorias dinâmicas das formas sincronizadas, sem hardcodear cadastros;
-- a finalização local da venda usa `/api/terminal/venda/finalizar/` com `venda_uuid` e limpa o estado operacional após confirmação;
-- VendaHub e pagamentos não são persistidos no browser; o Backend/MySQL local segue como autoridade;
-- o carrinho fica travado visualmente quando há pagamento ativo, e o Backend continua validando a regra;
-- F10 continua reservado para fechamento de caixa futuro;
-- ajuste visual registrado em 2026-09-14: no PDV Hub, a área de Produto Selecionado ganhou mais espaço para imagem, o formulário lateral redundante de adicionar pagamento foi removido, a mensagem operacional passou a ter região própria acima dos botões de pagamento, e o header agrupa NFC-e/TEF separando Suporte na região direita.
+Estado aprovado:
+
+- formas são carregadas do Hub local;
+- o fluxo lateral duplicado de pagamento foi removido;
+- formas sem condição seguem diretamente;
+- formas com `permite_parcelamento=true` exibem somente suas condições ativas;
+- o operador visualiza apenas o número de parcelas;
+- CRE oficial apresenta 1x, 2x e 3x;
+- DEB pode trabalhar com condição AV 1x;
+- a condição selecionada é enviada ao Backend;
+- múltiplos pagamentos continuam suportados;
+- carrinho permanece protegido quando existe pagamento ativo;
+- finalização usa o Backend/MySQL local como autoridade.
+
+A apresentação da condição não expõe dias, taxa ou código interno ao operador.
+
 ---
 
-## Ainda Não Implementado
+## Reflexo financeiro no Central
 
-Ainda não existe no Hub:
+Depois da sincronização da venda:
 
-- sincronização de Estoque;
-- sincronização de Vendas;
-- sincronização de Usuários;
-- filas de sincronização;
-- sincronização periódica;
-- Celery no Hub;
-- serviço Windows;
-- migração do `PdvDesktopComponent` real para o frontend do Hub.
-- homologação real do pareamento do `PDV-01`.
-- carrinho, venda, pagamentos e persistência local do cupom/venda no Hub.
-- fechamento de Caixa local no PDV Hub.
+Pagamento sem condição:
+
+- gera 1 `ReceberItem` baixado;
+- baixa e data ficam preenchidas.
+
+Pagamento com condição:
+
+- gera N `ReceberItem`;
+- itens ficam `PREVISTO`;
+- vencimentos seguem o snapshot;
+- taxas seguem o snapshot;
+- não existe liquidação bancária automática.
+
+Cashback e Vale-Troca não geram recebível financeiro próprio.
+
+O Receber originado de venda utiliza o documento comercial `VE...` da própria venda.
+
+Referência detalhada:
+
+[[Estado Atual - Financeiro]]  
+[[Homologação - Financeiro - Formas de Pagamento e Recebíveis do Hub]]
+
+---
+
+## NFC-e e tPag dos pagamentos
+
+O tPag continua sendo determinado pelo tipo da Forma de Pagamento:
+
+- DINHEIRO → 01;
+- CREDITO → 03;
+- DEBITO → 04;
+- PIX → 17.
+
+Escolher 1x, 2x ou 3x não altera o tPag.
+
+---
+
+## Pendências atuais relacionadas
+
+Este fechamento não inclui:
+
+- TEF / Pinpad;
+- homologação externa real da NFC-e com certificado e SEFAZ;
+- evolução de atualização/versionamento do Hub;
+- backup e restauração;
+- homologação integrada final para prontidão de produção.
+
+Formas de Pagamento, condições, snapshot e reflexo em Receber estão encerrados e não devem voltar à lista de pendências sem novo requisito ou erro comprovado.
 
 ---
 
