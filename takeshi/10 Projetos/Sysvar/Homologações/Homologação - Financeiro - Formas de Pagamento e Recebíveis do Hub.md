@@ -22,11 +22,11 @@ tags:
 
 ## 1. Identificação
 
-**Projeto:** [[Sysvar]]  
-**Módulos:** Financeiro / Fiscal / Sysvar Hub  
-**Funcionalidade:** Formas de Pagamento, condições, taxas e geração de Receber a partir da VendaHub  
-**Situação:** HOMOLOGADO  
-**Data de conclusão:** 08/10/2026  
+**Projeto:** [[Sysvar]]
+**Módulos:** Financeiro / Fiscal / Sysvar Hub
+**Funcionalidade:** Formas de Pagamento, condições, taxas e geração de Receber a partir da VendaHub
+**Situação:** HOMOLOGADO
+**Data de conclusão:** 08/10/2026
 **Resultado:** APROVADO
 
 ## 2. Objetivo
