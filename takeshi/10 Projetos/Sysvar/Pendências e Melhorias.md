@@ -562,6 +562,26 @@ Diretriz aprovada:
 - não implementar agora o fluxo completo de recebimento no Hub nesta pendência;
 - não apagar funcionalidades existentes antes da análise de dependências e realocação das rotas necessárias.
 
+## P15 — Financeiro: analisar, sugerir melhorias e homologar
+
+Status: PENDENTE DE ANÁLISE E HOMOLOGAÇÃO
+
+O módulo Financeiro já passou por reestruturações e possui fluxos já implementados/homologados, mas ainda deve passar por uma revisão funcional completa do conjunto.
+
+Objetivo da pendência:
+
+- analisar o estado atual do Financeiro;
+- revisar os fluxos existentes de Receber, Pagar, Caixa, Banco, Adiantamentos, Formas de Pagamento, Prazos, Naturezas e demais configurações relacionadas;
+- identificar erros, inconsistências, redundâncias, lacunas e oportunidades de melhoria;
+- diferenciar claramente erro, melhoria e sugestão;
+- revisar integração com Vendas, Compras, Hub e demais origens financeiras;
+- verificar usabilidade, navegação, clareza das telas e coerência dos cadastros;
+- preservar as decisões financeiras já aprovadas e homologadas, sem reabrir regras encerradas sem motivo concreto;
+- propor melhorias antes de implementar;
+- realizar homologação funcional dos fluxos considerados prontos após a análise e eventuais correções.
+
+A revisão deve começar pela documentação e pelo código atual do módulo, seguida da análise das telas e dos fluxos reais.
+
 ---
 
 # Regras para manutenção deste documento
