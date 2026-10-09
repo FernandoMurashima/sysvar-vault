@@ -383,28 +383,13 @@ Para mercadoria tratada como peça inteira, apresentar sem casas decimais:
 
 Preferir correção de apresentação/entrada sem alterar desnecessariamente os tipos decimais do banco utilizados por outros fluxos.
 
-## P9 — Sysvar Hub / PDV offline: Devolução, Cashback e Vale-Troca
+## P9 — Sysvar Hub / PDV offline: Cashback
 
-Status: PENDENTE
+Status: PENDENTE — SOMENTE CASHBACK
 
-O objetivo do Sysvar Hub é manter o PDV operacional mesmo sem conexão com o Sysvar Central. Portanto, os fluxos essenciais de pós-venda e benefícios comerciais não podem depender exclusivamente de internet.
+A Devolução de Venda e o Vale-Troca no Sysvar Hub já foram implementados, testados e homologados. Eles NÃO são pendências desta seção e não devem ser reabertos sem defeito novo ou nova decisão funcional.
 
-### Devolução de Venda
-
-O PDV offline deve suportar o fluxo de devolução com consistência local e sincronização posterior.
-
-Revisar/implementar:
-
-- localização da venda original disponível no Hub;
-- devolução total e parcial;
-- bloqueio de quantidade devolvida acima da vendida;
-- retorno local do item ao estoque quando aplicável;
-- reflexo local em caixa/forma de restituição;
-- geração de Vale-Troca quando essa for a regra adotada;
-- persistência local da devolução;
-- envio posterior ao Central;
-- idempotência;
-- tratamento de conflito após reconexão.
+A única pendência deste item é integrar o Cashback existente no Sysvar Central ao Sysvar Hub, inclusive para operação offline.
 
 ### Cashback
 
@@ -424,37 +409,16 @@ Revisar/implementar:
 
 Antes da implementação do consumo offline de Cashback, definir política segura para saldo possivelmente desatualizado entre lojas, evitando uso duplicado do mesmo saldo em operações simultâneas desconectadas.
 
-### Vale-Troca
+### Homologação futura do Cashback
 
-Como a devolução pode resultar em Vale-Troca, o recurso também precisa funcionar no Hub offline.
+Testar, quando essa integração for implementada:
 
-Decisão de interface em 09/10/2026: o Vale-Troca não deve permanecer como opção/quadro operacional independente no menu do Sysvar Hub. A emissão do Vale-Troca pertence ao fluxo de Devolução e seu consumo pertence ao fluxo de uma nova Venda. Manter a entidade e as regras necessárias ao processo, mas sem exigir uma tela isolada apenas para Vale-Troca, salvo necessidade futura comprovada.
-
-Revisar/implementar:
-
-- emissão local vinculada à devolução;
-- identificador único;
-- controle de saldo;
-- uso em nova venda;
-- uso parcial quando permitido;
-- cancelamento/estorno;
-- sincronização com o Central;
-- proteção contra duplicidade e uso duplo após reconexão.
-
-### Homologação obrigatória
-
-Testar com a internet desligada:
-
-1. venda normal;
-2. devolução parcial;
-3. devolução total;
-4. devolução gerando Vale-Troca;
-5. nova venda usando Vale-Troca;
-6. venda gerando Cashback;
-7. venda utilizando Cashback conforme política aprovada;
-8. estorno/cancelamento dos benefícios;
-9. reconexão;
-10. confirmação no Central sem duplicidade de venda, estoque, caixa, devolução, Cashback ou Vale-Troca.
+1. venda gerando Cashback;
+2. venda utilizando Cashback conforme política aprovada;
+3. estorno/cancelamento do benefício;
+4. operação offline;
+5. reconexão;
+6. confirmação no Central sem duplicidade de movimentos ou saldo.
 
 Referência: [[Planejamento]].
 
