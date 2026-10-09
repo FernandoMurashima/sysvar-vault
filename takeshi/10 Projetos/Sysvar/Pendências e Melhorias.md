@@ -3,7 +3,7 @@ type: project-tracking
 status: active
 project: Sysvar
 created: 2026-09-10
-updated: 2026-09-18
+updated: 2026-10-09
 tags:
   - sysvar
   - pendencias
@@ -426,6 +426,8 @@ Antes da implementação do consumo offline de Cashback, definir política segur
 
 Como a devolução pode resultar em Vale-Troca, o recurso também precisa funcionar no Hub offline.
 
+Decisão de interface em 09/10/2026: o Vale-Troca não deve permanecer como opção/quadro operacional independente no menu do Sysvar Hub. A emissão do Vale-Troca pertence ao fluxo de Devolução e seu consumo pertence ao fluxo de uma nova Venda. Manter a entidade e as regras necessárias ao processo, mas sem exigir uma tela isolada apenas para Vale-Troca, salvo necessidade futura comprovada.
+
 Revisar/implementar:
 
 - emissão local vinculada à devolução;
@@ -453,6 +455,23 @@ Testar com a internet desligada:
 10. confirmação no Central sem duplicidade de venda, estoque, caixa, devolução, Cashback ou Vale-Troca.
 
 Referência: [[Planejamento]].
+
+## P10 — Sysvar Hub: substituir quadro de Vale-Troca por Recebimento de Loja
+
+Status: PENDENTE — SOMENTE NAVEGAÇÃO/QUADRO NESTA ETAPA
+
+O quadro/opção independente de Vale-Troca no Sysvar Hub foi considerado redundante, pois o Vale-Troca já faz parte do fluxo de Devolução e pode ser utilizado posteriormente em uma nova Venda.
+
+Diretriz aprovada:
+
+- retirar futuramente o quadro/opção independente de Vale-Troca da navegação principal do Hub;
+- substituir esse espaço por um quadro de `Recebimento de Loja` (nome final pode ser refinado na implementação);
+- o novo quadro será o ponto de entrada futuro para o processo de recebimento de mercadorias pela loja;
+- nesta etapa, registrar apenas a necessidade e o espaço de navegação;
+- NÃO implementar agora a funcionalidade de recebimento, APIs, sincronização, conferência ou entrada em estoque;
+- NÃO remover a lógica interna de Vale-Troca necessária à Devolução e à Venda.
+
+A implementação funcional futura de Recebimento de Loja deve ser tratada em etapa própria e alinhada com a pendência P5 — Recebimento em Loja com tela própria de consulta da NF-e.
 
 ---
 
