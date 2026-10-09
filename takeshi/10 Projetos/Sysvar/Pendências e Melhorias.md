@@ -526,6 +526,23 @@ Distribuição
 └─ Faturamento
 ~~~
 
+## P13 — Produção: analisar, verificar e sugerir melhorias
+
+Status: PENDENTE DE ANÁLISE
+
+O módulo de Produção já recebeu alterações anteriormente, mas ainda deve passar por uma revisão funcional específica.
+
+Objetivo da pendência:
+
+- analisar o estado atual do módulo de Produção;
+- verificar os fluxos já existentes e o que foi implementado;
+- identificar inconsistências, lacunas, redundâncias e pontos de melhoria;
+- diferenciar claramente erro, melhoria e sugestão;
+- propor ajustes funcionais e de usabilidade sem alterar nada antes da análise;
+- preservar o que já estiver correto e homologado.
+
+A revisão deve começar pela documentação e pelo código atual do módulo, seguida de uma análise da interface e dos fluxos reais antes de qualquer implementação.
+
 ---
 
 # Regras para manutenção deste documento
