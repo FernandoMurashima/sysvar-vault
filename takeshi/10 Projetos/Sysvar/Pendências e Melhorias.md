@@ -543,6 +543,25 @@ Objetivo da pendência:
 
 A revisão deve começar pela documentação e pelo código atual do módulo, seguida de uma análise da interface e dos fluxos reais antes de qualquer implementação.
 
+## P14 — Sysvar Central: ocultar menu Loja
+
+Status: PENDENTE — AJUSTE DE NAVEGAÇÃO/ARQUITETURA FUNCIONAL
+
+O menu `Loja` dentro do Sysvar Central deve ser ocultado da navegação principal.
+
+Diretriz aprovada:
+
+- o Sysvar Central não deve concentrar operações que pertencem ao uso diário da loja;
+- as facilidades operacionais da loja devem ficar no ambiente próprio da loja/Sysvar Hub;
+- ocultar o menu `Loja` da Central sem remover regras, rotas ou código antes de revisar dependências;
+- revisar as opções hoje existentes sob esse menu e classificar cada uma como:
+  - mover para o Hub;
+  - manter acessível por outra área da Central;
+  - descontinuar da navegação;
+- `Recebimento de Mercadoria` deve ser considerado operação de loja e deve orientar a futura funcionalidade de `Recebimento de Loja` no Sysvar Hub;
+- não implementar agora o fluxo completo de recebimento no Hub nesta pendência;
+- não apagar funcionalidades existentes antes da análise de dependências e realocação das rotas necessárias.
+
 ---
 
 # Regras para manutenção deste documento
