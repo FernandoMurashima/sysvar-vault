@@ -625,6 +625,91 @@ Objetivo da pendência:
 
 A revisão deve considerar, quando aplicável, dashboards de vendas, produtos, estoque, financeiro e demais painéis existentes no sistema.
 
+## P18 — Padronização visual e modernização de layout — Central e Sysvar Hub
+
+Status: PENDENTE DE ANÁLISE, DEFINIÇÃO DE PADRÃO E HOMOLOGAÇÃO
+
+O Sysvar Central e o Sysvar Hub devem passar por uma revisão conjunta de layout e design para ganhar identidade visual consistente, melhor aproveitamento de tela e aparência mais moderna.
+
+Diretriz principal aprovada:
+
+- todas as telas operacionais devem seguir um padrão de abertura em área de trabalho ampla/tela cheia;
+- ao entrar em uma funcionalidade, o menu lateral deve poder ser ocultado/recolhido para liberar a área útil;
+- evitar a situação atual em que algumas telas usam toda a largura e outras ficam limitadas a áreas menores sem necessidade;
+- Central e Hub devem compartilhar linguagem visual, espaçamentos, cabeçalhos, filtros, tabelas, badges, botões e padrões de detalhe;
+- preservar diferenças funcionais entre Central e Hub, mas manter a sensação de que ambos pertencem ao mesmo produto.
+
+Pontos para analisar e propor antes de implementar:
+
+### Estrutura de tela
+
+- cabeçalho padrão para todas as funcionalidades;
+- título, contexto, ações principais e status sempre em posições consistentes;
+- área principal ocupando o máximo da tela;
+- menu lateral recolhível/ocultável;
+- comportamento consistente de tela cheia;
+- filtros em barra compacta;
+- tabelas como elemento principal nas telas de consulta/operação;
+- detalhes abrindo em painel, drawer, modal amplo ou seção expansível sem desperdiçar espaço quando fechados.
+
+### Padronização visual
+
+Definir um design system simples para o Sysvar com:
+
+- tipografia;
+- tamanhos de título/subtítulo;
+- espaçamentos;
+- raios de borda;
+- sombras;
+- hierarquia de botões;
+- cores de status;
+- badges;
+- campos;
+- selects;
+- tabelas;
+- paginação;
+- mensagens de erro/alerta/sucesso;
+- loading;
+- estados vazios;
+- ícones.
+
+### Modernização / “florzinhas”
+
+Avaliar recursos visuais discretos que deixem o sistema mais moderno sem virar dashboard decorativo ou comprometer a operação:
+
+- ícones coerentes nas ações;
+- microinterações leves;
+- hover/seleção mais refinados;
+- indicadores visuais de status;
+- transições curtas em drawers/painéis;
+- cabeçalhos com melhor hierarquia;
+- realce visual de totais e informações-chave;
+- empty states mais cuidados;
+- feedback visual de ações concluídas;
+- pequenos elementos de identidade da marca Sysvar.
+
+Evitar:
+
+- excesso de cartões;
+- cores sem função;
+- animações chamativas;
+- espaços vazios excessivos;
+- componentes diferentes para funções equivalentes;
+- redesenho que reduza densidade operacional de ERP.
+
+### Estratégia
+
+Antes de alterar telas em massa:
+
+1. analisar Central e Hub atuais;
+2. identificar padrões repetidos e inconsistências;
+3. escolher 2 ou 3 telas representativas;
+4. criar proposta visual padrão;
+5. homologar o padrão;
+6. somente depois aplicar gradualmente ao restante do sistema.
+
+A revisão deve gerar uma proposta clara de padrão visual e componentes reutilizáveis antes da implementação ampla.
+
 ---
 
 # Regras para manutenção deste documento
