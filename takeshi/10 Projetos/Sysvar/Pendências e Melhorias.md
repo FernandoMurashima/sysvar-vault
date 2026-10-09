@@ -582,6 +582,28 @@ Objetivo da pendência:
 
 A revisão deve começar pela documentação e pelo código atual do módulo, seguida da análise das telas e dos fluxos reais.
 
+## P16 — Fiscal/Contábil: analisar, sugerir melhorias e homologar
+
+Status: PENDENTE DE ANÁLISE E HOMOLOGAÇÃO
+
+O conjunto Fiscal/Contábil deve passar por uma revisão funcional específica antes de ser considerado encerrado.
+
+Objetivo da pendência:
+
+- analisar o estado atual dos módulos Fiscal e Contábil;
+- revisar os fluxos, telas, integrações e cadastros já existentes;
+- identificar erros, inconsistências, redundâncias, lacunas e oportunidades de melhoria;
+- diferenciar claramente erro, melhoria e sugestão;
+- revisar a integração com Vendas, Compras, Estoque, Financeiro e demais origens relacionadas;
+- verificar usabilidade, navegação e coerência funcional;
+- preservar o que já estiver correto e homologado;
+- propor melhorias antes de qualquer implementação;
+- realizar homologação funcional dos fluxos considerados prontos após a análise e eventuais correções.
+
+A revisão deve começar pela documentação e pelo código atual, seguida da análise das telas e dos fluxos reais.
+
+Observação: a revisão fiscal completa de leiaute/regras oficiais de NF-e permanece como último item da fila, conforme prioridade já definida para o projeto.
+
 ---
 
 # Regras para manutenção deste documento
