@@ -710,6 +710,74 @@ Antes de alterar telas em massa:
 
 A revisão deve gerar uma proposta clara de padrão visual e componentes reutilizáveis antes da implementação ampla.
 
+## P19 — CMV: revisar composição, origem dos custos e atualização dos dashboards
+
+Status: PENDENTE DE ANÁLISE E CORREÇÃO
+
+Foi identificado indício de erro no Dashboard de Margem/CMV: os valores de CMV aparecem zerados e, como consequência, a margem exibida fica igual ao valor total da receita.
+
+A estrutura de CMV deve ser revisada de ponta a ponta, desde a formação do custo até o consumo desse custo nos relatórios e dashboards.
+
+Diretriz de negócio aprovada:
+
+### Produto de revenda
+
+O CMV deve ter como base o custo efetivamente recebido da compra do fornecedor, originado no fluxo de:
+
+~~~text
+Pedido de Compra
+↓
+Fornecedor
+↓
+NF-e / Recebimento de Mercadoria
+↓
+Custo do produto/SKU
+↓
+Venda
+↓
+CMV
+~~~
+
+O valor de custo usado no CMV deve refletir o custo de aquisição persistido no estoque/SKU conforme a regra vigente do sistema, sem ser substituído pelo preço de venda.
+
+### Produto de produção própria
+
+O CMV deve ser formado pela composição de custos da Ficha Técnica / estrutura produtiva do produto.
+
+A revisão deve verificar como entram na composição, conforme o modelo já existente no sistema:
+
+- matérias-primas;
+- insumos;
+- componentes;
+- custos de produção já previstos na estrutura atual;
+- demais elementos de custo vinculados à Ficha Técnica.
+
+Não inventar nova regra de custeio antes de analisar o que já existe no módulo de Produção.
+
+### Pontos obrigatórios da revisão
+
+- identificar onde o custo é persistido para produto de revenda;
+- verificar se o custo recebido da compra chega corretamente ao SKU/estoque;
+- verificar qual custo a Venda grava ou referencia no momento da saída;
+- verificar se o CMV da venda fica historicamente preservado;
+- verificar se alterações posteriores de custo não distorcem vendas antigas;
+- analisar produtos de produção própria e sua ligação com a Ficha Técnica;
+- revisar cálculo de CMV nos relatórios;
+- revisar cálculo de margem bruta;
+- revisar o Dashboard de Margem/CMV;
+- identificar por que o CMV atual está zerado;
+- diferenciar erro de implementação, dado ausente e regra de negócio ainda não implementada;
+- corrigir somente após a análise;
+- homologar com exemplos reais de revenda e produção própria.
+
+Regra conceitual esperada para os indicadores:
+
+~~~text
+Margem Bruta = Receita de Venda - CMV
+~~~
+
+O dashboard não deve apresentar a receita integral como margem quando existir custo associado à mercadoria vendida.
+
 ---
 
 # Regras para manutenção deste documento
