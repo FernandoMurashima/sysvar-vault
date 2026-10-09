@@ -408,7 +408,9 @@ Revisar/implementar:
 
 ### Cashback
 
-O Hub precisa receber as regras/configurações necessárias para que o PDV consiga tratar Cashback no cenário offline.
+Status específico: PENDENTE DE INTEGRAÇÃO CENTRAL → SYSVAR HUB
+
+O recurso de Cashback já existe no Sysvar Central, mas ainda não está integrado ao Sysvar Hub. A pendência é levar ao Hub as regras/configurações e os movimentos necessários para que o PDV consiga tratar Cashback também no cenário offline, sem duplicar a regra de negócio já existente na Central.
 
 Revisar/implementar:
 
