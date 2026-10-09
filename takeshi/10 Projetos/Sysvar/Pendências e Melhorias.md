@@ -499,6 +499,33 @@ Validar no mínimo:
 Se a sincronização já existir, homologar e documentar o fluxo.
 Se não existir ou estiver incompleta, implementar em etapa própria.
 
+## P12 — Reorganizar menu de Distribuição
+
+Status: PENDENTE — AJUSTE LEVE DE NAVEGAÇÃO
+
+Reorganizar o menu de Distribuição no Sysvar Central para eliminar a hierarquia atual considerada confusa e redundante.
+
+Diretriz aprovada:
+
+- abaixo do menu principal `Distribuição` devem existir diretamente apenas três opções:
+  1. `Distribuição`;
+  2. `Pedido de Venda`;
+  3. `Faturamento`;
+- a rota hoje localizada em `Perfil Distribuição` deve passar a aparecer como `Distribuição`;
+- a rota de `Pedido de Venda` deve subir para o primeiro nível abaixo de `Distribuição`;
+- a rota de `Faturamento` deve subir para o primeiro nível abaixo de `Distribuição`;
+- remover da navegação intermediária os agrupamentos/submenus atuais de `Configuração`, `Operação` e `Perfil Distribuição`, preservando as rotas e funcionalidades;
+- nesta pendência não alterar regras de negócio, apenas nomenclatura e estrutura de navegação.
+
+Estrutura desejada:
+
+~~~text
+Distribuição
+├─ Distribuição
+├─ Pedido de Venda
+└─ Faturamento
+~~~
+
 ---
 
 # Regras para manutenção deste documento
