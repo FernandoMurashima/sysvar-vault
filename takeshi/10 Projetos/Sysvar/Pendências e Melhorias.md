@@ -475,6 +475,30 @@ Diretriz aprovada:
 
 A implementação funcional futura de Recebimento de Loja deve ser tratada em etapa própria e alinhada com a pendência P5 — Recebimento em Loja com tela própria de consulta da NF-e.
 
+## P11 — Sysvar Hub: verificar sincronização de Promoções e atualização de preços
+
+Status: PENDENTE DE VERIFICAÇÃO/INTEGRAÇÃO
+
+O recurso de Promoções já existe no Sysvar Central.
+
+É necessário verificar se o Sysvar Hub já recebe corretamente as promoções criadas ou alteradas na Central e se essas informações passam a refletir no PDV para atualização/aplicação dos preços promocionais.
+
+Validar no mínimo:
+
+- criação de promoção na Central;
+- alteração de promoção existente;
+- vigência inicial e final;
+- produtos/SKUs abrangidos;
+- preço promocional;
+- atualização/sincronização Central → Hub;
+- aplicação correta no PDV;
+- comportamento offline após a última sincronização válida;
+- expiração da promoção no Hub;
+- ausência de preço promocional obsoleto após nova sincronização.
+
+Se a sincronização já existir, homologar e documentar o fluxo.
+Se não existir ou estiver incompleta, implementar em etapa própria.
+
 ---
 
 # Regras para manutenção deste documento
