@@ -604,6 +604,27 @@ A revisão deve começar pela documentação e pelo código atual, seguida da an
 
 Observação: a revisão fiscal completa de leiaute/regras oficiais de NF-e permanece como último item da fila, conforme prioridade já definida para o projeto.
 
+## P17 — Dashboards: analisar, sugerir melhorias e homologar
+
+Status: PENDENTE DE ANÁLISE E HOMOLOGAÇÃO
+
+Os dashboards do Sysvar devem passar por uma revisão funcional específica.
+
+Objetivo da pendência:
+
+- analisar o estado atual dos dashboards existentes;
+- revisar indicadores, filtros, períodos, agrupamentos e fontes de dados;
+- verificar se os números apresentados correspondem aos dados reais dos módulos de origem;
+- identificar erros, inconsistências, redundâncias, lacunas e oportunidades de melhoria;
+- diferenciar claramente erro, melhoria e sugestão;
+- revisar usabilidade, clareza visual, hierarquia das informações e utilidade gerencial;
+- evitar indicadores duplicados ou sem valor prático;
+- preservar o que já estiver correto;
+- propor melhorias antes de qualquer implementação;
+- realizar homologação funcional dos dashboards considerados prontos após a análise e eventuais correções.
+
+A revisão deve considerar, quando aplicável, dashboards de vendas, produtos, estoque, financeiro e demais painéis existentes no sistema.
+
 ---
 
 # Regras para manutenção deste documento
