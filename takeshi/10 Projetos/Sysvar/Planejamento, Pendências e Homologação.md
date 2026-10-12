@@ -1161,6 +1161,7 @@ As seções abaixo preservam integralmente os conteúdos dos dois documentos sub
 
 # Anexo A — Snapshot integral do antigo Planejamento.md
 
+````markdown
 ---
 type: project
 status: active
@@ -2165,11 +2166,13 @@ Referência: [[Metodologia de Trabalho]].
 - [[Pendências e Melhorias]]
 - [[Mapa Técnico - Sysvar Hub - Fotos de Produto no PDV]]
 - [[Metodologia de Trabalho]]
+````
 
 ---
 
 # Anexo B — Snapshot integral do antigo Pendências e Melhorias.md
 
+````markdown
 ---
 type: project-tracking
 status: active
@@ -2940,4 +2943,4 @@ Ao retomar melhorias do fluxo de revenda, consultar primeiro este documento e de
 - Fiscal;
 - Recebimento em Loja;
 - Sysvar Hub / PDV offline.
-
+````
