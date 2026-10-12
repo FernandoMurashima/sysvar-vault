@@ -126,8 +126,7 @@ A documentação funcional e arquitetural do Sysvar fica no `sysvar-vault`, prin
 - `Homologações`;
 - `Operacao`;
 - `Sysvar.md`;
-- `Planejamento.md`;
-- `Pendências e Melhorias.md`.
+- `Planejamento, Pendências e Homologação.md`.
 
 Os diretórios `docs` dos repositórios de código devem guardar documentação estritamente ligada à implementação daquele repositório, quando isso facilitar manutenção junto do código.
 
