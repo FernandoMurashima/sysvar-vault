@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "FernandoMurashima/sysvarhub-backend + FernandoMurashima/sysvarhub-frontend"
 created: 2026-09-19
-updated: 2026-09-19
+updated: 2026-10-12
 tags:
   - sysvar
   - sysvar-hub
@@ -88,10 +88,9 @@ Esta pendência pertence à **Etapa 1 — Loja / Sysvar Hub**, integrada princip
 - operação do PDV totalmente offline;
 - homologação completa do Hub.
 
-Ela não altera a sequência principal definida em [[Planejamento]].
+Ela não altera a sequência principal definida em [[Planejamento, Pendências e Homologação]].
 
 ## Relacionados
 
-- [[Planejamento]]
+- [[Planejamento, Pendências e Homologação]]
 - [[Sysvar Hub]]
-- [[Pendências e Melhorias]]
