@@ -3,7 +3,7 @@ type: technical-map
 status: active
 project: Sysvar
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-10-12
 tags:
   - sysvar
   - hub
@@ -230,6 +230,5 @@ Estas pendências **não bloqueiam o avanço atual do Sysvar Hub**:
 
 ## Relacionados
 
-- [[Planejamento]]
+- [[Planejamento, Pendências e Homologação]]
 - [[Sysvar Hub]]
-- [[Pendências e Melhorias]]
