@@ -436,6 +436,11 @@ Preferir correção de apresentação/entrada sem alterar tipos de banco desnece
 
 # 5. Sysvar Hub — pendências restantes
 
+Planejamento detalhado desta etapa:
+
+[[Planejamento - Fechamento do Sysvar Hub]]
+
+
 ## P9 — Cashback
 
 Status: PENDENTE — SOMENTE CASHBACK
