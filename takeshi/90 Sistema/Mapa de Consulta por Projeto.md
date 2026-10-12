@@ -4,7 +4,7 @@ status: active
 project: ""
 source: ""
 created: 2026-08-16
-updated: 2026-09-30
+updated: 2026-10-12
 tags:
   - sistema
   - ia
@@ -126,7 +126,7 @@ A documentação funcional e arquitetural do Sysvar fica no `sysvar-vault`, prin
 - `Homologações`;
 - `Operacao`;
 - `Sysvar.md`;
-- `Planejamento, Pendências e Homologação.md`.
+- `Planejamento, Pendências e Homologação.md` — fonte única de controle de roadmap, pendências e homologação.
 
 Os diretórios `docs` dos repositórios de código devem guardar documentação estritamente ligada à implementação daquele repositório, quando isso facilitar manutenção junto do código.
 
