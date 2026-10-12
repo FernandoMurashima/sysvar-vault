@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "FernandoMurashima/sysvar-vault + FernandoMurashima/sysvarbackend + FernandoMurashima/sysvarfrontend + FernandoMurashima/sysvarhub-backend + FernandoMurashima/sysvarhub-frontend"
 created: 2026-09-30
-updated: 2026-09-30
+updated: 2026-10-12
 tags:
   - sysvar
   - documentacao
@@ -192,10 +192,17 @@ A nota principal deve continuar como visão geral do produto e ponto de navegaç
 
 Mudanças operacionais diárias e detalhes de implementação não devem ser despejados nela.
 
-### 5. `Planejamento.md` e `Pendências e Melhorias.md` precisam permanecer distintos
+### 5. Controle de planejamento e pendências — decisão atualizada em 12/10/2026
 
-- `Planejamento.md`: etapas planejadas e direção de trabalho.
-- `Pendências e Melhorias.md`: somente itens que exigem ação real.
+A decisão registrada originalmente em 30/09/2026 mantinha `Planejamento.md` e `Pendências e Melhorias.md` separados.
+
+Essa decisão foi **superada em 12/10/2026** após uso prático dos dois documentos revelar sobreposição e risco de divergência de status.
+
+A fonte única atual de controle é:
+
+- [[Planejamento, Pendências e Homologação]]
+
+Os antigos `Planejamento.md` e `Pendências e Melhorias.md` foram incorporados integralmente ao novo documento e removidos como fontes paralelas.
 
 Não usar nenhum dos dois como histórico completo de commits.
 
