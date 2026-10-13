@@ -3,7 +3,7 @@ type: checkpoint
 status: active
 project: Sysvar
 created: 2026-09-20
-updated: 2026-10-08
+updated: 2026-10-13
 tags:
   - sysvar
   - hub
@@ -14,7 +14,41 @@ tags:
 
 # Checkpoint — Sysvar Hub
 
-## Checkpoint atual — 08/10/2026
+## Checkpoint atual — 13/10/2026 — pausa após Prompt 6A
+
+**Trabalho encerrado hoje:** implementação e revisão do Prompt 6A na Central, que devolve proporcionalmente o Cashback utilizado e reduz o Vale-Troca. Commit Central Backend `82bd6ab824851b7be2a50698d8a37064fdbdcacc`; sete testes direcionados informados como aprovados pelo Codex. A homologação manual integrada ainda não ocorreu.
+
+**Decisão funcional aprovada:** Opção A. Em devolução integral de venda de R$ 100,00 paga com R$ 30,00 em Cashback e R$ 70,00 em PIX, restaurar R$ 30,00 ao Cashback e gerar Vale-Troca de R$ 70,00. Para devoluções parciais, usar proporção acumulada e restituição incremental, sem duplicidade.
+
+### Estado remoto verificado em 13/10/2026
+
+- Central Backend `FernandoMurashima/sysvarbackend`: `82bd6ab824851b7be2a50698d8a37064fdbdcacc`.
+- Central Frontend `FernandoMurashima/sysvarfrontend`: `3feea5ce678bd6a8f9a0a8db335d8dbcdb61fc50`.
+- Hub Backend `FernandoMurashima/sysvarhub-backend`: `fc8a8b2ad25cc8a2870708ce1c5e2ae2401ff694`.
+- Hub Frontend `FernandoMurashima/sysvarhub-frontend`: `0e2d82a09c6b81180098eb2e9a4bb90d7bf463cf`.
+- `sysvar-vault` antes da atualização deste checkpoint: `4620d11f6698b9920b78202d1c3aced4869bd77e`.
+
+Os commits de Cashback revisados não modificaram documentos nos três repositórios técnicos envolvidos. Não foi possível inspecionar diretamente os cinco clones locais; confirmar com Git no computador do usuário antes de fazer pull.
+
+### Pendência encontrada na revisão
+
+O Hub cria Vale-Troca provisório pelo valor total da devolução. O Prompt 6A faz a Central emitir apenas o Vale-Troca líquido e pode não emitir Vale quando o Cashback cobre toda a devolução. A confirmação da devolução no Hub ainda não reconcilia o saldo e o valor original do Vale provisório. **Não homologar devolução com Cashback sem tratar essa divergência**, pois há risco de exibir um valor de crédito local incompatível com o oficial.
+
+### Retomar em 14/10/2026
+
+1. Investigar e preparar correção pequena da reconciliação do Vale-Troca provisório do Hub; preservar operação offline e idempotência.
+2. Revisar a integração dessa correção com o Prompt 6A; não refazer o que já está tecnicamente aprovado.
+3. Executar Prompt 6B: reversão proporcional do Cashback gerado pela venda devolvida.
+4. Executar Prompt 7: ajuste final da devolução/Cashback no Hub, conforme a análise, e depois realizar testes funcionais na Loja Barra.
+5. Retomar Promoções e os blocos restantes de fechamento do Hub somente após encerrar Cashback.
+
+**Pausa solicitada pelo usuário:** não iniciar Prompt 6B nem outras alterações de código hoje. Conferência documental limitada ao `sysvar-vault`; atualizar os clones locais após confirmar status limpo.
+
+Referências: [[Planejamento - Fechamento do Sysvar Hub]] e [[Planejamento, Pendências e Homologação]].
+
+---
+
+## Checkpoint anterior — 08/10/2026
 
 A reestruturação de **Formas de Pagamento, condições, taxas e geração de Receber das vendas do Sysvar Hub foi concluída, testada, homologada e aprovada**.
 
