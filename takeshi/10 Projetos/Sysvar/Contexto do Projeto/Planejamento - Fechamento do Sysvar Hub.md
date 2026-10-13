@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "FernandoMurashima/sysvarhub-backend + FernandoMurashima/sysvarhub-frontend + FernandoMurashima/sysvarbackend + FernandoMurashima/sysvarfrontend"
 created: 2026-10-12
-updated: 2026-10-12
+updated: 2026-10-13
 tags:
   - sysvar
   - hub
@@ -75,7 +75,7 @@ A homologação final integrada não é um prompt de implementação. Ela será 
 
 ## Prompt 1 — Central: contrato do Recebimento de Loja
 
-Status: PENDENTE
+Status: IMPLEMENTADO — HOMOLOGAÇÃO ONLINE APROVADA EM 13/10/2026; TESTE OFFLINE PENDENTE
 
 Raciocínio recomendado: **Alto**
 
@@ -106,7 +106,7 @@ Homologação após o prompt:
 
 ## Prompt 2 — Hub Backend: domínio local do Recebimento de Loja
 
-Status: PENDENTE
+Status: IMPLEMENTADO — HOMOLOGAÇÃO ONLINE APROVADA EM 13/10/2026; TESTE OFFLINE PENDENTE
 
 Raciocínio recomendado: **Alto**
 
@@ -139,7 +139,7 @@ Homologação após o prompt:
 
 ## Prompt 3 — Hub Frontend: tela Recebimento de Loja
 
-Status: PENDENTE
+Status: IMPLEMENTADO — HOMOLOGAÇÃO ONLINE APROVADA EM 13/10/2026; TESTE OFFLINE PENDENTE
 
 Raciocínio recomendado: **Médio**
 
@@ -170,6 +170,43 @@ Homologação após o prompt:
 
 - executar bateria funcional do recebimento pela interface;
 - somente após aprovação marcar P5/P10 como concluídos.
+
+---
+
+## Registro de homologação — Recebimento de Loja — 13/10/2026
+
+**Ambiente:** Hub da Loja Barra / Sysvar Central. **Resultado:** fluxo online de recebimento sem divergência e com divergência aprovado. A homologação offline permanece pendente; o bloco de Recebimento não está integralmente encerrado.
+
+### Sem divergência
+
+- Pedido `PV26000001`, NF-e 1, 12/10/2026, Loja Barra.
+- Quantidade esperada e recebida: **180 peças**.
+- Hub apresentou `RECEBIDO` e mensagem de conferência confirmada pela Central, com processamento local concluído.
+- Conferência do estoque na Central aprovada no ciclo de 12/10.
+
+### Com divergência
+
+- Distribuição `DI26000002`, pedido `PV26000004`, NF-e **4**, 13/10/2026, Fábrica → Loja Barra.
+- Referência `27-01-01004`, cor **Jeans**, tamanhos 34/36/38/40/42/44; enviado: **20/40/60/60/40/20**, total **240 peças**.
+- Conferência feita no Hub: **18/40/60/60/40/20**, total **238 peças**; faltaram **2 peças no tamanho 34**.
+- Observação informada na conferência: “Contado veio faltando duas! observacao no canhoto da nota”.
+- Ao clicar `Lançar no estoque`, o Hub passou a mostrar `RECEBIDO`, com confirmação da Central e processamento local concluído, sem necessidade de confirmação manual adicional observada nesse teste.
+- Saldo anterior na Central da Loja Barra, referência `27-01-01004`: Jeans **20 em cada tamanho**, total **120**; Azul **20 em cada tamanho**, total **120**.
+- Saldo posterior conferido na Central, Jeans tamanhos 34/36/38/40/42/44: **38/60/80/80/60/40**, total **358 peças**; Azul permaneceu com **120 peças**; total da referência na Barra **478 peças**.
+- **Resultado aprovado:** somente as 238 peças efetivamente conferidas ingressaram no saldo exibido pela Central; as 2 faltantes não foram adicionadas ao estoque da Barra.
+- Este teste não valida, por si só, tratamento fiscal/contábil definitivo das peças faltantes nem o processamento offline.
+
+### Pendência técnica — sincronização de novas entregas Central → Hub
+
+- Depois da autorização da NF-e 4, o documento inicialmente **não aparecia** no Recebimento de Loja; a tela de Pendências também não mostrava ocorrência.
+- **Após sincronização manual**, a NF-e 4 apareceu como `PENDENTE`, disponível para conferência, com 6 SKUs e 240 peças.
+- **Diagnóstico ainda não fechado:** verificar se o mecanismo periódico de obtenção automática da Central já existe, sua frequência, gatilhos e motivo de a entrega não ter surgido no intervalo observado. Não concluir que inexiste sincronização automática apenas por esse teste.
+- **Diretriz proposta, sujeita à análise do código:** priorizar atualização automática Central → Hub, mantendo sincronização manual como recurso operacional; não implementar alteração antes de diagnosticar.
+- **Não bloqueante para o teste seguinte:** manter registrada e tratar em tarefa técnica específica.
+
+### Próximo passo
+
+**Testar recebimento de loja em condição offline e posterior reconexão**, preservando conferência, filas, idempotência e consistência de estoque; não repetir as homologações online já aprovadas sem defeito novo.
 
 ---
 
@@ -506,9 +543,9 @@ HUB FUNCIONALMENTE FECHADO
 
 | Item | Status |
 |---|---|
-| Prompt 1 — Central / contrato Recebimento | PENDENTE |
-| Prompt 2 — Hub Backend / Recebimento | PENDENTE |
-| Prompt 3 — Hub Frontend / Recebimento | PENDENTE |
+| Prompt 1 — Central / contrato Recebimento | IMPLEMENTADO — ONLINE HOMOLOGADO |
+| Prompt 2 — Hub Backend / Recebimento | IMPLEMENTADO — ONLINE HOMOLOGADO; OFFLINE PENDENTE |
+| Prompt 3 — Hub Frontend / Recebimento | IMPLEMENTADO — ONLINE HOMOLOGADO |
 | Investigação Cashback | PENDENTE |
 | Prompt 4 — Cashback | CONDICIONAL |
 | Homologação Cashback | PENDENTE |
