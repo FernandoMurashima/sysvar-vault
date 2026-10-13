@@ -75,7 +75,7 @@ A homologação final integrada não é um prompt de implementação. Ela será 
 
 ## Prompt 1 — Central: contrato do Recebimento de Loja
 
-Status: IMPLEMENTADO — HOMOLOGAÇÃO ONLINE APROVADA EM 13/10/2026; TESTE OFFLINE PENDENTE
+Status: IMPLEMENTADO — RECEBIMENTO ONLINE E OFFLINE HOMOLOGADOS EM 13/10/2026
 
 Raciocínio recomendado: **Alto**
 
@@ -106,7 +106,7 @@ Homologação após o prompt:
 
 ## Prompt 2 — Hub Backend: domínio local do Recebimento de Loja
 
-Status: IMPLEMENTADO — HOMOLOGAÇÃO ONLINE APROVADA EM 13/10/2026; TESTE OFFLINE PENDENTE
+Status: IMPLEMENTADO — RECEBIMENTO ONLINE E OFFLINE HOMOLOGADOS EM 13/10/2026
 
 Raciocínio recomendado: **Alto**
 
@@ -139,7 +139,7 @@ Homologação após o prompt:
 
 ## Prompt 3 — Hub Frontend: tela Recebimento de Loja
 
-Status: IMPLEMENTADO — HOMOLOGAÇÃO ONLINE APROVADA EM 13/10/2026; TESTE OFFLINE PENDENTE
+Status: IMPLEMENTADO — RECEBIMENTO ONLINE E OFFLINE HOMOLOGADOS EM 13/10/2026
 
 Raciocínio recomendado: **Médio**
 
@@ -175,7 +175,7 @@ Homologação após o prompt:
 
 ## Registro de homologação — Recebimento de Loja — 13/10/2026
 
-**Ambiente:** Hub da Loja Barra / Sysvar Central. **Resultado:** fluxo online de recebimento sem divergência e com divergência aprovado. A homologação offline permanece pendente; o bloco de Recebimento não está integralmente encerrado.
+**Ambiente:** Hub da Loja Barra / Sysvar Central. **Resultado:** fluxos online (sem divergência e com divergência) e offline (com reconexão e transmissão automática) aprovados. Bloco de Recebimento de Loja homologado no escopo testado.
 
 ### Sem divergência
 
@@ -194,7 +194,19 @@ Homologação após o prompt:
 - Saldo anterior na Central da Loja Barra, referência `27-01-01004`: Jeans **20 em cada tamanho**, total **120**; Azul **20 em cada tamanho**, total **120**.
 - Saldo posterior conferido na Central, Jeans tamanhos 34/36/38/40/42/44: **38/60/80/80/60/40**, total **358 peças**; Azul permaneceu com **120 peças**; total da referência na Barra **478 peças**.
 - **Resultado aprovado:** somente as 238 peças efetivamente conferidas ingressaram no saldo exibido pela Central; as 2 faltantes não foram adicionadas ao estoque da Barra.
-- Este teste não valida, por si só, tratamento fiscal/contábil definitivo das peças faltantes nem o processamento offline.
+- Este teste não valida, por si só, tratamento fiscal/contábil definitivo das peças faltantes. O comportamento offline foi homologado separadamente, conforme registro abaixo.
+
+### Homologação offline — Loja Barra — 13/10/2026
+
+**Status: APROVADO pelo usuário.**
+
+- O recebimento de mercadoria foi executado no Hub da Loja Barra enquanto estava offline.
+- Após restabelecimento da conexão, o Hub realizou a transmissão **automaticamente**, sem ação manual adicional.
+- A Central aceitou o recebimento.
+- O usuário confirmou o procedimento como homologado.
+- Regra operacional aprovada: a conferência feita offline é persistida localmente e transmitida automaticamente após reconexão, sem intervenção do operador.
+- Não foram informados nesta homologação número da NF-e, quantidades ou uma nova consulta detalhada de saldo; não atribuir valores do teste anterior a este.
+- A robustez diante de falhas prolongadas, tentativas repetidas ou cenários extremos de conflito continua coberta pela bateria integrada de retry/idempotência, sem necessidade de reabrir o teste funcional aprovado.
 
 ### Pendência técnica — sincronização de novas entregas Central → Hub
 
@@ -206,7 +218,7 @@ Homologação após o prompt:
 
 ### Próximo passo
 
-**Testar recebimento de loja em condição offline e posterior reconexão**, preservando conferência, filas, idempotência e consistência de estoque; não repetir as homologações online já aprovadas sem defeito novo.
+**Recebimento offline com reconexão HOMOLOGADO em 13/10/2026.** Avançar na sequência oficial para investigação de Cashback; não repetir o fluxo aprovado sem defeito novo. Manter pendente a investigação específica da atualização automática das novas entregas Central → Hub.
 
 ---
 
@@ -543,9 +555,9 @@ HUB FUNCIONALMENTE FECHADO
 
 | Item | Status |
 |---|---|
-| Prompt 1 — Central / contrato Recebimento | IMPLEMENTADO — ONLINE HOMOLOGADO |
-| Prompt 2 — Hub Backend / Recebimento | IMPLEMENTADO — ONLINE HOMOLOGADO; OFFLINE PENDENTE |
-| Prompt 3 — Hub Frontend / Recebimento | IMPLEMENTADO — ONLINE HOMOLOGADO |
+| Prompt 1 — Central / contrato Recebimento | IMPLEMENTADO — HOMOLOGADO ONLINE E OFFLINE |
+| Prompt 2 — Hub Backend / Recebimento | IMPLEMENTADO — HOMOLOGADO ONLINE E OFFLINE |
+| Prompt 3 — Hub Frontend / Recebimento | IMPLEMENTADO — HOMOLOGADO ONLINE E OFFLINE |
 | Investigação Cashback | PENDENTE |
 | Prompt 4 — Cashback | CONDICIONAL |
 | Homologação Cashback | PENDENTE |
