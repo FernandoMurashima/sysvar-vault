@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 source: "FernandoMurashima/sysvarbackend + FernandoMurashima/sysvarfrontend + FernandoMurashima/sysvarhub-backend + FernandoMurashima/sysvarhub-frontend + FernandoMurashima/sysvar-vault"
 created: 2026-09-10
-updated: 2026-10-12
+updated: 2026-10-13
 tags:
   - sysvar
   - planejamento
@@ -324,7 +324,9 @@ Preservar:
 
 ## P5 — Recebimento de Loja
 
-Status: PENDENTE
+Status: **HOMOLOGADO — Hub da Loja Barra, online e offline, em 13/10/2026**.
+
+Implementação e homologação registradas em [[Planejamento - Fechamento do Sysvar Hub]]. O detalhamento abaixo descreve o requisito histórico atendido; não representa pendência aberta. Permanece apenas investigação separada sobre a atualização automática Central → Hub de novas entregas.
 
 O recebimento deve evoluir para uma experiência própria da Loja/Hub, evitando a grade extensa na listagem da Central.
 
@@ -443,13 +445,17 @@ Planejamento detalhado desta etapa:
 
 ## P9 — Cashback
 
-Status: PENDENTE — SOMENTE CASHBACK
+Status: **IMPLEMENTAÇÃO PARCIAL REVISADA — HOMOLOGAÇÃO FUNCIONAL PENDENTE (13/10/2026)**.
 
-A Devolução e o Vale-Troca no Hub já foram implementados, testados e homologados.
+O Cashback LOCAL do Hub e o Cashback CENTRAL com reserva online passaram a ser operações separadas. As implementações de backend e frontend do Hub e a reserva na Central foram revisadas por commits. O Prompt 6A, no Central Backend, implementou a restituição proporcional do Cashback utilizado na devolução e a dedução do Vale-Troca, mas **a compatibilidade com o vale provisório criado no Hub ainda exige correção/validação**.
 
-A única pendência deste item é integrar o Cashback existente no Central ao Hub, inclusive offline.
+Decisão comercial aprovada: devolver ao Cashback o valor originalmente utilizado correspondente aos itens devolvidos, abatendo-o do Vale-Troca; nunca creditar em duplicidade. Para devoluções parciais, calcular restituição incremental proporcional. O estorno do Cashback **gerado** pela venda devolvida permanece para o Prompt 6B.
 
-Revisar/implementar:
+**Atenção operacional:** o Hub ainda cria um Vale-Troca provisório pelo valor bruto da devolução e a rotina de confirmação não ajusta seu saldo ao valor líquido retornado pela Central. Se houver Cashback utilizado na venda, isso pode deixar o espelho local divergente e, em restituição integral de Cashback, manter um vale provisório que não tem correspondente oficial. Exige análise/correção antes da homologação de devolução com Cashback.
+
+Registros atuais: Central Backend `82bd6ab824851b7be2a50698d8a37064fdbdcacc`; Hub Backend `fc8a8b2ad25cc8a2870708ce1c5e2ae2401ff694`; Hub Frontend `0e2d82a09c6b81180098eb2e9a4bb90d7bf463cf`.
+
+Revisar/homologar, conforme aplicável:
 
 - snapshot da configuração;
 - geração em venda elegível;
@@ -461,7 +467,7 @@ Revisar/implementar:
 - idempotência;
 - política segura para saldo possivelmente desatualizado entre lojas.
 
-Homologação futura:
+Homologação futura (ainda não executada de ponta a ponta):
 
 1. venda gerando Cashback;
 2. venda utilizando Cashback;
@@ -472,7 +478,7 @@ Homologação futura:
 
 ## P10 — Substituir quadro de Vale-Troca por Recebimento de Loja
 
-Status: PENDENTE — NAVEGAÇÃO/QUADRO
+Status: **IMPLEMENTADO E HOMOLOGADO EM 13/10/2026** no escopo da Loja Barra. O quadro foi substituído, preservando o Vale-Troca integrado à Venda/Devolução. A descrição abaixo permanece como registro da decisão original.
 
 Diretriz:
 
