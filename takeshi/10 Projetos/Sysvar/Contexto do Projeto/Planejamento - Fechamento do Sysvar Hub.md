@@ -242,7 +242,7 @@ A investigação deve responder:
 
 ## Prompt 4 — Cashback: correção da lacuna encontrada
 
-Status: CONDICIONAL
+Status histórico: CONDICIONAL — investigação realizada e lacunas implementadas em prompts menores. Ver registro de execução de 13/10/2026 abaixo.
 
 Raciocínio recomendado: **Alto**
 
@@ -266,6 +266,35 @@ Se nenhuma lacuna for encontrada:
 - não enviar Prompt 4;
 - seguir diretamente para homologação do Cashback;
 - atualizar documentação após aprovação.
+
+---
+
+## Registro de execução — Cashback — 13/10/2026
+
+**Situação:** implementação de integração revisada em código; a homologação funcional integrada não foi executada. A revisão do Prompt 6A identificou dependência entre o valor do Vale-Troca provisório do Hub e o valor líquido consolidado na Central.
+
+### Implementações verificadas
+
+- Hub Backend: Cashback dedicado e separação LOCAL/offline versus CENTRAL/online; reserva oficial, vínculo por operação e sincronização. HEAD `fc8a8b2ad25cc8a2870708ce1c5e2ae2401ff694`.
+- Hub Frontend: opções LOCAL e CENTRAL distintas e proteção contra consulta de saldo antiga; HEAD `0e2d82a09c6b81180098eb2e9a4bb90d7bf463cf`.
+- Central Backend: cálculo da geração para vendas Hub, reserva oficial de Cashback, bloqueio de saldo, consumo transacional, idempotência e compatibilidade com Cashback offline. HEAD `82bd6ab824851b7be2a50698d8a37064fdbdcacc`.
+- Prompt 6A da Central: restituição proporcional do Cashback utilizado durante a devolução, abatimento no Vale-Troca e vínculo do estorno à devolução; migration `financeiro/0037_cashbackmovimento_devolucao.py`; sete testes direcionados relatados como OK; commit `82bd6ab824851b7be2a50698d8a37064fdbdcacc`.
+- Opção A aprovada pelo usuário: em devolução de R$ 100,00 de venda paga com R$ 30,00 em Cashback e R$ 70,00 em PIX, restituir R$ 30,00 ao Cashback e emitir Vale-Troca de R$ 70,00. Ajustar proporcionalmente em devoluções parciais.
+
+### Pendências técnicas e de homologação
+
+1. **Prioridade na retomada:** o Hub cria Vale-Troca provisório pelo valor bruto da devolução, mas a Central agora pode emitir Vale-Troca líquido (ou nenhum Vale se todo o valor for Cashback). Em `core/services/sync.py:_canonicalizar_devolucao_confirmada`, o Hub altera identificação e status do Vale sem reconciliar `valor_original`/`saldo` ou retirar o provisório quando não existir Vale oficial. Analisar e corrigir em tarefa pequena do Hub Backend antes de homologar devolução com Cashback, preservando as regras offline já aprovadas e o histórico de consumo.
+2. Prompt 6B **não iniciado**: estornar proporcionalmente o Cashback **gerado** por itens devolvidos, evitando duplicação, respeitando usos posteriores do saldo e devoluções acumuladas.
+3. Prompt 7 **não iniciado**: completar o lado Hub de devolução/estorno do Cashback e a reconciliação, observando a dependência do item 1.
+4. Homologação operacional na Loja Barra pendente: Cashback LOCAL offline, CENTRAL com reserva, venda mista, devolução parcial/integral, reconexão e ausência de créditos duplicados. Não afirmar homologação somente pelos testes automatizados.
+5. Recebimento de Loja permanece homologado. Investigar separadamente o atraso observado para novas entregas aparecerem automaticamente no Hub após autorização na Central.
+
+### Pausa e retomada
+
+**Ponto de parada em 13/10/2026:** Prompt 6A implementado e commit conferido; pendência de conciliação do Vale-Troca detectada durante a revisão. Não iniciar Prompt 6B/7 ou testes de devolução com Cashback até definir a correção dessa divergência. Retomar em 14/10/2026 pela análise dessa dependência, depois Prompt 6B, Prompt 7 e homologação integrada. Não abrir novas implementações na noite de 13/10/2026.
+
+**Conferência de repositórios:** os cinco `main` remotos foram consultados. Os commits de Cashback nos três repositórios de código envolvidos não modificaram documentação. A situação das cópias locais somente pode ser confirmada com `git fetch`, `git status` e comparação de HEAD/origin/main no computador do usuário; não presumir igualdade local sem executar a conferência.
+
 
 ---
 
@@ -558,9 +587,12 @@ HUB FUNCIONALMENTE FECHADO
 | Prompt 1 — Central / contrato Recebimento | IMPLEMENTADO — HOMOLOGADO ONLINE E OFFLINE |
 | Prompt 2 — Hub Backend / Recebimento | IMPLEMENTADO — HOMOLOGADO ONLINE E OFFLINE |
 | Prompt 3 — Hub Frontend / Recebimento | IMPLEMENTADO — HOMOLOGADO ONLINE E OFFLINE |
-| Investigação Cashback | PENDENTE |
-| Prompt 4 — Cashback | CONDICIONAL |
-| Homologação Cashback | PENDENTE |
+| Investigação Cashback | CONCLUÍDA — lacunas confirmadas em 13/10/2026 |
+| Prompt 4 — Cashback | IMPLEMENTADO EM PARTES; Central e Hub integrados, ainda sem homologação funcional |
+| Prompt 6A — restituição do Cashback utilizado (Central) | IMPLEMENTADO — COM DEPENDÊNCIA DE RECONCILIAÇÃO NO HUB |
+| Prompt 6B — estorno do Cashback gerado | PENDENTE |
+| Prompt 7 — reconciliação de devolução/Cashback no Hub | PENDENTE |
+| Homologação Cashback | PENDENTE — requer correção do vale provisório / Central |
 | Investigação Promoções | PENDENTE |
 | Prompt 5 — Promoções | CONDICIONAL |
 | Homologação Promoções | PENDENTE |
