@@ -18,6 +18,28 @@ tags:
 
 # Atualizacao do Sysvar no Viper-II
 
+# ATUALIZACAO AUTOMATIZADA (OPCIONAL)
+
+Scripts versionados no cofre:
+- `scripts/sysvar-central/atualizar-central.ps1` (executado no Windows).
+- `scripts/sysvar-central/deploy-viper-ii.sh` (auxiliar enviado por SSH).
+
+No PowerShell do notebook, com o cofre local atualizado:
+
+```powershell
+& "C:\Takeshi\scripts\sysvar-central\atualizar-central.ps1"
+```
+
+Apenas apos a verificacao ser aprovada e na janela de manutencao:
+
+```powershell
+& "C:\Takeshi\scripts\sysvar-central\atualizar-central.ps1" -Aplicar
+```
+
+O script usa `192.168.1.135`, confere os Git locais, compila o Angular, atualiza o Backend Git no Ubuntu, cria as imagens Docker, substitui apenas os dois containers da Central e tenta restaurar imagens anteriores se o deploy falhar. Pode solicitar senha SSH mais de uma vez.
+
+**Nao executa migrations, nao recria banco e nao altera o container MySQL.** Recriacao da base permanece etapa final, separada e autorizada. Antes da primeira implantacao real, testar o modo de verificacao.
+
 # BACKEND
 
 ## NO NOTEBOOK DE DESENVOLVIMENTO - WINDOWS
