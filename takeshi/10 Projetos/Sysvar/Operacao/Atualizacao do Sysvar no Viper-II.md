@@ -4,7 +4,7 @@ status: active
 project: Sysvar
 category: operacao
 created: 2026-08-11
-updated: 2026-08-11
+updated: 2026-10-16
 tags:
   - sysvar
   - deploy
@@ -33,7 +33,7 @@ git push origin main
 ## ENTRAR NO VIPER-II
 
 ```powershell
-ssh fernando-murashima@192.168.15.80
+ssh fernando-murashima@192.168.1.135
 ```
 
 ## JÁ DENTRO DO VIPER-II
@@ -72,11 +72,11 @@ cd C:\SysvarProjeto\Frontend\sysvar
 
 ng build
 
-ssh fernando-murashima@192.168.15.80 "rm -rf /srv/projects/sysvar/frontend/assets /srv/projects/sysvar/frontend/index.html /srv/projects/sysvar/frontend/main-*.js /srv/projects/sysvar/frontend/polyfills-*.js /srv/projects/sysvar/frontend/styles-*.css /srv/projects/sysvar/frontend/favicon.ico"
+ssh fernando-murashima@192.168.1.135 "rm -rf /srv/projects/sysvar/frontend/assets /srv/projects/sysvar/frontend/index.html /srv/projects/sysvar/frontend/main-*.js /srv/projects/sysvar/frontend/polyfills-*.js /srv/projects/sysvar/frontend/styles-*.css /srv/projects/sysvar/frontend/favicon.ico"
 
-scp -r C:\SysvarProjeto\Frontend\sysvar\dist\sysvar\browser\* fernando-murashima@192.168.15.80:/srv/projects/sysvar/frontend/
+scp -r C:\SysvarProjeto\Frontend\sysvar\dist\sysvar\browser\* fernando-murashima@192.168.1.135:/srv/projects/sysvar/frontend/
 
-ssh fernando-murashima@192.168.15.80
+ssh fernando-murashima@192.168.1.135
 ```
 
 ## JÁ DENTRO DO VIPER-II
@@ -179,7 +179,7 @@ Servidor:
 Viper-II
 
 IP:
-192.168.15.80
+192.168.1.135
 
 Backend:
  /srv/projects/sysvar/backend
