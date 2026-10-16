@@ -4,7 +4,7 @@ status: active
 project: Bolao2026
 category: operacao
 created: 2026-08-10
-updated: 2026-08-10
+updated: 2026-10-16
 tags:
   - bolao2026
   - operacao
@@ -70,7 +70,7 @@ Viper-II
 IP local:
 
 ```text
-192.168.15.80
+192.168.1.135
 ```
 
 Usuário:
@@ -129,21 +129,21 @@ ng build
 # LIMPAR BUILD ANTIGO NO VIPER-II
 # ============================================================
 
-ssh fernando-murashima@192.168.15.80 "rm -rf /srv/projects/copa/frontend/browser/*"
+ssh fernando-murashima@192.168.1.135 "rm -rf /srv/projects/copa/frontend/browser/*"
 
 
 # ============================================================
 # COPIAR NOVO BUILD PARA O VIPER-II
 # ============================================================
 
-scp -r C:\bolao2026\frontend\dist\bolao2026\browser\* fernando-murashima@192.168.15.80:/srv/projects/copa/frontend/browser/
+scp -r C:\bolao2026\frontend\dist\bolao2026\browser\* fernando-murashima@192.168.1.135:/srv/projects/copa/frontend/browser/
 
 
 # ============================================================
 # ENTRAR NO SERVIDOR VIPER-II
 # ============================================================
 
-ssh fernando-murashima@192.168.15.80
+ssh fernando-murashima@192.168.1.135
 
 
 # ============================================================
@@ -224,7 +224,7 @@ A estrutura pode variar conforme a versão do Angular.
 Antes de copiar o novo build:
 
 ```powershell
-ssh fernando-murashima@192.168.15.80 "rm -rf /srv/projects/copa/frontend/browser/*"
+ssh fernando-murashima@192.168.1.135 "rm -rf /srv/projects/copa/frontend/browser/*"
 ```
 
 Esse comando remove somente os arquivos antigos do build Angular.
@@ -246,7 +246,7 @@ Nginx Proxy Manager
 # Copiar o novo build
 
 ```powershell
-scp -r C:\bolao2026\frontend\dist\bolao2026\browser\* fernando-murashima@192.168.15.80:/srv/projects/copa/frontend/browser/
+scp -r C:\bolao2026\frontend\dist\bolao2026\browser\* fernando-murashima@192.168.1.135:/srv/projects/copa/frontend/browser/
 ```
 
 O destino será:
@@ -281,7 +281,7 @@ Isso evita necessidade de manter Node.js e Angular CLI para build no servidor de
 # Entrar no Viper-II
 
 ```powershell
-ssh fernando-murashima@192.168.15.80
+ssh fernando-murashima@192.168.1.135
 ```
 
 ---
@@ -659,7 +659,7 @@ O diretório remoto pode ficar incompleto.
 Basta repetir:
 
 ```powershell
-scp -r C:\bolao2026\frontend\dist\bolao2026\browser\* fernando-murashima@192.168.15.80:/srv/projects/copa/frontend/browser/
+scp -r C:\bolao2026\frontend\dist\bolao2026\browser\* fernando-murashima@192.168.1.135:/srv/projects/copa/frontend/browser/
 ```
 
 e confirmar os arquivos antes de reconstruir a imagem.
@@ -952,11 +952,11 @@ cd C:\bolao2026\frontend
 
 ng build
 
-ssh fernando-murashima@192.168.15.80 "rm -rf /srv/projects/copa/frontend/browser/*"
+ssh fernando-murashima@192.168.1.135 "rm -rf /srv/projects/copa/frontend/browser/*"
 
-scp -r C:\bolao2026\frontend\dist\bolao2026\browser\* fernando-murashima@192.168.15.80:/srv/projects/copa/frontend/browser/
+scp -r C:\bolao2026\frontend\dist\bolao2026\browser\* fernando-murashima@192.168.1.135:/srv/projects/copa/frontend/browser/
 
-ssh fernando-murashima@192.168.15.80
+ssh fernando-murashima@192.168.1.135
 ```
 
 Depois, no Viper-II:
