@@ -4,7 +4,7 @@ status: active
 project: Bolao2026
 category: infraestrutura
 created: 2026-08-10
-updated: 2026-08-10
+updated: 2026-10-16
 tags:
   - bolao2026
   - infraestrutura
@@ -33,7 +33,7 @@ fernando-murashima
 IP local:
 
 ```text
-192.168.15.80
+192.168.1.135
 ```
 
 Sistema operacional:
@@ -279,7 +279,7 @@ Portas publicadas no host:
 Interface administrativa:
 
 ```text
-http://192.168.15.80:81
+http://192.168.1.135:81
 ```
 
 O Nginx Proxy Manager recebe o tráfego entregue pelo Cloudflare Tunnel.
@@ -310,7 +310,7 @@ portainer
 Interface:
 
 ```text
-https://192.168.15.80:9443
+https://192.168.1.135:9443
 ```
 
 O Portainer permite administração visual dos containers, volumes, redes e imagens Docker.
@@ -765,7 +765,7 @@ docker logs bolao-backend --tail 50
 ```text
 Servidor: Viper-II
 Usuário: fernando-murashima
-IP local: 192.168.15.80
+IP local: 192.168.1.135
 Sistema: Ubuntu 26.04 LTS
 Docker: 29.7.2
 Docker Compose: v5.4.0
