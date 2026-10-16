@@ -4,7 +4,7 @@ status: active
 project: Bolao2026
 source: C:/bolao2026
 created: 2026-08-10
-updated: 2026-08-10
+updated: 2026-10-16
 tags:
   - projeto
   - bolao2026
@@ -49,7 +49,7 @@ O Bolao2026 foi migrado da VPS da KingHost para o notebook servidor:
 
 **Servidor:** `Viper-II`  
 **Usuário:** `fernando-murashima`  
-**IP local:** `192.168.15.80`
+**IP local:** `192.168.1.135`
 
 Diretórios principais da aplicação:
 
@@ -769,7 +769,7 @@ contendo o projeto da aplicação.
 Como a KingHost não conseguia acessar diretamente o IP privado:
 
 ```text
-192.168.15.80
+192.168.1.135
 ```
 
 a transferência foi realizada no sentido inverso.
@@ -1220,7 +1220,7 @@ O sistema está atualmente hospedado no:
 
 ```text
 Viper-II
-192.168.15.80
+192.168.1.135
 ```
 
 Fluxo final:
@@ -1352,7 +1352,7 @@ git push origin main
 # ENTRAR NO SERVIDOR VIPER-II
 # ============================================================
 
-ssh fernando-murashima@192.168.15.80
+ssh fernando-murashima@192.168.1.135
 
 
 # ============================================================
@@ -1426,21 +1426,21 @@ ng build
 # LIMPAR BUILD ANTIGO NO VIPER-II
 # ============================================================
 
-ssh fernando-murashima@192.168.15.80 "rm -rf /srv/projects/copa/frontend/browser/*"
+ssh fernando-murashima@192.168.1.135 "rm -rf /srv/projects/copa/frontend/browser/*"
 
 
 # ============================================================
 # COPIAR NOVO BUILD PARA O VIPER-II
 # ============================================================
 
-scp -r C:\bolao2026\frontend\dist\bolao2026\browser\* fernando-murashima@192.168.15.80:/srv/projects/copa/frontend/browser/
+scp -r C:\bolao2026\frontend\dist\bolao2026\browser\* fernando-murashima@192.168.1.135:/srv/projects/copa/frontend/browser/
 
 
 # ============================================================
 # ENTRAR NO SERVIDOR VIPER-II
 # ============================================================
 
-ssh fernando-murashima@192.168.15.80
+ssh fernando-murashima@192.168.1.135
 
 
 # ============================================================
@@ -1812,7 +1812,7 @@ Estado final:
 ```text
 Bolao2026
 Produção: Viper-II
-IP local: 192.168.15.80
+IP local: 192.168.1.135
 Domínio: fernandomurashima.com.br
 Backend: bolao-backend
 Frontend: bolao-frontend
