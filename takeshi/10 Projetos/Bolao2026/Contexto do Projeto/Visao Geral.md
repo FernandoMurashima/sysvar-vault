@@ -4,7 +4,7 @@ status: active
 project: Bolao2026
 category: contexto
 created: 2026-08-10
-updated: 2026-08-10
+updated: 2026-10-16
 tags:
   - bolao2026
   - contexto
@@ -161,7 +161,7 @@ fernando-murashima
 IP local:
 
 ```text
-192.168.15.80
+192.168.1.135
 ```
 
 Sistema operacional:
@@ -504,7 +504,7 @@ Possibilidade de rollback
 Projeto: Bolao2026
 Status: Produção
 Servidor: Viper-II
-IP local: 192.168.15.80
+IP local: 192.168.1.135
 Backend: bolao-backend
 Frontend: bolao-frontend
 Banco: bolao2026
