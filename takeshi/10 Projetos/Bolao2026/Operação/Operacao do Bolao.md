@@ -4,7 +4,7 @@ status: active
 project: Bolao2026
 category: operacao
 created: 2026-08-10
-updated: 2026-08-10
+updated: 2026-10-16
 tags:
   - bolao2026
   - operacao
@@ -53,7 +53,7 @@ fernando-murashima
 IP local:
 
 ```text
-192.168.15.80
+192.168.1.135
 ```
 
 Projeto:
@@ -128,7 +128,7 @@ MySQL
 A partir de outro computador da rede local:
 
 ```powershell
-ssh fernando-murashima@192.168.15.80
+ssh fernando-murashima@192.168.1.135
 ```
 
 Depois de entrar, os comandos desta nota podem ser executados diretamente no Viper-II.
@@ -880,7 +880,7 @@ rayne.ns.cloudflare.com
 Na rede local:
 
 ```text
-http://192.168.15.80:81
+http://192.168.1.135:81
 ```
 
 Proxy Host esperado:
@@ -897,7 +897,7 @@ bolao-frontend:80
 # Acesso ao Portainer
 
 ```text
-https://192.168.15.80:9443
+https://192.168.1.135:9443
 ```
 
 O Portainer pode ser usado para visualizar:
@@ -1059,7 +1059,7 @@ Após retornar:
 
 ```text
 1. confirmar conexão de rede
-2. confirmar IP local 192.168.15.80
+2. confirmar IP local 192.168.1.135
 3. docker ps
 4. verificar cloudflared
 5. testar domínio
@@ -1323,7 +1323,7 @@ Servidor:
 Viper-II
 
 IP:
-192.168.15.80
+192.168.1.135
 
 Backend:
 bolao-backend
