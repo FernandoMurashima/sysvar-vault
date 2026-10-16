@@ -4,7 +4,7 @@ status: active
 project: Bolao2026
 category: infraestrutura
 created: 2026-08-10
-updated: 2026-08-10
+updated: 2026-10-16
 tags:
   - bolao2026
   - infraestrutura
@@ -50,7 +50,7 @@ Viper-II
 IP local:
 
 ```text
-192.168.15.80
+192.168.1.135
 ```
 
 Container:
@@ -98,7 +98,7 @@ Funções:
 A interface administrativa pode ser acessada pela rede local:
 
 ```text
-http://192.168.15.80:81
+http://192.168.1.135:81
 ```
 
 O acesso exige autenticação administrativa.
@@ -989,7 +989,7 @@ Portas:
 443
 
 Painel:
-http://192.168.15.80:81
+http://192.168.1.135:81
 
 Bolao2026:
 fernandomurashima.com.br
