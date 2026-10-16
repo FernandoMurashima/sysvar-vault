@@ -4,7 +4,7 @@ status: active
 project: Bolao2026
 category: infraestrutura
 created: 2026-08-10
-updated: 2026-08-10
+updated: 2026-10-16
 tags:
   - bolao2026
   - infraestrutura
@@ -286,7 +286,7 @@ Interface administrativa
 Interface:
 
 ```text
-http://192.168.15.80:81
+http://192.168.1.135:81
 ```
 
 ---
@@ -340,7 +340,7 @@ portainer/portainer-ce:latest
 Interface:
 
 ```text
-https://192.168.15.80:9443
+https://192.168.1.135:9443
 ```
 
 O Portainer permite administração visual de:
