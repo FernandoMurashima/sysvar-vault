@@ -4,7 +4,7 @@ status: active
 project: Bolao2026
 category: operacao
 created: 2026-08-10
-updated: 2026-08-10
+updated: 2026-10-16
 tags:
   - bolao2026
   - operacao
@@ -64,7 +64,7 @@ Viper-II
 IP local:
 
 ```text
-192.168.15.80
+192.168.1.135
 ```
 
 Usuário:
@@ -121,7 +121,7 @@ git push origin main
 # ENTRAR NO SERVIDOR VIPER-II
 # ============================================================
 
-ssh fernando-murashima@192.168.15.80
+ssh fernando-murashima@192.168.1.135
 
 
 # ============================================================
@@ -198,7 +198,7 @@ A partir desse momento, a versão nova está disponível no repositório.
 # Entrar no servidor
 
 ```powershell
-ssh fernando-murashima@192.168.15.80
+ssh fernando-murashima@192.168.1.135
 ```
 
 ---
@@ -807,7 +807,7 @@ git add .
 git commit -m "Atualiza backend Bolao"
 git push origin main
 
-ssh fernando-murashima@192.168.15.80
+ssh fernando-murashima@192.168.1.135
 ```
 
 Depois, no Viper-II:
