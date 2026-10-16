@@ -36,6 +36,29 @@ Se não puder abrir fonte vigente, dizer qual está indisponível; não inventar
 - `backend/.env` do Ubuntu: conservar no local, sem ler, exibir, enviar, substituir ou versionar seus segredos.
 - Nunca copiar o diretório do projeto Angular inteiro para `/srv/projects/sysvar/frontend`; copiar apenas o conteúdo de `dist/sysvar/browser`.
 
+## Atualização automatizada — opcional, quando solicitada
+
+Há dois scripts no `sysvar-vault`, em `scripts/sysvar-central/`:
+
+- `atualizar-central.ps1`: orquestrador PowerShell 7 executado no notebook Windows.
+- `deploy-viper-ii.sh`: rotina complementar Bash enviada ao Ubuntu via SCP pelo orquestrador.
+
+O usuário pode chamar a skill para **orientação manual** ou pedir **deploy com script automatizado**. No modo automatizado, **não** enviar comandos manuais que dupliquem partes já automatizadas.
+
+No PowerShell do notebook, depois de atualizar o cofre local:
+
+```powershell
+& "C:\Takeshi\scripts\sysvar-central\atualizar-central.ps1"
+```
+
+O comando acima é só **verificação**. Somente após aprovar o resultado, informar a opção de implantação, que exige confirmação explícita:
+
+```powershell
+& "C:\Takeshi\scripts\sysvar-central\atualizar-central.ps1" -Aplicar
+```
+
+O script não executa migrations nem opera em bases de dados; a reconstrução de `varejo_db` continua obrigatoriamente separada, ao final, com autorização específica. O script também pode solicitar senha SSH múltiplas vezes, até configurar autenticação por chave. Se qualquer verificação falhar, parar e diagnosticar, sem burlar bloqueios.
+
 ## Roteiro — comandos por etapa; não mostrar tudo de uma vez
 
 ### 0. Pré-checagens, sem mutação
