@@ -29,7 +29,7 @@ Se não puder abrir fonte vigente, dizer qual está indisponível; não inventar
 | Frontend Central | `C:\SysvarProjeto\Frontend\sysvar` (Git `sysvarfrontend/main`) | `/srv/projects/sysvar/frontend` (**arquivos compilados, sem Git**) | `sysvar-frontend`, imagem `sysvar-frontend:latest` |
 | Banco Central | — | MySQL no container `mysql`, base `varejo_db` no runbook | **preservar até ordem explícita de reconstrução** |
 
-- SSH: `fernando-murashima@192.168.15.80`, verificar se o IP ainda é válido.
+- SSH: `fernando-murashima@192.168.1.135` (IP atualizado conforme confirmação do operador em 2026-10-16).
 - Rede Docker: `infra`; política de restart `always`.
 - Domínio: `https://sysvar.com.br`; host interno HTTP `sysvar.com.br`.
 - Frontend de produção: compilado no **Windows** com `ng build`; saída `dist\sysvar\browser\*`, enviada por **SCP**, não por `git pull` no Ubuntu.
@@ -113,8 +113,8 @@ Se `ng` não estiver no PATH, confirmar as dependências e usar `npx.cmd ng buil
 O runbook oficial limpa apenas artefatos Angular conhecidos no destino e transfere o build. Antes da limpeza confirmar o caminho e se `/srv/projects/sysvar/frontend` é exclusivo do Sysvar. No PowerShell:
 
 ```powershell
-ssh fernando-murashima@192.168.15.80 "rm -rf /srv/projects/sysvar/frontend/assets /srv/projects/sysvar/frontend/index.html /srv/projects/sysvar/frontend/main-*.js /srv/projects/sysvar/frontend/polyfills-*.js /srv/projects/sysvar/frontend/styles-*.css /srv/projects/sysvar/frontend/favicon.ico"
-scp -r C:\SysvarProjeto\Frontend\sysvar\dist\sysvar\browser\* fernando-murashima@192.168.15.80:/srv/projects/sysvar/frontend/
+ssh fernando-murashima@192.168.1.135 "rm -rf /srv/projects/sysvar/frontend/assets /srv/projects/sysvar/frontend/index.html /srv/projects/sysvar/frontend/main-*.js /srv/projects/sysvar/frontend/polyfills-*.js /srv/projects/sysvar/frontend/styles-*.css /srv/projects/sysvar/frontend/favicon.ico"
+scp -r C:\SysvarProjeto\Frontend\sysvar\dist\sysvar\browser\* fernando-murashima@192.168.1.135:/srv/projects/sysvar/frontend/
 ```
 
 Confirmar sucesso do `scp` antes da reconstrução. Se nomes dos artefatos mudaram ou o destino contém material não previsto, interromper e revisar antes de apagar. Nunca usar `rm -rf /srv/projects/sysvar/frontend` nem apagar outros projetos.
